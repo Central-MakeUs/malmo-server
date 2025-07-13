@@ -52,4 +52,11 @@ public class LoveType {
                 .deletedAt(deletedAt)
                 .build();
     }
+
+    public void updateByAdmin(String title, String summary, String content, String imageUrl) {
+        this.title = title;
+        this.summary = summary;
+        this.content = content;
+        this.imageUrl = imageUrl;
+    }
 }

@@ -49,4 +49,11 @@ public class LoveTypeQuestion {
                 .deletedAt(deletedAt)
                 .build();
     }
+
+    public void updateByAdmin(String content, int questionNumber, boolean isReversed, LoveTypeQuestionType loveTypeQuestionType) {
+        this.content = content;
+        this.questionNumber = questionNumber;
+        this.isReversed = isReversed;
+        this.loveTypeQuestionType = loveTypeQuestionType;
+    }
 }

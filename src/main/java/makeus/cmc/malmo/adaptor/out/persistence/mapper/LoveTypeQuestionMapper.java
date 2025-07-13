@@ -20,4 +20,18 @@ public class LoveTypeQuestionMapper {
                 entity.getDeletedAt()
         );
     }
+
+    public LoveTypeQuestionEntity toEntity(LoveTypeQuestion domain) {
+        return LoveTypeQuestionEntity.builder()
+                .id(domain.getId())
+                .questionNumber(domain.getQuestionNumber())
+                .isReversed(domain.isReversed())
+                .content(domain.getContent())
+                .loveTypeQuestionType(domain.getLoveTypeQuestionType())
+                .weight(domain.getWeight())
+                .createdAt(domain.getCreatedAt())
+                .modifiedAt(domain.getModifiedAt())
+                .deletedAt(domain.getDeletedAt())
+                .build();
+    }
 }
