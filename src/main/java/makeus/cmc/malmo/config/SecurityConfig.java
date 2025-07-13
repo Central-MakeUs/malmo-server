@@ -7,6 +7,7 @@ import makeus.cmc.malmo.adaptor.in.web.security.JwtAuthenticationFilter;
 import makeus.cmc.malmo.adaptor.out.jwt.JwtAdaptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -35,6 +36,8 @@ public class SecurityConfig {
                         .requestMatchers("/login/**", "/refresh", "/test").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", 
                                         "/v3/api-docs/**", "/v3/api-docs", "/webjars/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/admin/**").permitAll()
+                        .requestMatchers("/admin/login").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling

@@ -38,10 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = validateTokenPort.getMemberRoleFromToken(token);
 
                 if (userId != null && role != null) {
+                    String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
                     UserDetails userDetails = User.builder()
                             .username(userId)
                             .password("")
-                            .authorities(role)
+                            .authorities(authority)
                             .build();
 
                     UsernamePasswordAuthenticationToken authentication =
