@@ -37,4 +37,14 @@ public class Terms {
                 .deletedAt(deletedAt)
                 .build();
     }
+
+    public static Terms createTermsByAdmin(String title, String content, float version, boolean isRequired, TermsType termsType) {
+        return Terms.builder()
+                .title(title)
+                .content(content)
+                .version(version)
+                .isRequired(isRequired)
+                .termsType(termsType)
+                .build();
+    }
 }

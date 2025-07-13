@@ -16,6 +16,8 @@ public enum ErrorCode {
     NO_SUCH_LOVE_TYPE(HttpStatus.BAD_REQUEST, 40004, "애착 유형이 존재하지 않습니다."),
     NO_SUCH_LOVE_TYPE_QUESTION(HttpStatus.BAD_REQUEST, 40005, "애착 유형 질문이 존재하지 않습니다."),
     USED_COUPLE_CODE(HttpStatus.BAD_REQUEST, 40006, "이미 사용된 초대 코드입니다."),
+    TERMS_ALREADY_AGREED(HttpStatus.BAD_REQUEST, 40007, "이미 동의한 약관입니다."),
+    TERMS_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, 40008, "이미 존재하는 약관입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 40100, "인증되지 않은 사용자입니다."),
@@ -39,7 +41,6 @@ public enum ErrorCode {
 
     // 502 Bad Gateway
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, 50200, "외부 API 호출 중 오류가 발생했습니다.");
-
 
     private final HttpStatus httpStatus;
     private final int code;

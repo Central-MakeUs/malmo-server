@@ -3,19 +3,28 @@ package makeus.cmc.malmo.admin;
 import lombok.RequiredArgsConstructor;
 import makeus.cmc.malmo.adaptor.out.jwt.JwtAdaptor;
 import makeus.cmc.malmo.adaptor.out.jwt.TokenInfo;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.TermsEntityId;
 import makeus.cmc.malmo.adaptor.out.persistence.mapper.LoveTypeMapper;
 import makeus.cmc.malmo.adaptor.out.persistence.mapper.LoveTypeQuestionMapper;
 import makeus.cmc.malmo.adaptor.out.persistence.mapper.MemberMapper;
+import makeus.cmc.malmo.adaptor.out.persistence.mapper.TermsMapper;
 import makeus.cmc.malmo.adaptor.out.persistence.repository.LoveTypeQuestionRepository;
 import makeus.cmc.malmo.adaptor.out.persistence.repository.LoveTypeRepository;
+import makeus.cmc.malmo.adaptor.out.persistence.repository.MemberTermsAgreementRepository;
+import makeus.cmc.malmo.adaptor.out.persistence.repository.TermsRepository;
+import makeus.cmc.malmo.admin.exception.TermsAlreadyAgreedException;
+import makeus.cmc.malmo.admin.exception.TermsAlreadyExistsException;
 import makeus.cmc.malmo.domain.exception.LoveTypeNotFoundException;
 import makeus.cmc.malmo.domain.exception.LoveTypeQuestionNotFoundException;
 import makeus.cmc.malmo.domain.exception.MemberNotFoundException;
+import makeus.cmc.malmo.domain.exception.TermsNotFoundException;
 import makeus.cmc.malmo.domain.model.love_type.LoveType;
 import makeus.cmc.malmo.domain.model.love_type.LoveTypeQuestion;
 import makeus.cmc.malmo.domain.model.member.Member;
+import makeus.cmc.malmo.domain.model.terms.Terms;
 import makeus.cmc.malmo.domain.value.type.LoveTypeQuestionType;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.TermsType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +38,14 @@ public class AdminService {
     private final MemberAdminRepository memberRepository;
     private final LoveTypeRepository loveTypeRepository;
     private final LoveTypeQuestionRepository loveTypeQuestionRepository;
+    private final TermsRepository termsRepository;
+    private final MemberTermsAgreementRepository memberTermsAgreementRepository;
+
     private final MemberMapper memberMapper;
     private final LoveTypeMapper loveTypeMapper;
     private final LoveTypeQuestionMapper loveTypeQuestionMapper;
+    private final TermsMapper termsMapper;
+
     private final JwtAdaptor jwtAdaptor;
 
     public List<Member> getMembers() {
@@ -83,5 +97,41 @@ public class AdminService {
         loveTypeQuestionRepository.save(loveTypeQuestionMapper.toEntity(loveTypeQuestion));
         return loveTypeQuestion.getId();
     }
+
+    public List<Terms> getTerms() {
+        return termsRepository.findAll()
+                .stream()
+                .map(termsMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Long deleteTerms(Long termsId) {
+        boolean isAlreadyAgreed = memberTermsAgreementRepository.existsByTermsEntityId(TermsEntityId.of(termsId));
+        if (isAlreadyAgreed) {
+            throw new TermsAlreadyAgreedException("Cannot delete terms that have already been agreed to by members.");
+        }
+
+        termsRepository.deleteById(termsId);
+        return termsId;
+    }
+
+    @Transactional
+    public Long createTerms(String title, String content, float version, boolean isRequired, TermsType termsType) {
+        if (termsRepository.existsByTermsTypeAndVersion(termsType, version)) {
+            throw new TermsAlreadyExistsException("Terms with the same type and version already exist.");
+        }
+        Terms terms = Terms.createTermsByAdmin(
+                title,
+                content,
+                version,
+                isRequired,
+                termsType
+        );
+        termsRepository.save(termsMapper.toEntity(terms));
+        return terms.getId();
+    }
+
+
 }
 

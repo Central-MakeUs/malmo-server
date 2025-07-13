@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.adaptor.out.exception.SseConnectionException;
 import makeus.cmc.malmo.adaptor.out.oidc.exception.OidcIdTokenException;
 import makeus.cmc.malmo.adaptor.out.oidc.exception.RestApiException;
+import makeus.cmc.malmo.admin.exception.TermsAlreadyAgreedException;
+import makeus.cmc.malmo.admin.exception.TermsAlreadyExistsException;
 import makeus.cmc.malmo.application.exception.InvalidRefreshTokenException;
 import makeus.cmc.malmo.domain.exception.*;
 import org.hibernate.TypeMismatchException;
@@ -90,6 +92,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSseConnectionException(SseConnectionException e) {
         log.error("[GlobalExceptionHandler: handleSseConnectionException 호출]", e);
         return ErrorResponse.of(ErrorCode.SSE_CONNECTION_ERROR);
+    }
+
+    @ExceptionHandler({TermsAlreadyAgreedException.class})
+    public ResponseEntity<ErrorResponse> handleTermsAlreadyAgreedException(TermsAlreadyAgreedException e) {
+        log.error("[GlobalExceptionHandler: handleTermsAlreadyAgreedException 호출]", e);
+        return ErrorResponse.of(ErrorCode.TERMS_ALREADY_AGREED);
+    }
+
+    @ExceptionHandler({TermsAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponse> handleTermsAlreadyExistsException(TermsAlreadyExistsException e) {
+        log.error("[GlobalExceptionHandler: handleTermsAlreadyExistsException 호출]", e);
+        return ErrorResponse.of(ErrorCode.TERMS_ALREADY_EXISTS);
     }
 
 
