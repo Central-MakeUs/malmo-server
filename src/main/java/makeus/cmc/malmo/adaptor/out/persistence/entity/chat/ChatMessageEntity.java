@@ -29,8 +29,11 @@ public class ChatMessageEntity extends BaseTimeEntity {
 
     private String extractedText;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
     private SenderType senderType;
+
+    private boolean isSummarized;
 }

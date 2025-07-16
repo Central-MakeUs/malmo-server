@@ -22,26 +22,17 @@ public class SignUpService implements SignUpUseCase {
     private final MemberDomainService memberDomainService;
     private final SaveMemberPort saveMemberPort;
     private final TermsAgreementDomainService termsAgreementDomainService;
-    private final InviteCodeDomainService inviteCodeDomainService;
 
     @Override
     @Transactional
-    public SignUpResponse signUp(SignUpCommand command) {
+    public void signUp(SignUpCommand command) {
         Member member = memberDomainService.getMemberById(MemberId.of(command.getMemberId()));
         member.signUp(command.getNickname(), command.getLoveStartDate());
-
-        InviteCodeValue inviteCodeValue = inviteCodeDomainService.generateUniqueInviteCode();
-        member.updateInviteCode(inviteCodeValue);
-
         saveMemberPort.saveMember(member);
 
         List<TermsAgreementDomainService.TermAgreementInput> agreementInputs = command.getTerms().stream()
                 .map(term -> new TermsAgreementDomainService.TermAgreementInput(term.getTermsId(), term.getIsAgreed()))
                 .toList();
         termsAgreementDomainService.processAgreements(MemberId.of(member.getId()), agreementInputs);
-
-        return SignUpResponse.builder()
-                .coupleCode(inviteCodeValue.getValue())
-                .build();
     }
 }

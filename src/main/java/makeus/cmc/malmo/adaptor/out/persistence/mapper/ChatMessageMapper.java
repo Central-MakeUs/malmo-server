@@ -19,6 +19,7 @@ public class ChatMessageMapper {
                 entity.getExtractedText(),
                 entity.getContent(),
                 entity.getSenderType(),
+                entity.isSummarized(),
                 entity.getCreatedAt(),
                 entity.getModifiedAt(),
                 entity.getDeletedAt()
@@ -39,8 +40,10 @@ public class ChatMessageMapper {
                 .extractedText(domain.getExtractedText())
                 .content(domain.getContent())
                 .senderType(domain.getSenderType())
+                .isSummarized(domain.isSummarized())
                 .createdAt(domain.getCreatedAt())
                 .modifiedAt(domain.getModifiedAt())
+                .deletedAt(domain.getDeletedAt())
                 .build();
     }
 }

@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.member.MemberEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.mapper.MemberMapper;
 import makeus.cmc.malmo.adaptor.out.persistence.repository.MemberRepository;
-import makeus.cmc.malmo.application.port.out.LoadInviteCodePort;
-import makeus.cmc.malmo.application.port.out.LoadMemberPort;
-import makeus.cmc.malmo.application.port.out.LoadPartnerPort;
-import makeus.cmc.malmo.application.port.out.SaveMemberPort;
+import makeus.cmc.malmo.application.port.out.*;
 import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
@@ -18,7 +15,8 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class MemberPersistenceAdapter implements LoadMemberPort, SaveMemberPort, LoadPartnerPort, LoadInviteCodePort {
+public class MemberPersistenceAdapter implements
+        LoadMemberPort, SaveMemberPort, LoadPartnerPort, LoadInviteCodePort, LoadChatRoomMetadataPort {
 
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
@@ -62,5 +60,10 @@ public class MemberPersistenceAdapter implements LoadMemberPort, SaveMemberPort,
     public Optional<InviteCodeValue> loadInviteCodeByMemberId(MemberId memberId) {
         return memberRepository.findInviteCodeByMemberId(memberId.getValue())
                 .map(code -> InviteCodeValue.of(code.getValue()));
+    }
+
+    @Override
+    public Optional<ChatRoomMetadataDto> loadChatRoomMetadata(MemberId memberId) {
+        return memberRepository.loadChatRoomMetadata(memberId.getValue());
     }
 }

@@ -1,10 +1,9 @@
 package makeus.cmc.malmo.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import makeus.cmc.malmo.application.port.out.GenerateInviteCodePort;
-import makeus.cmc.malmo.application.port.out.LoadInviteCodePort;
-import makeus.cmc.malmo.application.port.out.LoadMemberPort;
-import makeus.cmc.malmo.application.port.out.ValidateInviteCodePort;
+import makeus.cmc.malmo.adaptor.in.exception.NotCoupleMemberException;
+import makeus.cmc.malmo.application.port.out.*;
+import makeus.cmc.malmo.domain.exception.AlreadyCoupledMemberException;
 import makeus.cmc.malmo.domain.exception.InviteCodeGenerateFailedException;
 import makeus.cmc.malmo.domain.exception.InviteCodeNotFoundException;
 import makeus.cmc.malmo.domain.exception.UsedInviteCodeException;
@@ -22,6 +21,7 @@ public class InviteCodeDomainService {
     private final LoadMemberPort loadMemberPort;
     private final LoadInviteCodePort loadInviteCodePort;
     private final ValidateInviteCodePort validateInviteCodePort;
+    private final ValidateMemberPort validateMemberPort;
 
     private final GenerateInviteCodePort generateInviteCodePort;
 
@@ -54,6 +54,14 @@ public class InviteCodeDomainService {
         boolean coupleMember = validateInviteCodePort.isAlreadyCoupleMemberByInviteCode(inviteCodeValue);
         if (coupleMember) {
             throw new UsedInviteCodeException("이미 사용된 커플 코드입니다. 다른 코드를 입력해주세요.");
+        }
+    }
+
+    public void validateMemberNotCoupled(MemberId memberId) {
+        boolean coupleMember = validateMemberPort.isCoupleMember(memberId);
+
+        if (coupleMember) {
+            throw new AlreadyCoupledMemberException("이미 커플로 등록된 사용자입니다. 커플 등록을 해제 후 이용해주세요.");
         }
     }
 

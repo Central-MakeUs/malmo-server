@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.BaseTimeEntity;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
 
 @Getter
 @SuperBuilder
@@ -18,9 +19,8 @@ public class MemberMemoryEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private MemberEntity member;
+    @Embedded
+    private MemberEntityId memberEntityId;
 
     private String content;
 }

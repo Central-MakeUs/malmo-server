@@ -22,4 +22,8 @@ public class BaseResponse<T> {
     public static <T> BaseResponse<T> success(String message, T data) {
         return new BaseResponse<>(MDC.get("request_id"), true, message, data);
     }
+
+    public static <T> BaseResponse<T> success() {
+        return new BaseResponse<>(MDC.get("request_id"), true, "요청이 성공적으로 처리되었습니다.", null);
+    }
 }

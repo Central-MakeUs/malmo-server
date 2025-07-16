@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface SignUpUseCase {
 
-    SignUpResponse signUp(SignUpCommand command);
+    void signUp(SignUpCommand command);
 
     @Data
     @Builder
@@ -24,11 +24,5 @@ public interface SignUpUseCase {
     class TermsCommand {
         private Long termsId;
         private Boolean isAgreed;
-    }
-
-    @Data
-    @Builder
-    class SignUpResponse {
-        private String coupleCode;
     }
 }

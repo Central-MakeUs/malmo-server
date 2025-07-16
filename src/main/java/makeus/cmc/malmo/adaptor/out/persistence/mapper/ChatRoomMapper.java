@@ -16,6 +16,8 @@ public class ChatRoomMapper {
                 entity.getId(),
                 entity.getMemberEntityId() != null ? MemberId.of(entity.getMemberEntityId().getValue()) : null,
                 entity.getChatRoomState(),
+                entity.isCurrentPromptForMetadata(),
+                entity.getLevel(),
                 entity.getCreatedAt(),
                 entity.getModifiedAt(),
                 entity.getDeletedAt()
@@ -31,6 +33,8 @@ public class ChatRoomMapper {
                 .id(domain.getId())
                 .memberEntityId(domain.getMemberId() != null ? MemberEntityId.of(domain.getMemberId().getValue()) : null)
                 .chatRoomState(domain.getChatRoomState())
+                .isCurrentPromptForMetadata(domain.isCurrentPromptForMetadata())
+                .level(domain.getLevel())
                 .createdAt(domain.getCreatedAt())
                 .modifiedAt(domain.getModifiedAt())
                 .deletedAt(domain.getDeletedAt())

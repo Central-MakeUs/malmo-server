@@ -53,7 +53,7 @@ public class SwaggerResponses {
     // 회원가입 관련 응답
     @Getter
     @Schema(description = "회원가입 성공 응답")
-    public static class SignUpSuccessResponse extends BaseSwaggerResponse<SignUpData> {
+    public static class SignUpSuccessResponse extends BaseSwaggerResponse {
     }
 
     // 멤버 관련 응답
@@ -180,13 +180,6 @@ public class SwaggerResponses {
 
         @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
         private String refreshToken;
-    }
-
-    @Getter
-    @Schema(description = "회원가입 응답 데이터")
-    public static class SignUpData {
-        @Schema(description = "생성된 커플 코드", example = "ABC12345")
-        private String coupleCode;
     }
 
     @Getter

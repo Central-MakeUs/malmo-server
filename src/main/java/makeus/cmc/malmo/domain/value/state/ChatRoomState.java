@@ -1,5 +1,5 @@
 package makeus.cmc.malmo.domain.value.state;
 
 public enum ChatRoomState {
-    ALIVE, COMPLETED, DELETED
+    ALIVE, PAUSED, NEED_NEXT_QUESTION, COMPLETED, DELETED
 }

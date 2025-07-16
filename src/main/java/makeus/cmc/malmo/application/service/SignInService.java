@@ -5,6 +5,8 @@ import makeus.cmc.malmo.adaptor.out.jwt.TokenInfo;
 import makeus.cmc.malmo.application.port.in.SignInUseCase;
 import makeus.cmc.malmo.application.port.out.*;
 import makeus.cmc.malmo.domain.model.member.Member;
+import makeus.cmc.malmo.domain.service.InviteCodeDomainService;
+import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.service.MemberDomainService;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SignInService implements SignInUseCase {
 
     private final MemberDomainService memberDomainService;
+    private final InviteCodeDomainService inviteCodeDomainService;
     private final LoadMemberPort loadMemberPort;
     private final SaveMemberPort saveMemberPort;
     private final GenerateTokenPort generateTokenPort;
@@ -36,10 +39,10 @@ public class SignInService implements SignInUseCase {
                 .orElseGet(() -> {
                     // 이메일 정보 가져오기
                     String email = fetchFromOAuthProviderPort.fetchMemberEmailFromKakao(command.getAccessToken());
-                    Member newMember = memberDomainService.createMember(Provider.KAKAO, providerId, email);
+                    InviteCodeValue inviteCodeValue = inviteCodeDomainService.generateUniqueInviteCode();
+                    Member newMember = memberDomainService.createMember(Provider.KAKAO, providerId, email, inviteCodeValue);
                     return saveMemberPort.saveMember(newMember);
                 });
-
 
         // 4. JWT 토큰 발급
         TokenInfo tokenInfo = generateTokenPort.generateToken(member.getId(), member.getMemberRole());
@@ -68,10 +71,10 @@ public class SignInService implements SignInUseCase {
                 .orElseGet(() -> {
                     // 이메일 정보 가져오기
                     String email = appleIdTokenPort.extractEmailFromIdToken(command.getIdToken());
-                    Member newMember = memberDomainService.createMember(Provider.APPLE, providerId, email);
+                    InviteCodeValue inviteCodeValue = inviteCodeDomainService.generateUniqueInviteCode();
+                    Member newMember = memberDomainService.createMember(Provider.APPLE, providerId, email, inviteCodeValue);
                     return saveMemberPort.saveMember(newMember);
                 });
-
 
         // 4. JWT 토큰 발급
         TokenInfo tokenInfo = generateTokenPort.generateToken(member.getId(), member.getMemberRole());

@@ -25,4 +25,10 @@ public class ChatRoomEntity extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private ChatRoomState chatRoomState;
+
+    private boolean isCurrentPromptForMetadata;
+
+    private int level;
+
+    // TODO : LastMessageSentTime 필요
 }

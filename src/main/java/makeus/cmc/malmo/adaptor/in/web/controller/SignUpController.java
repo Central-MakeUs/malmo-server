@@ -43,7 +43,7 @@ public class SignUpController {
     @ApiCommonResponses.RequireAuth
     @ApiCommonResponses.SignUp
     @PostMapping("/members/onboarding")
-    public BaseResponse<SignUpUseCase.SignUpResponse> signUp(
+    public BaseResponse signUp(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody SignUpRequestDto requestDto
     ) {
@@ -61,7 +61,9 @@ public class SignUpController {
                 .loveStartDate(requestDto.getLoveStartDate())
                 .build();
 
-        return BaseResponse.success(signUpUseCase.signUp(command));
+        signUpUseCase.signUp(command);
+
+        return BaseResponse.success();
     }
 
     @Data

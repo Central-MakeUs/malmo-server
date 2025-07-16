@@ -19,7 +19,9 @@ public interface SendSseEventPort {
     enum SseEventType {
         COUPLE_CONNECTED("couple_connected"),
         CHAT_RESPONSE("chat_response"),
-        AI_RESPONSE_ID("ai_response_id");
+        AI_RESPONSE_ID("ai_response_id"),
+        CHAT_ROOM_PAUSED("chat_room_paused"),
+        CURRENT_LEVEL_FINISHED("current_level_finished");
 
         private final String eventName;
     }

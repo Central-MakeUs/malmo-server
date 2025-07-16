@@ -88,6 +88,12 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.USED_COUPLE_CODE);
     }
 
+    @ExceptionHandler({AlreadyCoupledMemberException.class})
+    public ResponseEntity<ErrorResponse> handleAlreadyCoupledMemberException(AlreadyCoupledMemberException e) {
+        log.error("[GlobalExceptionHandler: handleAlreadyCoupledMemberException 호출]", e);
+        return ErrorResponse.of(ErrorCode.ALREADY_COUPLED_MEMBER);
+    }
+
     @ExceptionHandler({SseConnectionException.class})
     public ResponseEntity<ErrorResponse> handleSseConnectionException(SseConnectionException e) {
         log.error("[GlobalExceptionHandler: handleSseConnectionException 호출]", e);

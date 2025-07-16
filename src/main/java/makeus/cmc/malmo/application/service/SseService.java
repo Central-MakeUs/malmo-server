@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SseService implements ConnectSseUseCase {
 

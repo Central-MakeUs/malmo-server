@@ -18,6 +18,7 @@ public class ChatMessage {
     private String extractedText;
     private String content;
     private SenderType senderType;
+    private boolean isSummarized;
 
     // BaseTimeEntity fields
     private LocalDateTime createdAt;
@@ -32,6 +33,7 @@ public class ChatMessage {
                 .extractedText(null)
                 .content(content)
                 .senderType(SenderType.USER)
+                .isSummarized(false)
                 .build();
     }
 
@@ -43,10 +45,11 @@ public class ChatMessage {
                 .extractedText(null)
                 .content(content)
                 .senderType(SenderType.ASSISTANT)
+                .isSummarized(false)
                 .build();
     }
 
-    public static ChatMessage from(Long id, ChatRoomId chatRoomId, boolean isImage, String imageUrl, String extractedText, String content, SenderType senderType, LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
+    public static ChatMessage from(Long id, ChatRoomId chatRoomId, boolean isImage, String imageUrl, String extractedText, String content, SenderType senderType, boolean isSummarized, LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
         return ChatMessage.builder()
                 .id(id)
                 .chatRoomId(chatRoomId)
@@ -55,6 +58,7 @@ public class ChatMessage {
                 .extractedText(extractedText)
                 .content(content)
                 .senderType(senderType)
+                .isSummarized(isSummarized)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
                 .deletedAt(deletedAt)

@@ -36,13 +36,15 @@ public class Member {
     private LocalDateTime modifiedAt;
     private LocalDateTime deletedAt;
 
-    public static Member createMember(Provider provider, String providerId, MemberRole memberRole, MemberState memberState, String email) {
+    
+    public static Member createMember(Provider provider, String providerId, MemberRole memberRole, MemberState memberState, String email, InviteCodeValue inviteCode) {
         return Member.builder()
                 .provider(provider)
                 .providerId(providerId)
                 .memberRole(memberRole)
                 .memberState(memberState)
                 .email(email)
+                .inviteCode(inviteCode)
                 .build();
     }
 
@@ -93,10 +95,6 @@ public class Member {
         this.nickname = nickname;
         this.startLoveDate = startLoveDate;
         this.memberState = MemberState.ALIVE;
-    }
-
-    public void updateInviteCode(InviteCodeValue inviteCode) {
-        this.inviteCode = inviteCode;
     }
 
     public void updateMemberProfile(String nickname, String email) {

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.BaseTimeEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.member.MemberEntity;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.ChatMessageEntityId;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
 import makeus.cmc.malmo.domain.value.state.SavedChatMessageState;
 
 @Getter
@@ -20,13 +22,11 @@ public class SavedChatMessageEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "chat_message_id")
-    private ChatMessageEntity chatMessage;
+    @Embedded
+    private ChatMessageEntityId chatMessageEntityId;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private MemberEntity member;
+    @Embedded
+    private MemberEntityId memberEntityId;
 
     @Enumerated(EnumType.STRING)
     private SavedChatMessageState savedChatMessageState;
