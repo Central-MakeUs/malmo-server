@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import makeus.cmc.malmo.adaptor.in.web.docs.ApiCommonResponses;
 import makeus.cmc.malmo.adaptor.in.web.docs.SwaggerResponses;
@@ -72,7 +73,7 @@ public class ChatController {
     @PostMapping("/send")
     public BaseResponse<SendChatMessageUseCase.SendChatMessageResponse> sendChatMessage(
             @AuthenticationPrincipal User user,
-            @Valid ChatRequest request) {
+            @Valid @RequestBody ChatRequest request) {
         SendChatMessageUseCase.SendChatMessageResponse sendChatMessageResponse = sendChatMessageUseCase.processUserMessage(
                 SendChatMessageUseCase.SendChatMessageCommand.builder()
                         .userId(Long.valueOf(user.getUsername()))
@@ -95,6 +96,7 @@ public class ChatController {
 
     @Getter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class ChatRequest {
         @NotBlank(message = "메시지는 비어있을 수 없습니다.")
         private String message;
