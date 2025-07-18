@@ -30,7 +30,6 @@ public class ChatStreamProcessor {
     private final ChatRoomDomainService chatRoomDomainService;
     private final MemberMemoryDomainService memberMemoryDomainService;
     private final SendSseEventPort sendSseEventPort;
-    private final LoadPromptPort loadPromptPort;
     private final SaveChatMessageSummaryPort saveChatMessageSummaryPort;
 
     public void requestApiStream(MemberId memberId,
@@ -57,6 +56,7 @@ public class ChatStreamProcessor {
         requestChatApiPort.streamChat(messages,
                 //  데이터 stream 수신 시 SSE 이벤트 전송
                 chunk -> {
+                    log.info(chunk);
                     if(chunk.equals("OK")) {
                         isOkDetected.set(true);
                     } else {
@@ -69,16 +69,13 @@ public class ChatStreamProcessor {
                         saveAiMessage(memberId, chatRoomId, fullAnswer);
                     } else {
                         // chunk가 "OK"인 경우
-                        //  ==========================< 메타데이터 수집 완료 단계 >=============================
+                        // 메타데이터 수집 완료 단계
                         //  - isLastPromptForMetaData = true
-                        //      * 커플이 연동되지 않은 경우
-                        //          - ChatRoom의 State를 PAUSED로 변경
-                        //          - SSE 이벤트 chat_room_paused 전송
-                        //      * 커플이 연동된 경우
-                        //          - ChatRoom의 State 변경이나 SSE 이벤트 전송은 따로 하지 않고 고정된 멘트 전송
                         if (prompt.isLastPromptForMetadata()) {
                             if (!isMemberCoupled) {
-                                // 커플이 연동되지 않은 경우
+                                //      * 커플이 연동되지 않은 경우
+                                //          - ChatRoom의 State를 PAUSED로 변경
+                                //          - SSE 이벤트 chat_room_paused 전송
                                 chatRoomDomainService.updateChatRoomStateToPaused(chatRoomId);
                                 sendSseEventPort.sendToMember(
                                         memberId,
@@ -87,16 +84,16 @@ public class ChatStreamProcessor {
                                                 "메타데이터 수집이 완료되었습니다. 커플 연동을 해주세요."
                                         ));
                             } else {
-                                // 커플이 연동된 경우
+                                //      * 커플이 연동된 경우
+                                //          - ChatRoom의 State 변경이나 SSE 이벤트 전송은 따로 하지 않고 고정된 멘트 전송
                                 sendSseMessage(memberId, "오늘은 어떤 고민 때문에 나를 찾아왔어? 먼저 연인과 있었던 갈등 상황을 이야기해 주면 내가 같이 고민해볼게!");
                             }
                         } else {
-                            //  ======================< 메타데이터 수집 or 일반적인 상담 >===========================
+                            //  메타데이터 수집 중 or 일반적인 상담
                             //  -> ChatRoom의 State를 NEED_NEXT_QUESTION로 변경
                             //  -> ChatRoom의 LEVEL을 다음 단계로 변경
                             //  -> SSE 이벤트 current_level_finished 전송 : 프론트에서 message 없이 재요청
                             //  -> 만약 예기치 못한 종료가 발생한 경우 : 프론트에서 ChatRoom의 State를 NEED_NEXT_QUESTION인 경우 재요청
-                            //  ===============================================================================
 
                             // 다음 단계로 넘어가야 하는 상황
                             sendSseEventPort.sendToMember(
@@ -114,7 +111,7 @@ public class ChatStreamProcessor {
 
     }
 
-    // TODO : Message 요약 API 요청 Async Function
+    // Message 요약 API 요청 Async Function
     //  - isCurrentPromptForMetaData = true
     //      => 메타데이터 수집 단계 (MemberMemory에 요약된 메타데이터 저장)
     //  - isCurrentPromptForMetaData = false
@@ -141,15 +138,18 @@ public class ChatStreamProcessor {
                     log.info("요약 요청 완료: chatRoomId={}, memberId={}, summary={}", chatRoomId, memberId, summary);
                     if (prompt.isForMetadata()) {
                         // 메타데이터 수집 단계인 경우
+                        // MemberMemory에 요약된 사용자 메타데이터 저장
                         memberMemoryDomainService.saveMemberMemory(memberId, summary);
                     } else {
                         // 일반적인 상담 단계인 경우
+                        // ChatMessageSummary 생성 및 저장
                         ChatMessageSummary chatMessageSummary = ChatMessageSummary.createChatMessageSummary(
                                 chatRoomId, summary, prompt.getLevel(), isForCurrentLevel
                         );
                         saveChatMessageSummaryPort.saveChatMessageSummary(chatMessageSummary);
                     }
 
+                    // 해당 ChatRoom의 모든 메시지 요약 완료 처리
                     chatRoomDomainService.updateAllMessagesSummarized(chatRoomId);
                 }
         );
