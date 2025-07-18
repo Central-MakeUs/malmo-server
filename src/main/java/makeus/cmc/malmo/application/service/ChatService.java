@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.application.port.in.SendChatMessageUseCase;
 import makeus.cmc.malmo.application.port.out.LoadChatRoomMetadataPort;
 import makeus.cmc.malmo.application.port.out.LoadPromptPort;
+import makeus.cmc.malmo.application.port.out.ValidateMemberPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessage;
 import makeus.cmc.malmo.domain.model.chat.ChatMessageSummary;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
@@ -30,8 +31,9 @@ public class ChatService implements SendChatMessageUseCase {
     private final MemberDomainService memberDomainService;
     private final ChatStreamProcessor chatStreamProcessor;
     private final MemberMemoryDomainService memberMemoryDomainService;
+    private final LoadPromptDomainService loadPromptDomainService;
 
-    private final LoadPromptPort loadPromptPort;
+    private final ValidateMemberPort validateMemberPort;
 
     @Override
     @Transactional
@@ -48,11 +50,9 @@ public class ChatService implements SendChatMessageUseCase {
         int nowChatRoomLevel = chatRoom.getLevel();
 
         //  시스템 프롬프트 불러오기 (system)
-        Prompt systemPrompt = loadPromptPort.loadPromptByLevel(-2)
-                .orElse(null); // TODO: 예외 처리 필요
+        Prompt systemPrompt = loadPromptDomainService.getSystemPrompt();
         //  LEVEL에 따라 프롬프트 불러오기 (user : [현재 단계 지시])
-        Prompt prompt = loadPromptPort.loadPromptByLevel(nowChatRoomLevel)
-                .orElse(null); // TODO: 예외 처리 필요
+        Prompt prompt = loadPromptDomainService.getPromptByLevel(nowChatRoomLevel);
 
         //  ChatRoom의 isCurrentPromptForMetadata를 Prompt와 동기화
         if (!prompt.isForMetadata()) {
@@ -72,7 +72,7 @@ public class ChatService implements SendChatMessageUseCase {
         //      - isSummaryForMetaData = false && current = false
         List<ChatMessageSummary> previousLevelSummaries = chatMessagesDomainService.getPreviousLevelsSummarizedMessages(ChatRoomId.of(chatRoom.getId()));
 
-        //  현재 LEVEL의 ChatMessage 수가 10 이상
+        //  현재 단계에서 채팅 메시지의 수가 10 이상인 경우 요약 처리를 비동기 요청
         if (unsummarizedMessages.size() >= 10) {
             List<Map<String, String>> summaryRequestMessages = new ArrayList<>();
             for (ChatMessage unsummarizedMessage : unsummarizedMessages) {
@@ -85,8 +85,7 @@ public class ChatService implements SendChatMessageUseCase {
             }
 
             // 요약 요청 프롬프트 생성
-            Prompt summaryPrompt = loadPromptPort.loadPromptByLevel(-1)
-                    .orElse(null);
+            Prompt summaryPrompt = loadPromptDomainService.getSummaryPrompt();
 
             //      => 요약본 생성 프롬프트로 요약 요청
             chatStreamProcessor.requestSummaryAsync(
@@ -124,9 +123,10 @@ public class ChatService implements SendChatMessageUseCase {
 
         // OpenAI API 스트리밍 호출
         // 시스템 프롬프트, 이전 단계 요약, 현재 단계 지시, 현재 단계 요약, 현재 단계 메시지들을 모아서 OpenAI API에 요청
+        boolean isMemberCouple = validateMemberPort.isCoupleMember(MemberId.of(member.getId()));
         chatStreamProcessor.requestApiStream(
                 MemberId.of(command.getUserId()),
-                !Objects.equals(partnerLoveType, "알 수 없음"), // TODO: 커플 연동 여부 확인 로직 추가
+                isMemberCouple,
                 systemPrompt,
                 prompt,
                 messages,
@@ -135,7 +135,81 @@ public class ChatService implements SendChatMessageUseCase {
         return SendChatMessageResponse.builder()
                 .messageId(savedUserTextMessage.getId())
                 .build();
+    }
 
+    @Override
+    @Transactional
+    public SendChatMessageResponse upgradeChatRoom(SendChatMessageCommand command) {
+        // 이전 LEVEL이 종료, 현재 레벨에 처음 진입한 경우
+        //  이전 레벨의 ChatMessageSummary와 summarized = false인 ChatMessage를 비동기 요약 처리
+        //  요약 전 메시지를 바탕으로 현재 단계 지시 프롬프트로 요청 (status를 다시 ALIVE로 변경)
+        Member member = memberDomainService.getMemberById(MemberId.of(command.getUserId()));
+        ChatRoom chatRoom = chatRoomDomainService.getCurrentChatRoomByMemberId(MemberId.of(member.getId()));
+        int nowChatRoomLevel = chatRoom.getLevel();
+
+        //  시스템 프롬프트 불러오기 (system)
+        Prompt systemPrompt = loadPromptDomainService.getSummaryPrompt();
+        //  LEVEL에 따라 프롬프트 불러오기 (user : [현재 단계 지시])
+        Prompt prompt = loadPromptDomainService.getPromptByLevel(nowChatRoomLevel);
+
+        // 요약 요청 프롬프트 생성
+        chatRoomDomainService.updateChatRoomStateToNeedNextQuestion(ChatRoomId.of(chatRoom.getId()));
+
+        Prompt nextPrompt = loadPromptDomainService.getPromptByLevel(nowChatRoomLevel + 1);
+
+        List<Map<String, String>> summaryRequestMessages = new ArrayList<>();
+
+        // 현재 단계에서 중간 요약된 메시지들
+        List<ChatMessageSummary> currentSummarizedMessages = chatMessagesDomainService.getCurrentSummarizedMessagesByLevel(ChatRoomId.of(chatRoom.getId()), nowChatRoomLevel - 1);
+        // 현재 단계에서 중간 요약되지 않은 메시지들
+        List<ChatMessage> unsummarizedMessages = chatMessagesDomainService.getNotSummarizedChatMessages(ChatRoomId.of(chatRoom.getId()));
+        // 이전 단계에서 요약된 메시지들 (지금 사용하지 않지만 요약 요청의 비동기 처리 간섭을 막기 위해 미리 로드)
+        List<ChatMessageSummary> previousLevelSummaries = chatMessagesDomainService.getPreviousLevelsSummarizedMessages(ChatRoomId.of(chatRoom.getId()));
+
+        // 현재 단계 요약된 메시지들
+        String currentLevelSummarizedMessages = extractSummaryMessages("[현재 단계 요약된 메시지]\n", currentSummarizedMessages);
+        summaryRequestMessages.add(createMessageMap(SenderType.USER, currentLevelSummarizedMessages));
+
+        // 현재 단계 요약되지 않은 메시지들
+        for (ChatMessage unsummarizedMessage : unsummarizedMessages) {
+            summaryRequestMessages.add(
+                    createMessageMap(
+                            unsummarizedMessage.getSenderType(),
+                            unsummarizedMessage.getContent()
+                    ));
+        }
+
+        Prompt summaryPrompt = loadPromptDomainService.getSummaryPrompt();
+
+        // 요약 요청
+        chatStreamProcessor.requestSummaryAsync(
+                ChatRoomId.of(chatRoom.getId()),
+                MemberId.of(member.getId()),
+                systemPrompt, prompt, summaryPrompt,
+                false,
+                summaryRequestMessages
+        );
+
+        // 이전 단계 요약 메시지들 메시지에 추가
+        String previousLevelSummarizedMessages = extractSummaryMessages("[이전 단계 요약]\n", previousLevelSummaries);
+        summaryRequestMessages.add(createMessageMap(SenderType.USER, previousLevelSummarizedMessages));
+
+        boolean isMemberCouple = validateMemberPort.isCoupleMember(MemberId.of(member.getId()));
+
+        // 과거 대화로부터 현재 단계 오프닝 멘트 요청
+        chatStreamProcessor.requestApiStream(
+                MemberId.of(command.getUserId()),
+                isMemberCouple,
+                systemPrompt,
+                nextPrompt,
+                summaryRequestMessages,
+                ChatRoomId.of(chatRoom.getId()));
+
+        chatRoomDomainService.updateChatRoomStateToAlive(ChatRoomId.of(chatRoom.getId()));
+
+        return SendChatMessageResponse.builder()
+                .messageId(null) // 업그레이드 시에는 메시지 ID가 필요하지 않음
+                .build();
     }
 
     private Map<String, String> createMessageMap(SenderType role, String content) {
@@ -177,81 +251,5 @@ public class ChatService implements SendChatMessageUseCase {
         messages.add(Map.of("role", "user", "content", metadataBuilder.toString()));
 
         return messages;
-    }
-
-    @Override
-    @Transactional
-    public SendChatMessageResponse upgradeChatRoom(SendChatMessageCommand command) {
-        // 이전 LEVEL이 종료, 현재 레벨에 처음 진입한 경우
-        //  이전 레벨의 ChatMessageSummary와 summarized = false인 ChatMessage를 비동기 요약 처리
-        //  요약 전 메시지를 바탕으로 현재 단계 지시 프롬프트로 요청 (status를 다시 ALIVE로 변경)
-        Member member = memberDomainService.getMemberById(MemberId.of(command.getUserId()));
-        ChatRoom chatRoom = chatRoomDomainService.getCurrentChatRoomByMemberId(MemberId.of(member.getId()));
-        int nowChatRoomLevel = chatRoom.getLevel();
-
-        //  시스템 프롬프트 불러오기 (system)
-        Prompt systemPrompt = loadPromptPort.loadPromptByLevel(-2)
-                .orElse(null); // TODO: 예외 처리 필요
-        //  LEVEL에 따라 프롬프트 불러오기 (user : [현재 단계 지시])
-        Prompt prompt = loadPromptPort.loadPromptByLevel(nowChatRoomLevel)
-                .orElse(null); // TODO: 예외 처리 필요
-
-        // 요약 요청 프롬프트 생성
-        chatRoomDomainService.updateChatRoomStateToNeedNextQuestion(ChatRoomId.of(chatRoom.getId()));
-
-        Prompt nextPrompt = loadPromptPort.loadPromptByLevel(nowChatRoomLevel + 1)
-                .orElse(null);
-
-        List<Map<String, String>> summaryRequestMessages = new ArrayList<>();
-
-        // 현재 단계에서 중간 요약된 메시지들
-        List<ChatMessageSummary> currentSummarizedMessages = chatMessagesDomainService.getCurrentSummarizedMessagesByLevel(ChatRoomId.of(chatRoom.getId()), nowChatRoomLevel - 1);
-        // 현재 단계에서 중간 요약되지 않은 메시지들
-        List<ChatMessage> unsummarizedMessages = chatMessagesDomainService.getNotSummarizedChatMessages(ChatRoomId.of(chatRoom.getId()));
-
-        // 현재 단계 요약된 메시지들
-        String currentLevelSummarizedMessages = extractSummaryMessages("[현재 단계 요약된 메시지]\n", currentSummarizedMessages);
-        summaryRequestMessages.add(createMessageMap(SenderType.USER, currentLevelSummarizedMessages));
-
-        // 현재 단계 요약되지 않은 메시지들
-        for (ChatMessage unsummarizedMessage : unsummarizedMessages) {
-            summaryRequestMessages.add(
-                    createMessageMap(
-                            unsummarizedMessage.getSenderType(),
-                            unsummarizedMessage.getContent()
-                    ));
-        }
-
-        // 이전 단계에서 요약된 메시지들
-        List<ChatMessageSummary> previousLevelSummaries = chatMessagesDomainService.getPreviousLevelsSummarizedMessages(ChatRoomId.of(chatRoom.getId()));
-
-        Prompt summaryPrompt = loadPromptPort.loadPromptByLevel(-1)
-                .orElse(null);
-
-        chatStreamProcessor.requestSummaryAsync(
-                ChatRoomId.of(chatRoom.getId()),
-                MemberId.of(member.getId()),
-                systemPrompt, prompt, summaryPrompt,
-                false,
-                summaryRequestMessages
-        );
-
-        String previousLevelSummarizedMessages = extractSummaryMessages("[이전 단계 요약]\n", previousLevelSummaries);
-        summaryRequestMessages.add(createMessageMap(SenderType.USER, previousLevelSummarizedMessages));
-
-        // 과거 대화로부터 현재 단계 오프닝 멘트 요청
-        chatStreamProcessor.requestApiStream(
-                MemberId.of(command.getUserId()),
-                true, // TODO: 커플 연동 여부 확인 로직 추가
-                systemPrompt,
-                nextPrompt,
-                summaryRequestMessages,
-                ChatRoomId.of(chatRoom.getId()));
-
-        chatRoomDomainService.updateChatRoomStateToAlive(ChatRoomId.of(chatRoom.getId()));
-
-        return SendChatMessageResponse.builder()
-                .messageId(null) // 업그레이드 시에는 메시지 ID가 필요하지 않음
-                .build();
     }
 }
