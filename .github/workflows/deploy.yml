@@ -96,7 +96,7 @@ jobs:
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
             # 현재 실행 중인 포트 확인
-            CURRENT_PORT=$(grep -Po 'proxy_pass http://localhost:\K[0-9]+' /etc/nginx/sites-enabled/malmo.conf)
+            CURRENT_PORT=$(grep -Po 'proxy_pass http://localhost:\K[0-9]+' /etc/nginx/sites-enabled/default| head -n 1)
             if [ "$CURRENT_PORT" == "8081" ]; then
               IDLE_PORT=8082
             else
@@ -141,7 +141,7 @@ jobs:
             done
 
             # Nginx 포트 변경
-            sudo sed -i "s|proxy_pass http://localhost:[0-9]\+|proxy_pass http://localhost:$IDLE_PORT|g" /etc/nginx/sites-enabled/malmo.conf
+            sudo sed -i "s|proxy_pass http://localhost:[0-9]\+|proxy_pass http://localhost:$IDLE_PORT|g" /etc/nginx/sites-enabled/default
             sudo nginx -t && sudo systemctl reload nginx
             echo "Nginx now points to port $IDLE_PORT"
 
