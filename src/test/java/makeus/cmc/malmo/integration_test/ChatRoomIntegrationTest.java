@@ -17,6 +17,7 @@ import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import makeus.cmc.malmo.integration_test.dto_factory.ChatRoomRequestDtoFactory;
 import org.assertj.core.api.Assertions;
@@ -94,6 +95,7 @@ public class ChatRoomIntegrationTest {
                 .email(email)
                 .inviteCodeEntityValue(InviteCodeEntityValue.of(inviteCode))
                 .loveTypeCategory(LoveTypeCategory.STABLE_TYPE)
+                .relationshipStatus(RelationshipStatus.IN_RELATIONSHIP)
                 .build();
         em.persist(memberEntity);
         return memberEntity;
@@ -109,6 +111,7 @@ public class ChatRoomIntegrationTest {
                 .startLoveDate(LocalDate.of(2023, 1, 1))
                 .email(email)
                 .inviteCodeEntityValue(InviteCodeEntityValue.of(inviteCode))
+                .relationshipStatus(RelationshipStatus.IN_RELATIONSHIP)
                 .build();
         em.persist(deletedMember);
         return deletedMember;
@@ -138,7 +141,7 @@ public class ChatRoomIntegrationTest {
                     .getResultList();
             Assertions.assertThat(messages).hasSize(2);
             Assertions.assertThat(messages.get(0).getContent()).contains(INIT_CHAT_MESSAGE_FIRST);
-            Assertions.assertThat(messages.get(1).getContent()).contains(INIT_CHAT_MESSAGE_SECOND);
+            Assertions.assertThat(messages.get(1).getContent()).contains(INIT_CHAT_MESSAGE_SECOND_PREFIX);
         }
 
         @Test
@@ -594,6 +597,7 @@ public class ChatRoomIntegrationTest {
                     .email("no_love_type@email.com")
                     .inviteCodeEntityValue(InviteCodeEntityValue.of("invite_nolt"))
                     .loveTypeCategory(null)  // 애착유형 없음
+                    .relationshipStatus(RelationshipStatus.IN_RELATIONSHIP)
                     .build();
             em.persist(memberWithoutLoveType);
 
@@ -608,6 +612,7 @@ public class ChatRoomIntegrationTest {
                     .email("with_love_type@email.com")
                     .inviteCodeEntityValue(InviteCodeEntityValue.of("invite_wlt"))
                     .loveTypeCategory(LoveTypeCategory.STABLE_TYPE)  // 애착유형 있음
+                    .relationshipStatus(RelationshipStatus.IN_RELATIONSHIP)
                     .build();
             em.persist(memberWithLoveType);
             em.flush();
