@@ -32,6 +32,9 @@ public class MemberInfoService implements GetMemberUseCase, GetPartnerUseCase {
                 .totalCoupleQuestionCount(member.getTotalCoupleQuestionCount())
                 .nickname(member.getNickname())
                 .email(member.getEmail())
+                .relationshipStatus(member.getRelationshipStatus())
+                .personalityType(member.getPersonalityType())
+                .otherPersonalityType(member.getOtherPersonalityType())
                 .build();
     }
 

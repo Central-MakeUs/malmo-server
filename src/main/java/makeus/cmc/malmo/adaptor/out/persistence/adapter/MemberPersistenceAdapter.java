@@ -20,6 +20,7 @@ import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -102,6 +103,9 @@ public class MemberPersistenceAdapter implements
         private float anxietyRate;
         private String nickname;
         private String email;
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
 
         public MemberQueryHelper.MemberInfoDto toDto(int totalChatRoomCount, int totalCoupleQuestionCount) {
             return MemberQueryHelper.MemberInfoDto.builder()
@@ -115,6 +119,9 @@ public class MemberPersistenceAdapter implements
                     .email(email)
                     .totalChatRoomCount(totalChatRoomCount)
                     .totalCoupleQuestionCount(totalCoupleQuestionCount)
+                    .relationshipStatus(relationshipStatus)
+                    .personalityType(personalityType)
+                    .otherPersonalityType(otherPersonalityType)
                     .build();
         }
     }

@@ -48,12 +48,20 @@ public class MemberCommandService implements UpdateMemberUseCase, UpdateStartLov
     public UpdateMemberResponseDto updateMember(UpdateMemberCommand command) {
         Member member = memberQueryHelper.getMemberByIdOrThrow(MemberId.of(command.getMemberId()));
 
-        member.updateMemberProfile(command.getNickname());
+        member.updateMemberProfile(
+                command.getNickname(),
+                command.getRelationshipStatus(),
+                command.getPersonalityType(),
+                command.getOtherPersonalityType()
+        );
 
         Member savedMember = memberCommandHelper.saveMember(member);
 
         return UpdateMemberResponseDto.builder()
                 .nickname(savedMember.getNickname())
+                .relationshipStatus(savedMember.getRelationshipStatus())
+                .personalityType(savedMember.getPersonalityType())
+                .otherPersonalityType(savedMember.getOtherPersonalityType())
                 .build();
     }
 

@@ -10,6 +10,7 @@ import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
 import makeus.cmc.malmo.domain.value.type.Provider;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +43,10 @@ public class Member {
     private LocalDate startLoveDate;
     private String oauthToken;
     private CoupleId coupleId;
+
+    private RelationshipStatus relationshipStatus;
+    private String personalityType;
+    private String otherPersonalityType;
 
     // BaseTimeEntity fields
     private LocalDateTime createdAt;
@@ -81,6 +86,9 @@ public class Member {
             LocalDate startLoveDate,
             String oauthToken,
             CoupleId coupleId,
+            RelationshipStatus relationshipStatus,
+            String personalityType,
+            String otherPersonalityType,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt,
             LocalDateTime deletedAt
@@ -104,6 +112,9 @@ public class Member {
                 .startLoveDate(startLoveDate)
                 .oauthToken(oauthToken)
                 .coupleId(coupleId)
+                .relationshipStatus(relationshipStatus)
+                .personalityType(personalityType)
+                .otherPersonalityType(otherPersonalityType)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
                 .deletedAt(deletedAt)
@@ -131,8 +142,27 @@ public class Member {
         this.memberState = MemberState.ALIVE;
     }
 
-    public void updateMemberProfile(String nickname) {
+    public void signUp(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
         this.nickname = nickname;
+        this.relationshipStatus = relationshipStatus;
+        this.personalityType = personalityType;
+        this.otherPersonalityType = otherPersonalityType;
+        this.memberState = MemberState.ALIVE;
+    }
+
+    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (relationshipStatus != null) {
+            this.relationshipStatus = relationshipStatus;
+        }
+        if (personalityType != null) {
+            this.personalityType = personalityType;
+        }
+        if (otherPersonalityType != null) {
+            this.otherPersonalityType = otherPersonalityType;
+        }
     }
 
     public void updateLoveType(LoveTypeCategory loveTypeCategory, float avoidanceRate, float anxietyRate) {
