@@ -17,6 +17,7 @@ import makeus.cmc.malmo.domain.service.ChatRoomDomainService;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
+import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,17 @@ public class ChatService implements SendChatMessageUseCase {
         
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
         ChatRoom chatRoom = chatRoomQueryHelper.getChatRoomByIdOrThrow(chatRoomId);
+
+        boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
+        if (!hasUserMessages && member.getLoveTypeCategory() == null) {
+            ChatMessage systemMessage = chatRoomDomainService.createSystemMessage(
+                    chatRoomId,
+                    chatRoom.getLevel(),
+                    chatRoom.getDetailedLevel(),
+                    GlobalConstants.ATTACHMENT_TYPE_PROMPT_MESSAGE
+            );
+            chatRoomCommandHelper.saveChatMessage(systemMessage);
+        }
 
         // 현재 유저 메시지를 저장
         ChatMessage savedUserMessage = saveUserMessage(chatRoom, command.getMessage());

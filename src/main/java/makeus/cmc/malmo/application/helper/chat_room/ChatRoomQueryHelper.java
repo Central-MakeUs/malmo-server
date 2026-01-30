@@ -121,4 +121,8 @@ public class ChatRoomQueryHelper {
     public Optional<ChatMessageSummary> getLatestSummaryByLevel(ChatRoomId chatRoomId, int level) {
         return loadSummarizedMessages.loadLatestSummaryByLevel(chatRoomId, level);
     }
+
+    public boolean hasUserMessages(ChatRoomId chatRoomId) {
+        return loadMessagesPort.hasUserMessages(chatRoomId);
+    }
 }

@@ -16,8 +16,11 @@ import makeus.cmc.malmo.util.JosaUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHATROOM_LEVEL;
-import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_FIRST;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND;
 
 @Slf4j
 @Service
@@ -39,13 +42,26 @@ public class ChatRoomManagementService implements CreateChatRoomUseCase {
         ChatRoom chatRoom = chatRoomDomainService.createChatRoom(memberId);
         ChatRoom savedChatRoom = chatRoomCommandHelper.saveChatRoom(chatRoom);
 
-        // 초기 AI 메시지 생성 및 저장
-        ChatMessage initMessage = chatRoomDomainService.createAiMessage(
+        LocalDateTime now = LocalDateTime.now();
+
+        // 초기 AI 메시지 2개 생성 및 저장
+        // 첫 번째 메시지: nickname아 안녕!
+        ChatMessage firstMessage = chatRoomDomainService.createAiMessage(
                 ChatRoomId.of(savedChatRoom.getId()),
                 INIT_CHATROOM_LEVEL,
                 1,
-                JosaUtils.아야(member.getNickname()) + INIT_CHAT_MESSAGE);
-        chatRoomCommandHelper.saveChatMessage(initMessage);
+                JosaUtils.아야(member.getNickname()) + INIT_CHAT_MESSAGE_FIRST,
+                now);
+        chatRoomCommandHelper.saveChatMessage(firstMessage);
+
+        // 두 번째 메시지: 나는 연애 고민 상담사 모모야.~ (1초 뒤 시간으로 저장)
+        ChatMessage secondMessage = chatRoomDomainService.createAiMessage(
+                ChatRoomId.of(savedChatRoom.getId()),
+                INIT_CHATROOM_LEVEL,
+                1,
+                INIT_CHAT_MESSAGE_SECOND,
+                now.plusSeconds(1));
+        chatRoomCommandHelper.saveChatMessage(secondMessage);
         
         log.info("새 채팅방 생성: chatRoomId={}, memberId={}", savedChatRoom.getId(), memberId.getValue());
         
