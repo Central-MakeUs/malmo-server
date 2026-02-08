@@ -54,6 +54,14 @@ public class ChatService implements SendChatMessageUseCase {
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
         ChatRoom chatRoom = chatRoomQueryHelper.getChatRoomByIdOrThrow(chatRoomId);
 
+        // BEFORE_INIT 상태인 경우 ALIVE로 전환 (첫 메시지 시)
+        if (chatRoom.isBeforeInit()) {
+            chatRoom.initialize();
+            chatRoomCommandHelper.saveChatRoom(chatRoom);
+            log.info("채팅방 상태 전환: BEFORE_INIT -> ALIVE, chatRoomId={}", chatRoomId.getValue());
+        }
+
+        // 첫 메시지이고 애착 유형 미진단인 경우 시스템 메시지 추가
         boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
         if (!hasUserMessages && member.getLoveTypeCategory() == null) {
             ChatMessage systemMessage = chatRoomDomainService.createSystemMessage(

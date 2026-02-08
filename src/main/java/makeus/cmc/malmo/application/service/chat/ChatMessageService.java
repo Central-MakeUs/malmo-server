@@ -294,6 +294,11 @@ public class ChatMessageService implements ProcessMessageUseCase {
     public CompletableFuture<Void> processTitleGeneration(ProcessTitleGenerationCommand command) {
         ChatRoom chatRoom = chatRoomQueryHelper.getChatRoomByIdOrThrow(ChatRoomId.of(command.getChatRoomId()));
         
+        if (chatRoom.getTitle() != null) {
+            log.debug("Title already exists for chatRoomId: {}, skipping generation", command.getChatRoomId());
+            return CompletableFuture.completedFuture(null);
+        }
+        
         // 1단계 대화 내용 조회
         List<Map<String, String>> messages = chatPromptBuilder.createForTitleGeneration(chatRoom);
         

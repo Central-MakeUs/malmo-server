@@ -98,6 +98,12 @@ public class ChatRoomPersistenceAdapter
     }
 
     @Override
+    public Optional<ChatRoom> loadBeforeInitChatRoomByMemberId(MemberId memberId) {
+        return chatRoomRepository.findBeforeInitChatRoomByMemberEntityId(memberId.getValue())
+                .map(chatRoomMapper::toDomain);
+    }
+
+    @Override
     public ChatRoom saveChatRoom(ChatRoom chatRoom) {
         ChatRoomEntity entity = chatRoomMapper.toEntity(chatRoom);
         ChatRoomEntity savedEntity = chatRoomRepository.save(entity);

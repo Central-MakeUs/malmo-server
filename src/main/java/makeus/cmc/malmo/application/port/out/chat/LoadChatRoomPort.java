@@ -13,6 +13,9 @@ public interface LoadChatRoomPort {
     // 진행 중인 채팅방 목록 조회 (복수)
     List<ChatRoom> loadActiveChatRoomsByMemberId(MemberId memberId);
     
+    // 초기화 전 채팅방 조회 (BEFORE_INIT 상태)
+    Optional<ChatRoom> loadBeforeInitChatRoomByMemberId(MemberId memberId);
+    
     // ID로 채팅방 조회 (유지)
     Optional<ChatRoom> loadChatRoomById(ChatRoomId chatRoomId);
     

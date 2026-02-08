@@ -48,7 +48,7 @@ public class ChatRoomRepositoryCustomImpl implements ChatRoomRepositoryCustom{
         Long count = queryFactory.select(chatRoomEntity.count())
                 .from(chatRoomEntity)
                 .where(chatRoomEntity.memberEntityId.value.eq(memberId)
-                        .and(chatRoomEntity.chatRoomState.eq(ChatRoomState.COMPLETED))
+                        .and(chatRoomEntity.chatRoomState.ne(ChatRoomState.DELETED))
                         .and(chatRoomEntity.id.in(chatRoomIds)))
                 .fetchOne();
 
@@ -70,7 +70,7 @@ public class ChatRoomRepositoryCustomImpl implements ChatRoomRepositoryCustom{
                 .select(chatRoomEntity.count().intValue())
                 .from(chatRoomEntity)
                 .where(chatRoomEntity.memberEntityId.value.eq(memberId)
-                        .and(chatRoomEntity.chatRoomState.eq(ChatRoomState.COMPLETED)))
+                        .and(chatRoomEntity.chatRoomState.eq(ChatRoomState.ALIVE)))
                 .fetchOne();
     }
 }

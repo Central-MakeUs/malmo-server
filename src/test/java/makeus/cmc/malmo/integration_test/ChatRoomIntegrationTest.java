@@ -128,13 +128,13 @@ public class ChatRoomIntegrationTest {
                             .header("Authorization", "Bearer " + accessToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.chatRoomId").exists())
-                    .andExpect(jsonPath("$.data.chatRoomState").value(ChatRoomState.ALIVE.name()));
+                    .andExpect(jsonPath("$.data.chatRoomState").value(ChatRoomState.BEFORE_INIT.name()));
 
             List<ChatRoomEntity> chatRooms = em.createQuery("SELECT c FROM ChatRoomEntity c WHERE c.memberEntityId.value = :memberId", ChatRoomEntity.class)
                     .setParameter("memberId", member.getId())
                     .getResultList();
             Assertions.assertThat(chatRooms).hasSize(1);
-            Assertions.assertThat(chatRooms.get(0).getChatRoomState()).isEqualTo(ChatRoomState.ALIVE);
+            Assertions.assertThat(chatRooms.get(0).getChatRoomState()).isEqualTo(ChatRoomState.BEFORE_INIT);
 
             List<ChatMessageEntity> messages = em.createQuery("SELECT m FROM ChatMessageEntity m WHERE m.chatRoomEntityId.value = :chatRoomId ORDER BY m.createdAt ASC", ChatMessageEntity.class)
                     .setParameter("chatRoomId", chatRooms.get(0).getId())
@@ -155,24 +155,94 @@ public class ChatRoomIntegrationTest {
         }
 
         @Test
-        @DisplayName("여러 개의 채팅방을 생성할 수 있다")
-        void 다중_채팅방_생성_성공() throws Exception {
+        @DisplayName("BEFORE_INIT 채팅방이 있으면 같은 채팅방을 반환한다")
+        void BEFORE_INIT_채팅방_재사용() throws Exception {
             // when - 첫 번째 채팅방 생성
             mockMvc.perform(post("/chatrooms")
                             .header("Authorization", "Bearer " + accessToken))
                     .andExpect(status().isOk());
 
-            // when - 두 번째 채팅방 생성
+            // when - 두 번째 채팅방 생성 시도 (기존 BEFORE_INIT 반환)
             mockMvc.perform(post("/chatrooms")
                             .header("Authorization", "Bearer " + accessToken))
                     .andExpect(status().isOk());
 
-            // then
+            // then - 같은 BEFORE_INIT 채팅방이 반환되어 1개만 존재
             List<ChatRoomEntity> chatRooms = em.createQuery("SELECT c FROM ChatRoomEntity c WHERE c.memberEntityId.value = :memberId AND c.chatRoomState = :state", ChatRoomEntity.class)
                     .setParameter("memberId", member.getId())
-                    .setParameter("state", ChatRoomState.ALIVE)
+                    .setParameter("state", ChatRoomState.BEFORE_INIT)
                     .getResultList();
-            Assertions.assertThat(chatRooms).hasSize(2);
+            Assertions.assertThat(chatRooms).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("첫 메시지 전송 시 BEFORE_INIT에서 ALIVE로 상태 전환된다")
+        void 첫_메시지로_상태_전환() throws Exception {
+            // given - BEFORE_INIT 채팅방 생성
+            mockMvc.perform(post("/chatrooms")
+                            .header("Authorization", "Bearer " + accessToken))
+                    .andExpect(status().isOk());
+
+            List<ChatRoomEntity> beforeInitRooms = em.createQuery("SELECT c FROM ChatRoomEntity c WHERE c.memberEntityId.value = :memberId", ChatRoomEntity.class)
+                    .setParameter("memberId", member.getId())
+                    .getResultList();
+            Assertions.assertThat(beforeInitRooms).hasSize(1);
+            Long chatRoomId = beforeInitRooms.get(0).getId();
+            Assertions.assertThat(beforeInitRooms.get(0).getChatRoomState()).isEqualTo(ChatRoomState.BEFORE_INIT);
+
+            em.flush();
+            em.clear();
+
+            // when - 첫 메시지 전송
+            mockMvc.perform(post("/chatrooms/{chatRoomId}/messages", chatRoomId)
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createSendChatMessageRequestDto("안녕하세요"))))
+                    .andExpect(status().isOk());
+
+            // then - ALIVE로 상태 전환 확인
+            ChatRoomEntity updatedRoom = em.find(ChatRoomEntity.class, chatRoomId);
+            Assertions.assertThat(updatedRoom.getChatRoomState()).isEqualTo(ChatRoomState.ALIVE);
+        }
+
+        @Test
+        @DisplayName("ALIVE 상태가 되면 새 채팅방 생성이 가능하다")
+        void ALIVE_후_새_채팅방_생성() throws Exception {
+            // given - BEFORE_INIT 채팅방 생성 및 ALIVE 전환
+            mockMvc.perform(post("/chatrooms")
+                            .header("Authorization", "Bearer " + accessToken))
+                    .andExpect(status().isOk());
+
+            List<ChatRoomEntity> rooms = em.createQuery("SELECT c FROM ChatRoomEntity c WHERE c.memberEntityId.value = :memberId", ChatRoomEntity.class)
+                    .setParameter("memberId", member.getId())
+                    .getResultList();
+            Long firstRoomId = rooms.get(0).getId();
+
+            em.flush();
+            em.clear();
+
+            mockMvc.perform(post("/chatrooms/{chatRoomId}/messages", firstRoomId)
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createSendChatMessageRequestDto("첫 메시지"))))
+                    .andExpect(status().isOk());
+
+            em.flush();
+            em.clear();
+
+            // when - 새 채팅방 생성 시도
+            mockMvc.perform(post("/chatrooms")
+                            .header("Authorization", "Bearer " + accessToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.chatRoomState").value(ChatRoomState.BEFORE_INIT.name()));
+
+            // then - 2개의 채팅방 존재 (ALIVE 1개, BEFORE_INIT 1개)
+            List<ChatRoomEntity> allRooms = em.createQuery("SELECT c FROM ChatRoomEntity c WHERE c.memberEntityId.value = :memberId ORDER BY c.createdAt", ChatRoomEntity.class)
+                    .setParameter("memberId", member.getId())
+                    .getResultList();
+            Assertions.assertThat(allRooms).hasSize(2);
+            Assertions.assertThat(allRooms.get(0).getChatRoomState()).isEqualTo(ChatRoomState.ALIVE);
+            Assertions.assertThat(allRooms.get(1).getChatRoomState()).isEqualTo(ChatRoomState.BEFORE_INIT);
         }
     }
 
@@ -463,6 +533,57 @@ public class ChatRoomIntegrationTest {
 
             Assertions.assertThat(em.find(ChatRoomEntity.class, chatRoom1.getId()).getChatRoomState()).isEqualTo(ChatRoomState.DELETED);
             Assertions.assertThat(em.find(ChatRoomEntity.class, chatRoom2.getId()).getChatRoomState()).isEqualTo(ChatRoomState.DELETED);
+        }
+
+        @Test
+        @DisplayName("ALIVE 상태 채팅방 삭제에 성공한다")
+        void ALIVE_상태_채팅방_삭제_성공() throws Exception {
+            // given
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.ALIVE)
+                    .build();
+            em.persist(chatRoom);
+            em.flush();
+            em.clear();
+
+            // when & then
+            mockMvc.perform(delete("/chatrooms")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createDeleteChatRoomsRequestDto(List.of(chatRoom.getId())))))
+                    .andExpect(status().isOk());
+
+            ChatRoomEntity deletedChatRoom = em.find(ChatRoomEntity.class, chatRoom.getId());
+            Assertions.assertThat(deletedChatRoom.getChatRoomState()).isEqualTo(ChatRoomState.DELETED);
+        }
+
+        @Test
+        @DisplayName("ALIVE와 COMPLETED 상태 채팅방 혼합 삭제에 성공한다")
+        void ALIVE_COMPLETED_혼합_삭제_성공() throws Exception {
+            // given
+            ChatRoomEntity aliveChatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.ALIVE)
+                    .build();
+            ChatRoomEntity completedChatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.COMPLETED)
+                    .build();
+            em.persist(aliveChatRoom);
+            em.persist(completedChatRoom);
+            em.flush();
+            em.clear();
+
+            // when & then
+            mockMvc.perform(delete("/chatrooms")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createDeleteChatRoomsRequestDto(List.of(aliveChatRoom.getId(), completedChatRoom.getId())))))
+                    .andExpect(status().isOk());
+
+            Assertions.assertThat(em.find(ChatRoomEntity.class, aliveChatRoom.getId()).getChatRoomState()).isEqualTo(ChatRoomState.DELETED);
+            Assertions.assertThat(em.find(ChatRoomEntity.class, completedChatRoom.getId()).getChatRoomState()).isEqualTo(ChatRoomState.DELETED);
         }
 
         @Test

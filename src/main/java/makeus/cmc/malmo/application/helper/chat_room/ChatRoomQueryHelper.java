@@ -39,6 +39,11 @@ public class ChatRoomQueryHelper {
         return loadChatRoomPort.loadActiveChatRoomsByMemberId(memberId);
     }
 
+    // 초기화 전 채팅방 조회 (BEFORE_INIT 상태)
+    public Optional<ChatRoom> getBeforeInitChatRoomByMemberId(MemberId memberId) {
+        return loadChatRoomPort.loadBeforeInitChatRoomByMemberId(memberId);
+    }
+
     public LoadChatRoomMetadataPort.ChatRoomMetadataDto getChatRoomMetadata(MemberId memberId) {
         return loadChatRoomMetadataPort.loadChatRoomMetadata(memberId)
                 .orElse(new LoadChatRoomMetadataPort.ChatRoomMetadataDto(null, null));

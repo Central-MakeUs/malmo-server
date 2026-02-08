@@ -1550,12 +1550,9 @@ public class MemberIntegrationTest {
     private ChatRoomEntity createAndSaveChatRoom() {
         ChatRoomEntity chatRoom = ChatRoomEntity.builder()
                 .memberEntityId(MemberEntityId.of(member.getId()))
-                .chatRoomState(ChatRoomState.COMPLETED)
+                .chatRoomState(ChatRoomState.ALIVE)
                 .level(1)
                 .lastMessageSentTime(LocalDateTime.now())
-                .totalSummary("테스트 요약")
-                .situationKeyword("테스트 상황 키워드")
-                .solutionKeyword("테스트 해결 키워드")
                 .build();
 
         em.persist(chatRoom);

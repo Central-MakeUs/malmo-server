@@ -40,7 +40,7 @@ public class ChatRoom {
                 .memberId(memberId)
                 .level(INIT_CHATROOM_LEVEL)
                 .detailedLevel(1)
-                .chatRoomState(ChatRoomState.ALIVE)
+                .chatRoomState(ChatRoomState.BEFORE_INIT)
                 .lastMessageSentTime(LocalDateTime.now())
                 .title(null)  // 제목은 1단계 종료 후 생성
                 // 새 채팅방은 보고서 관련 필드 null
@@ -96,7 +96,18 @@ public class ChatRoom {
     }
 
     public boolean isChatRoomValid() {
-        return this.chatRoomState == ChatRoomState.ALIVE;
+        return this.chatRoomState == ChatRoomState.ALIVE 
+            || this.chatRoomState == ChatRoomState.BEFORE_INIT;
+    }
+
+    public boolean isBeforeInit() {
+        return this.chatRoomState == ChatRoomState.BEFORE_INIT;
+    }
+
+    public void initialize() {
+        if (this.chatRoomState == ChatRoomState.BEFORE_INIT) {
+            this.chatRoomState = ChatRoomState.ALIVE;
+        }
     }
 
     public boolean isOwner(MemberId memberId) {
