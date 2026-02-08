@@ -2,6 +2,7 @@ package makeus.cmc.malmo.application.port.in.member;
 
 import lombok.Builder;
 import lombok.Data;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
 import java.util.List;
 
@@ -16,6 +17,9 @@ public interface SignUpUseCase {
         private List<TermsCommand> terms;
         private String nickname;
         private Long loveTypeId;
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
     }
 
     @Data

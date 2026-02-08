@@ -159,6 +159,9 @@ class MemberMapperTest {
                 LocalDate.now(),
                 "oauth_token",
                 CoupleId.of(100L),
+                null, // relationshipStatus
+                null, // personalityType
+                null, // otherPersonalityType
                 now,
                 now,
                 null

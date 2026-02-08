@@ -25,6 +25,8 @@ public interface LoadMessagesPort {
 
     long countMessagesByLevel(ChatRoomId chatRoomId, int level);
 
+    boolean hasUserMessages(ChatRoomId chatRoomId);
+
     @Data
     @AllArgsConstructor
     class ChatRoomMessageRepositoryDto {

@@ -16,6 +16,7 @@ import makeus.cmc.malmo.domain.model.chat.ChatMessageSummary;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.SenderType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -81,6 +82,11 @@ public class ChatRoomPersistenceAdapter
     @Override
     public long countMessagesByLevel(ChatRoomId chatRoomId, int level) {
         return chatMessageRepository.countByChatRoomIdAndLevel(chatRoomId.getValue(), level);
+    }
+
+    @Override
+    public boolean hasUserMessages(ChatRoomId chatRoomId) {
+        return chatMessageRepository.existsByChatRoomIdAndSenderType(chatRoomId.getValue(), SenderType.USER);
     }
 
     @Override

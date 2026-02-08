@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import makeus.cmc.malmo.adaptor.in.aop.CheckValidMember;
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomCommandHelper;
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
+import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.port.in.chat.DeleteChatRoomUseCase;
 import makeus.cmc.malmo.application.port.in.chat.GetChatRoomListUseCase;
 import makeus.cmc.malmo.application.port.in.chat.GetChatRoomMessagesUseCase;
@@ -11,12 +12,17 @@ import makeus.cmc.malmo.application.port.in.chat.GetChatRoomSummaryUseCase;
 import makeus.cmc.malmo.application.port.out.chat.LoadMessagesPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessageSummary;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
+import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.SenderType;
+import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -27,6 +33,7 @@ public class ChatRoomService
 
     private final ChatRoomQueryHelper chatRoomQueryHelper;
     private final ChatRoomCommandHelper chatRoomCommandHelper;
+    private final MemberQueryHelper memberQueryHelper;
 
     @Override
     @CheckValidMember
@@ -79,12 +86,13 @@ public class ChatRoomService
     @CheckValidMember
     public GetCurrentChatRoomMessagesResponse getChatRoomMessages(GetChatRoomMessagesCommand command) {
         MemberId memberId = MemberId.of(command.getUserId());
-        chatRoomQueryHelper.validateChatRoomOwnership(memberId, ChatRoomId.of(command.getChatRoomId()));
+        ChatRoomId chatRoomId = ChatRoomId.of(command.getChatRoomId());
+        chatRoomQueryHelper.validateChatRoomOwnership(memberId, chatRoomId);
 
         Page<LoadMessagesPort.ChatRoomMessageRepositoryDto> result =
-                chatRoomQueryHelper.getChatMessagesDtoAsc(ChatRoomId.of(command.getChatRoomId()), memberId, command.getPageable());
+                chatRoomQueryHelper.getChatMessagesDtoAsc(chatRoomId, memberId, command.getPageable());
 
-        List<GetChatRoomMessagesUseCase.ChatRoomMessageDto> list = result.stream().map(cm ->
+        List<GetChatRoomMessagesUseCase.ChatRoomMessageDto> list = new ArrayList<>(result.stream().map(cm ->
                         GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                                 .messageId(cm.getMessageId())
                                 .senderType(cm.getSenderType())
@@ -92,7 +100,22 @@ public class ChatRoomService
                                 .createdAt(cm.getCreatedAt())
                                 .bookmarkId(cm.getBookmarkId())
                                 .build())
-                .toList();
+                .toList());
+
+        // Check condition: no USER messages AND no loveTypeCategory
+        boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
+        Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
+
+        if (!hasUserMessages && member.getLoveTypeCategory() == null) {
+            // Append dynamic SYSTEM message (not persisted)
+            list.add(GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
+                    .messageId(null)  // Not persisted
+                    .senderType(SenderType.SYSTEM)
+                    .content(GlobalConstants.ATTACHMENT_TYPE_PROMPT_MESSAGE)
+                    .createdAt(LocalDateTime.now())
+                    .bookmarkId(null)
+                    .build());
+        }
 
         return GetCurrentChatRoomMessagesResponse.builder()
                 .messages(list)

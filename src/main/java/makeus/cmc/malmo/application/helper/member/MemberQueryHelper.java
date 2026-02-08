@@ -13,6 +13,7 @@ import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -99,6 +100,10 @@ public class MemberQueryHelper {
 
         private int totalChatRoomCount;
         private int totalCoupleQuestionCount;
+
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
     }
 
     @Data
