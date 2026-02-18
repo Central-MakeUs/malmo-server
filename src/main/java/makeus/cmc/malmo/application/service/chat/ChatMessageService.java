@@ -96,10 +96,12 @@ public class ChatMessageService implements ProcessMessageUseCase {
 
             // 마지막 충분성 조건이 아닌 경우
             if (!detailedPrompt.isLastDetailedPrompt()) {
-                // 다음 충분성 조건으로
-                chatRoom.upgradeDetailedLevel();
-                chatRoomCommandHelper.saveChatRoom(chatRoom);
-                return requestNextDetailedPromptOpening(chatRoom, command);
+                // 다음 충분성 조건 오프닝 생성 성공 후 레벨 업
+                return requestNextDetailedPromptOpening(chatRoom, command)
+                        .thenRun(() -> {
+                            chatRoom.upgradeDetailedLevel();
+                            chatRoomCommandHelper.saveChatRoom(chatRoom);
+                        });
             }
 
             // 마지막 충분성 조건인 경우
@@ -108,10 +110,12 @@ public class ChatMessageService implements ProcessMessageUseCase {
                 requestTitleGenerationAsync(chatRoom);
             }
 
-            // 다음 단계 오프닝 생성 요청
-            chatRoom.upgradeToNextStage();
-            chatRoomCommandHelper.saveChatRoom(chatRoom);
-            return requestNextStageOpening(member, chatRoom, command);
+            // 다음 단계 오프닝 생성 성공 후 단계 전이
+            return requestNextStageOpening(member, chatRoom, command)
+                    .thenRun(() -> {
+                        chatRoom.upgradeToNextStage();
+                        chatRoomCommandHelper.saveChatRoom(chatRoom);
+                    });
         });
     }
 
@@ -230,7 +234,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
                 detailedPrompt.getMetadataTitle(),
                 result.getSummary()
         );
-        memberChatRoomMetadataCommandHelper.saveMemberChatRoomMetadata(metadata);
+        memberChatRoomMetadataCommandHelper.saveMemberChatRoomMetadataIfAbsent(metadata);
     }
 
     private CompletableFuture<Void> requestNextDetailedPromptOpening(ChatRoom chatRoom, ProcessMessageCommand command) {

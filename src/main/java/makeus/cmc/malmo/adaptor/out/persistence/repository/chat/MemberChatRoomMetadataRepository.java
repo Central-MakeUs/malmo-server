@@ -14,4 +14,6 @@ public interface MemberChatRoomMetadataRepository extends JpaRepository<MemberCh
 
     @Query("SELECT m FROM MemberChatRoomMetadataEntity m WHERE m.chatRoomId = :chatRoomId AND m.level = :level AND m.detailedLevel = :detailedLevel")
     List<MemberChatRoomMetadataEntity> findByChatRoomIdAndLevelAndDetailedLevel(@Param("chatRoomId") Long chatRoomId, @Param("level") int level, @Param("detailedLevel") int detailedLevel);
+
+    boolean existsByChatRoomIdAndMemberIdAndLevelAndDetailedLevel(Long chatRoomId, Long memberId, int level, int detailedLevel);
 }
