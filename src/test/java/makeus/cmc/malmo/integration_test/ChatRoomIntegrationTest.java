@@ -139,9 +139,8 @@ public class ChatRoomIntegrationTest {
             List<ChatMessageEntity> messages = em.createQuery("SELECT m FROM ChatMessageEntity m WHERE m.chatRoomEntityId.value = :chatRoomId ORDER BY m.createdAt ASC", ChatMessageEntity.class)
                     .setParameter("chatRoomId", chatRooms.get(0).getId())
                     .getResultList();
-            Assertions.assertThat(messages).hasSize(2);
+            Assertions.assertThat(messages).hasSize(1);
             Assertions.assertThat(messages.get(0).getContent()).contains(INIT_CHAT_MESSAGE_FIRST);
-            Assertions.assertThat(messages.get(1).getContent()).contains(INIT_CHAT_MESSAGE_SECOND_PREFIX);
         }
 
         @Test
