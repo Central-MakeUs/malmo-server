@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class OutboxService implements PublishStreamMessageUseCase, RetryPublishingUseCase, MarkOutboxUseCase {
+
+    private static final int MAX_TOTAL_RETRY_COUNT = 10;
 
 
     private final PublishStreamMessagePort publishStreamMessagePort;
@@ -111,19 +114,38 @@ public class OutboxService implements PublishStreamMessageUseCase, RetryPublishi
     @Override
     @Transactional
     public void retryFailedMessages() {
-        // OpenAI Health Check
         boolean isUp = checkOpenAIHealth.checkHealth();
-        if (isUp) {
-            // OpenAI가 정상 상태일 때
-            // FAILED 상태인 메시지를 재시도 처리
-            List<Outbox> failedOutboxList = loadOutboxPort.findByState(OutboxState.FAILED);
+        if (!isUp) return;
 
-            if (failedOutboxList == null || failedOutboxList.isEmpty()) {
-                return;
+        List<Outbox> failedOutboxList = loadOutboxPort.findByState(OutboxState.FAILED);
+        if (failedOutboxList == null || failedOutboxList.isEmpty()) return;
+
+        List<Outbox> retryable = new ArrayList<>();
+        for (Outbox outbox : failedOutboxList) {
+            if (!outbox.isRetryable(MAX_TOTAL_RETRY_COUNT)) {
+                outbox.markAsDead();
+                log.warn("Outbox id={} exceeded max retry limit ({}). Marking as DEAD.", outbox.getId(), MAX_TOTAL_RETRY_COUNT);
+            } else {
+                outbox.incrementRetryCount();
+                retryable.add(outbox);
             }
-
-            publishStreamMessagePort.publishBatch(failedOutboxList);
         }
+
+        if (!retryable.isEmpty()) {
+            List<String> messageIds = publishStreamMessagePort.publishBatch(retryable);
+            for (int i = 0; i < retryable.size(); i++) {
+                String messageId = messageIds.get(i);
+                if (messageId != null) {
+                    retryable.get(i).markAsSent(messageId);
+                    log.info("Re-published FAILED message: outboxId={}, messageId={}", retryable.get(i).getId(), messageId);
+                } else {
+                    retryable.get(i).markAsFailed();
+                    log.error("Failed to re-publish FAILED message: outboxId={}", retryable.get(i).getId());
+                }
+            }
+        }
+
+        saveOutboxPort.saveAll(failedOutboxList);
     }
 
     @Override
