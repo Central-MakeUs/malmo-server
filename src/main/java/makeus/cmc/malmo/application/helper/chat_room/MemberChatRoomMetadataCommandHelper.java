@@ -18,4 +18,18 @@ public class MemberChatRoomMetadataCommandHelper {
         var savedEntity = memberChatRoomMetadataRepository.save(entity);
         return memberChatRoomMetadataMapper.toDomain(savedEntity);
     }
+
+    public MemberChatRoomMetadata saveMemberChatRoomMetadataIfAbsent(MemberChatRoomMetadata memberChatRoomMetadata) {
+        boolean exists = memberChatRoomMetadataRepository.existsByChatRoomIdAndMemberIdAndLevelAndDetailedLevel(
+                memberChatRoomMetadata.getChatRoomId().getValue(),
+                memberChatRoomMetadata.getMemberId().getValue(),
+                memberChatRoomMetadata.getLevel(),
+                memberChatRoomMetadata.getDetailedLevel());
+        if (exists) {
+            return memberChatRoomMetadata;
+        }
+        var entity = memberChatRoomMetadataMapper.toEntity(memberChatRoomMetadata);
+        var savedEntity = memberChatRoomMetadataRepository.save(entity);
+        return memberChatRoomMetadataMapper.toDomain(savedEntity);
+    }
 }

@@ -16,9 +16,15 @@ import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.service.ChatRoomDomainService;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
 import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.stereotype.Service;
+
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHATROOM_LEVEL;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -56,6 +62,12 @@ public class ChatService implements SendChatMessageUseCase {
 
         // BEFORE_INIT 상태인 경우 ALIVE로 전환 (첫 메시지 시)
         if (chatRoom.isBeforeInit()) {
+            // 현재 시점의 연애 상태를 반영한 두 번째 AI 메시지 생성 및 저장
+            String secondMessage = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+            ChatMessage aiMessage = chatRoomDomainService.createAiMessage(
+                    chatRoomId, INIT_CHATROOM_LEVEL, 1, secondMessage);
+            chatRoomCommandHelper.saveChatMessage(aiMessage);
+
             chatRoom.initialize();
             chatRoomCommandHelper.saveChatRoom(chatRoom);
             log.info("채팅방 상태 전환: BEFORE_INIT -> ALIVE, chatRoomId={}", chatRoomId.getValue());
@@ -104,6 +116,17 @@ public class ChatService implements SendChatMessageUseCase {
                 chatRoom.getDetailedLevel(),
                 message);
         return chatRoomCommandHelper.saveChatMessage(userMessage);
+    }
+
+    private String getSecondMessageByRelationshipStatus(RelationshipStatus status) {
+        if (status == null) {
+            return INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+        }
+        return switch (status) {
+            case SEEING_SOMEONE -> INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+            case IN_RELATIONSHIP -> INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP;
+            case BREAKUP -> INIT_CHAT_MESSAGE_SECOND_BREAKUP;
+        };
     }
 
     private void saveAiMessage(MemberId memberId, ChatRoomId chatRoomId, int level, int detailedLevel, String fullAnswer) {

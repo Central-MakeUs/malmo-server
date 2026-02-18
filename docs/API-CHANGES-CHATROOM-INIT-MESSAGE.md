@@ -6,27 +6,27 @@
 
 1. **초기 메시지 2개로 분리**: 기존 1개의 메시지에서 2개의 별도 메시지로 분리
 2. **RelationshipStatus 기반 맞춤 메시지**: 사용자의 연애 상태에 따라 두 번째 메시지 내용 변경
-3. **애착유형 프롬프트 시스템 메시지**: 애착유형 테스트를 하지 않은 사용자에게 안내 메시지 표시
+3. **두 번째 메시지 지연 저장**: 채팅방 생성 시점이 아닌 첫 번째 사용자 메시지 전송 시점에 현재 연애 상태를 반영하여 저장
+4. **애착유형 프롬프트 시스템 메시지**: 애착유형 테스트를 하지 않은 사용자에게 안내 메시지 표시
 
 ---
 
-## 1. 초기 메시지 분리
+## 1. 초기 메시지 구조
 
-### 변경 전
+### 첫 번째 메시지 - 채팅방 생성 시 저장
 
-채팅방 생성 시 1개의 메시지만 저장:
-```
-"{nickname}아 안녕! 나는 연애 고민 상담사 모모야..."
-```
+| 순서 | SenderType | 저장 시점 | 내용 |
+|------|------------|----------|------|
+| 1 | `ASSISTANT` | 채팅방 생성 시 | `"{nickname}아 안녕!"` 또는 `"{nickname}야 안녕!"` (조사 자동 처리) |
 
-### 변경 후
+### 두 번째 메시지 - 첫 번째 사용자 메시지 전송 시 저장
 
-채팅방 생성 시 2개의 메시지가 순차적으로 저장:
+| 순서 | SenderType | 저장 시점 | 내용 |
+|------|------------|----------|------|
+| 2 | `ASSISTANT` | 첫 번째 사용자 메시지 전송 시 (`BEFORE_INIT → ALIVE` 전환) | 연애 상태에 따른 맞춤 메시지 (아래 참조) |
 
-| 순서 | SenderType | 내용 |
-|------|------------|------|
-| 1 | `ASSISTANT` | `"{nickname}아 안녕!"` 또는 `"{nickname}야 안녕!"` (조사 자동 처리) |
-| 2 | `ASSISTANT` | 연애 상태에 따른 맞춤 메시지 (아래 참조) |
+> **Note**: 두 번째 메시지는 첫 사용자 메시지 전송 시점의 `RelationshipStatus`를 반영합니다.
+> 채팅방 생성 후 연애 상태를 변경하더라도 변경된 상태가 정상적으로 반영됩니다.
 
 ---
 
@@ -34,17 +34,10 @@
 
 두 번째 초기 메시지는 사용자의 `RelationshipStatus`에 따라 다른 내용을 표시합니다.
 
-### 공통 Prefix
-모든 메시지는 다음 내용으로 시작합니다:
-```
-나는 연애 고민 상담사 모모야.
-나와의 대화를 마무리하고 싶다면 종료하기 버튼을 눌러줘! 대화 종료 후에는 대화 요약 리포트를 보여줄게.
-```
-
 ### RelationshipStatus별 메시지
 
-| RelationshipStatus | 추가되는 메시지 |
-|--------------------|----------------|
+| RelationshipStatus | 메시지 |
+|--------------------|--------|
 | `SEEING_SOMEONE` | "오늘은 어떤 고민 때문에 나를 찾아왔어? 마음에 두고 있는 상대와 있었던 상황을 이야기해 주면 내가 같이 고민해볼게!" |
 | `IN_RELATIONSHIP` | "오늘은 어떤 고민 때문에 나를 찾아왔어? 먼저 연인과 있었던 갈등 상황을 이야기해 주면 내가 같이 고민해볼게!" |
 | `BREAKUP` | "오늘은 어떤 고민 때문에 나를 찾아왔어? 이별 전후로 마음에 남아 있는 상황을 이야기해 주면 내가 같이 고민해볼게!" |
@@ -64,8 +57,8 @@
     {
       "messageId": 2,
       "senderType": "ASSISTANT",
-      "content": "나는 연애 고민 상담사 모모야.\n나와의 대화를 마무리하고 싶다면 종료하기 버튼을 눌러줘! 대화 종료 후에는 대화 요약 리포트를 보여줄게.\n오늘은 어떤 고민 때문에 나를 찾아왔어? 먼저 연인과 있었던 갈등 상황을 이야기해 주면 내가 같이 고민해볼게!",
-      "createdAt": "2026-01-30T10:00:01"
+      "content": "오늘은 어떤 고민 때문에 나를 찾아왔어? 먼저 연인과 있었던 갈등 상황을 이야기해 주면 내가 같이 고민해볼게!",
+      "createdAt": "2026-01-30T10:00:05"
     }
   ]
 }
@@ -100,7 +93,7 @@
 
 ```json
 {
-  "totalCount": 3,
+  "totalCount": 2,
   "list": [
     {
       "messageId": 1,
@@ -109,16 +102,10 @@
       "createdAt": "2026-01-30T10:00:00"
     },
     {
-      "messageId": 2,
-      "senderType": "ASSISTANT",
-      "content": "나는 연애 고민 상담사 모모야...(생략)",
-      "createdAt": "2026-01-30T10:00:01"
-    },
-    {
       "messageId": null,
       "senderType": "SYSTEM",
       "content": "잠깐! 애착유형 테스트를 하면, 더 정확한 상담이 가능해! 그대로 진행하면 바로 상담해줄게",
-      "createdAt": "2026-01-30T10:00:02"
+      "createdAt": "2026-01-30T10:00:01"
     }
   ]
 }
@@ -154,7 +141,6 @@
 ### Constants
 - `GlobalConstants.java`
   - `INIT_CHAT_MESSAGE_FIRST`: `" 안녕!"` (조사와 결합)
-  - `INIT_CHAT_MESSAGE_SECOND_PREFIX`: 공통 prefix
   - `INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE`: 썸 상태 메시지
   - `INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP`: 연애 중 메시지
   - `INIT_CHAT_MESSAGE_SECOND_BREAKUP`: 이별 후 메시지
@@ -165,9 +151,8 @@
 - `ChatRoomDomainService.java` - `createSystemMessage()`, `createAiMessage()` 오버로드 추가
 
 ### Application Layer
-- `ChatRoomManagementService.java` - 초기 메시지 2개 생성, `getSecondMessageByRelationshipStatus()` 메서드 추가
-- `ChatRoomService.java` - GET 조회 시 동적 시스템 메시지 추가 로직
-- `ChatService.java` - POST 전송 시 시스템 메시지 저장 로직
+- `ChatRoomManagementService.java` - 첫 번째 AI 메시지(인사) 생성만 담당
+- `ChatService.java` - 첫 사용자 메시지 전송 시 두 번째 AI 메시지 생성 및 BEFORE_INIT→ALIVE 전환
 - `ChatRoomQueryHelper.java` - `hasUserMessages()` 메서드 추가
 - `LoadMessagesPort.java` - `hasUserMessages()` 인터페이스 추가
 
@@ -176,5 +161,4 @@
 - `ChatRoomPersistenceAdapter.java` - 포트 구현
 
 ### Tests
-- `ChatRoomManagementServiceTest.java` - 5개 단위 테스트 추가
-- `ChatRoomIntegrationTest.java` - 통합 테스트 케이스 추가
+- `ChatRoomIntegrationTest.java` - 채팅방 생성 시 메시지 1개 저장 검증으로 수정

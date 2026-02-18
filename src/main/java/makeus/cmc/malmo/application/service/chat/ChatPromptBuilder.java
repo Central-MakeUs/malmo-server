@@ -77,6 +77,16 @@ public class ChatPromptBuilder {
         metadataBuilder.append("[사용자 메타데이터] \n");
         String nickname = member.getNickname();
         metadataBuilder.append("- 사용자 이름: ").append(nickname).append("\n");
+
+        String relationshipStatus = member.getRelationshipStatus() != null ? member.getRelationshipStatus().name() : "알 수 없음";
+        metadataBuilder.append("- 사용자 연애 상태: ").append(relationshipStatus).append("\n");
+
+        String personalityType = member.getPersonalityType() != null ? member.getPersonalityType() : "알 수 없음";
+        metadataBuilder.append("- 사용자 MBTI: ").append(personalityType).append("\n");
+
+        String otherPersonalityType = member.getOtherPersonalityType() != null ? member.getOtherPersonalityType() : "알 수 없음";
+        metadataBuilder.append("- 상대방 MBTI: ").append(otherPersonalityType).append("\n");
+
 //        String dDayState = memberDomainService.getMemberDDayState(member.getStartLoveDate());
 //        metadataBuilder.append("- 연애 기간: ").append(dDayState).append("\n");
 
