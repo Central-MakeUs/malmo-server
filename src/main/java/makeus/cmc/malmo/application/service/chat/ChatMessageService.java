@@ -311,8 +311,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         
         return chatProcessor.requestTitleGeneration(messages, titlePrompt)
                 .thenAcceptAsync(title -> {
-                    chatRoom.updateTitle(title);
-                    chatRoomCommandHelper.saveChatRoom(chatRoom);
+                    chatRoomCommandHelper.updateChatRoomTitle(command.getChatRoomId(), title);
                     log.info("Title generated for chatRoomId: {}, title: {}", command.getChatRoomId(), title);
                 });
     }

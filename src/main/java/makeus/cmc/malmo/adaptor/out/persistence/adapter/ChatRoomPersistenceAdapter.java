@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -108,6 +109,12 @@ public class ChatRoomPersistenceAdapter
         ChatRoomEntity entity = chatRoomMapper.toEntity(chatRoom);
         ChatRoomEntity savedEntity = chatRoomRepository.save(entity);
         return chatRoomMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    @Transactional
+    public void updateChatRoomTitle(Long chatRoomId, String title) {
+        chatRoomRepository.updateTitle(chatRoomId, title);
     }
 
     @Override

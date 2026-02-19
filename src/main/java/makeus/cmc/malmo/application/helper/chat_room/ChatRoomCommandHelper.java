@@ -27,6 +27,10 @@ public class ChatRoomCommandHelper {
         return saveChatRoomPort.saveChatRoom(chatRoom);
     }
 
+    public void updateChatRoomTitle(Long chatRoomId, String title) {
+        saveChatRoomPort.updateChatRoomTitle(chatRoomId, title);
+    }
+
     public void deleteChatRooms(List<ChatRoomId> chatRoomIds) {
         deleteChatRoomPort.deleteChatRooms(chatRoomIds);
     }
