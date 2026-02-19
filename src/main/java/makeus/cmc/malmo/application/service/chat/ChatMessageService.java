@@ -341,13 +341,14 @@ public class ChatMessageService implements ProcessMessageUseCase {
             ));
         }
         
-        // 요약 프롬프트 조회 (4단계 요약 프롬프트 사용)
+        // 요약 프롬프트 조회 (level → 4 → 3 순서로 fallback)
         Prompt summaryPrompt = promptQueryHelper.getSummaryPromptByLevel(level)
-                .orElseGet(() -> {
-                    log.warn("Summary prompt not found for level: {}, using default", level);
-                    return promptQueryHelper.getSummaryPromptByLevel(3)
-                            .orElseThrow(() -> new RuntimeException("Summary prompt not found"));
-                });
+                .orElseGet(() -> promptQueryHelper.getSummaryPromptByLevel(4)
+                        .orElseGet(() -> {
+                            log.warn("Summary prompt not found for level: {}, using default", level);
+                            return promptQueryHelper.getSummaryPromptByLevel(3)
+                                    .orElseThrow(() -> new RuntimeException("Summary prompt not found"));
+                        }));
         
         // 비동기 요약 생성 및 저장
         return chatProcessor.requestConversationSummary(summaryMessages, summaryPrompt)
