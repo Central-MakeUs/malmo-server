@@ -15,6 +15,7 @@ import makeus.cmc.malmo.domain.model.chat.ChatRoom;
 import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.data.domain.Page;
@@ -89,6 +90,8 @@ public class ChatRoomService
         ChatRoomId chatRoomId = ChatRoomId.of(command.getChatRoomId());
         chatRoomQueryHelper.validateChatRoomOwnership(memberId, chatRoomId);
 
+        ChatRoom chatRoom = chatRoomQueryHelper.getChatRoomByIdOrThrow(chatRoomId);
+
         Page<LoadMessagesPort.ChatRoomMessageRepositoryDto> result =
                 chatRoomQueryHelper.getChatMessagesDtoAsc(chatRoomId, memberId, command.getPageable());
 
@@ -102,14 +105,28 @@ public class ChatRoomService
                                 .build())
                 .toList());
 
-        // Check condition: no USER messages AND no loveTypeCategory
         boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
+
+        // BEFORE_INIT 상태인 경우 두 번째 AI 메시지를 동적으로 삽입
+        if (chatRoom.isBeforeInit()) {
+            String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+            LocalDateTime secondMessageTime = list.isEmpty()
+                    ? LocalDateTime.now()
+                    : list.get(0).getCreatedAt().plusSeconds(1);
+            list.add(Math.min(1, list.size()), GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
+                    .messageId(null)
+                    .senderType(SenderType.ASSISTANT)
+                    .content(secondMessageContent)
+                    .createdAt(secondMessageTime)
+                    .bookmarkId(null)
+                    .build());
+        }
 
         if (!hasUserMessages && member.getLoveTypeCategory() == null) {
             // Append dynamic SYSTEM message (not persisted)
             list.add(GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
-                    .messageId(null)  // Not persisted
+                    .messageId(null)
                     .senderType(SenderType.SYSTEM)
                     .content(GlobalConstants.ATTACHMENT_TYPE_PROMPT_MESSAGE)
                     .createdAt(LocalDateTime.now())
@@ -121,6 +138,17 @@ public class ChatRoomService
                 .messages(list)
                 .totalCount(result.getTotalElements())
                 .build();
+    }
+
+    private String getSecondMessageByRelationshipStatus(RelationshipStatus status) {
+        if (status == null) {
+            return GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+        }
+        return switch (status) {
+            case SEEING_SOMEONE -> GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+            case IN_RELATIONSHIP -> GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP;
+            case BREAKUP -> GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP;
+        };
     }
 
     @Override
