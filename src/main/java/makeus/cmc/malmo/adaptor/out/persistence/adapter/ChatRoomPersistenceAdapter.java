@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -115,6 +116,24 @@ public class ChatRoomPersistenceAdapter
     @Transactional
     public void updateChatRoomTitle(Long chatRoomId, String title) {
         chatRoomRepository.updateTitle(chatRoomId, title);
+    }
+
+    @Override
+    @Transactional
+    public void upgradeChatRoomLevel(Long chatRoomId, int level, int detailedLevel) {
+        chatRoomRepository.upgradeLevel(chatRoomId, level, detailedLevel);
+    }
+
+    @Override
+    @Transactional
+    public void upgradeChatRoomDetailedLevel(Long chatRoomId, int detailedLevel) {
+        chatRoomRepository.upgradeDetailedLevel(chatRoomId, detailedLevel);
+    }
+
+    @Override
+    @Transactional
+    public void updateChatRoomLastMessageSentTime(Long chatRoomId, LocalDateTime lastMessageSentTime) {
+        chatRoomRepository.updateLastMessageSentTime(chatRoomId, lastMessageSentTime);
     }
 
     @Override

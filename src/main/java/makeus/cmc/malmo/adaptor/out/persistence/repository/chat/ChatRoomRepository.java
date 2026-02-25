@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +23,16 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, Long>,
     @Modifying
     @Query("UPDATE ChatRoomEntity c SET c.title = :title WHERE c.id = :chatRoomId")
     void updateTitle(@Param("chatRoomId") Long chatRoomId, @Param("title") String title);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE ChatRoomEntity c SET c.level = :level, c.detailedLevel = :detailedLevel WHERE c.id = :chatRoomId")
+    void upgradeLevel(@Param("chatRoomId") Long chatRoomId, @Param("level") int level, @Param("detailedLevel") int detailedLevel);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE ChatRoomEntity c SET c.detailedLevel = :detailedLevel WHERE c.id = :chatRoomId")
+    void upgradeDetailedLevel(@Param("chatRoomId") Long chatRoomId, @Param("detailedLevel") int detailedLevel);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE ChatRoomEntity c SET c.lastMessageSentTime = :time WHERE c.id = :chatRoomId")
+    void updateLastMessageSentTime(@Param("chatRoomId") Long chatRoomId, @Param("time") LocalDateTime time);
 }

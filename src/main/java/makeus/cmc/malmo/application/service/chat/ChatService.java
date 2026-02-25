@@ -89,8 +89,7 @@ public class ChatService implements SendChatMessageUseCase {
         ChatMessage savedUserMessage = saveUserMessage(chatRoom, command.getMessage());
 
         // 채팅방의 마지막 메시지 전송 시간 갱신
-        chatRoom.updateLastMessageSentTime();
-        chatRoomCommandHelper.saveChatRoom(chatRoom);
+        chatRoomCommandHelper.updateChatRoomLastMessageSentTime(chatRoom.getId(), java.time.LocalDateTime.now());
 
         // 채팅 응답 API 요청 스트림에 추가
         outboxHelper.publish(

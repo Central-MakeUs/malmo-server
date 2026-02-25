@@ -98,10 +98,9 @@ public class ChatMessageService implements ProcessMessageUseCase {
             if (!detailedPrompt.isLastDetailedPrompt()) {
                 // 다음 충분성 조건 오프닝 생성 성공 후 레벨 업
                 return requestNextDetailedPromptOpening(chatRoom, command)
-                        .thenRun(() -> {
-                            chatRoom.upgradeDetailedLevel();
-                            chatRoomCommandHelper.saveChatRoom(chatRoom);
-                        });
+                        .thenRun(() ->
+                            chatRoomCommandHelper.upgradeChatRoomDetailedLevel(chatRoom.getId(), command.getDetailedLevel() + 1)
+                        );
             }
 
             // 마지막 충분성 조건인 경우
@@ -112,10 +111,9 @@ public class ChatMessageService implements ProcessMessageUseCase {
 
             // 다음 단계 오프닝 생성 성공 후 단계 전이
             return requestNextStageOpening(member, chatRoom, command)
-                    .thenRun(() -> {
-                        chatRoom.upgradeToNextStage();
-                        chatRoomCommandHelper.saveChatRoom(chatRoom);
-                    });
+                    .thenRun(() ->
+                        chatRoomCommandHelper.upgradeChatRoomLevel(chatRoom.getId(), command.getPromptLevel() + 1, 1)
+                    );
         });
     }
 
