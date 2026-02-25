@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -108,12 +109,16 @@ public class ChatRoomService
         boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
 
+        LocalDateTime nextSyntheticTime = list.isEmpty()
+                ? LocalDateTime.now()
+                : list.get(list.size() - 1).getCreatedAt().plusNanos(1);
+
         // BEFORE_INIT 상태인 경우 두 번째 AI 메시지를 동적으로 삽입
         if (chatRoom.isBeforeInit()) {
             String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
             LocalDateTime secondMessageTime = list.isEmpty()
                     ? LocalDateTime.now()
-                    : list.get(0).getCreatedAt().plusSeconds(1);
+                    : list.get(0).getCreatedAt().plusNanos(1);
             list.add(Math.min(1, list.size()), GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                     .messageId(null)
                     .senderType(SenderType.ASSISTANT)
@@ -121,6 +126,7 @@ public class ChatRoomService
                     .createdAt(secondMessageTime)
                     .bookmarkId(null)
                     .build());
+            nextSyntheticTime = secondMessageTime.plusNanos(1);
         }
 
         if (!hasUserMessages && member.getLoveTypeCategory() == null) {
@@ -129,10 +135,15 @@ public class ChatRoomService
                     .messageId(null)
                     .senderType(SenderType.SYSTEM)
                     .content(GlobalConstants.ATTACHMENT_TYPE_PROMPT_MESSAGE)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(nextSyntheticTime)
                     .bookmarkId(null)
                     .build());
         }
+
+        list.sort(Comparator
+                .comparing(GetChatRoomMessagesUseCase.ChatRoomMessageDto::getCreatedAt)
+                .thenComparing(dto -> dto.getMessageId() == null ? Long.MAX_VALUE : dto.getMessageId())
+        );
 
         return GetCurrentChatRoomMessagesResponse.builder()
                 .messages(list)
