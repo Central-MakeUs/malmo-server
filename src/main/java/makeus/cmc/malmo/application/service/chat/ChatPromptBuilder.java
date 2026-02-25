@@ -32,7 +32,7 @@ public class ChatPromptBuilder {
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
-        messages.add(createMessageMap(SenderType.USER, metaDataContent));
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. MemberChatRoomMetadata 정보 (단계별 요약 대신)
         List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(ChatRoomId.of(chatRoom.getId()));
@@ -117,7 +117,7 @@ public class ChatPromptBuilder {
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
-        messages.add(createMessageMap(SenderType.USER, metaDataContent));
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. MemberChatRoomMetadata 정보 (단계별 요약 대신)
         List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(ChatRoomId.of(chatRoom.getId()));
@@ -141,7 +141,7 @@ public class ChatPromptBuilder {
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
-        messages.add(createMessageMap(SenderType.USER, metaDataContent));
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. MemberChatRoomMetadata 정보
         List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(ChatRoomId.of(chatRoom.getId()));
@@ -166,7 +166,7 @@ public class ChatPromptBuilder {
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
-        messages.add(createMessageMap(SenderType.USER, metaDataContent));
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. MemberChatRoomMetadata 정보
         List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(ChatRoomId.of(chatRoom.getId()));
@@ -220,7 +220,7 @@ public class ChatPromptBuilder {
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
-        messages.add(createMessageMap(SenderType.USER, metaDataContent));
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. 이전 단계 요약 (MemberChatRoomMetadata)
         List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(chatRoomId);
