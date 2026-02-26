@@ -70,9 +70,9 @@ swagger:
     production:
       url: sample.url.com
 
-gemini:
+openai:
   api:
-    key: test-gemini-api-key-for-testing-only
+    key: sk-test-openai-api-key-for-testing-only
 
 security:
   server:
