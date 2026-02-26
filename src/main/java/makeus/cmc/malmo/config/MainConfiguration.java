@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static makeus.cmc.malmo.util.GlobalConstants.OPENAI_CHAT_URL;
+import static makeus.cmc.malmo.util.GlobalConstants.GEMINI_API_URL;
 
 
 @Configuration
@@ -25,7 +25,7 @@ public class MainConfiguration {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl(OPENAI_CHAT_URL)
+                .baseUrl(GEMINI_API_URL)
                 .build();
     }
 

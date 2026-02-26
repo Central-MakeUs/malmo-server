@@ -61,9 +61,9 @@ swagger:
     production:
       url: ${SWAGGER_SERVER_PRODUCTION_URL}
 
-openai:
+gemini:
   api:
-    key: ${OPENAI_API_KEY}
+    key: ${GEMINI_API_KEY}
 
 security:
   server:

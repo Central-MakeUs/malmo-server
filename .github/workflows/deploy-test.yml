@@ -147,7 +147,7 @@ jobs:
                   - APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIVATE_KEY }}
                   - APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}
                   - KAKAO_ADMIN_KEY=${{ secrets.KAKAO_ADMIN_KEY }}
-                  - OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                  - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
                   - SWAGGER_SERVER_PRODUCTION_URL=${{ secrets.TEST_SWAGGER_SERVER_PRODUCTION_URL }}
                   - SECURITY_CLIENT_URL_PRODUCTION=${{ secrets.SECURITY_CLIENT_URL_PRODUCTION }}
                   - SECURITY_CLIENT_URL_DEVELOPMENT=${{ secrets.SECURITY_CLIENT_URL_DEVELOPMENT }}
