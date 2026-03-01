@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHATROOM_LEVEL;
@@ -54,15 +55,13 @@ public class ChatRoomManagementService implements CreateChatRoomUseCase {
         ChatRoom chatRoom = chatRoomDomainService.createChatRoom(memberId);
         ChatRoom savedChatRoom = chatRoomCommandHelper.saveChatRoom(chatRoom);
 
-        LocalDateTime now = LocalDateTime.now();
-
         // 첫 번째 AI 메시지: nickname아 안녕!
         ChatMessage firstMessage = chatRoomDomainService.createAiMessage(
                 ChatRoomId.of(savedChatRoom.getId()),
                 INIT_CHATROOM_LEVEL,
                 1,
                 JosaUtils.아야(member.getNickname()) + INIT_CHAT_MESSAGE_FIRST,
-                now);
+                Objects.requireNonNullElse(savedChatRoom.getCreatedAt(), LocalDateTime.now()));
         chatRoomCommandHelper.saveChatMessage(firstMessage);
 
         log.info("새 BEFORE_INIT 채팅방 생성: chatRoomId={}, memberId={}", savedChatRoom.getId(), memberId.getValue());

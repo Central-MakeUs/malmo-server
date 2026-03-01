@@ -17,6 +17,7 @@ import makeus.cmc.malmo.domain.service.ChatRoomDomainService;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
+import makeus.cmc.malmo.domain.value.type.SenderType;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
 import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,9 @@ import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_
 import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 //import static makeus.cmc.malmo.util.GlobalConstants.FINAL_MESSAGE;
@@ -62,11 +65,22 @@ public class ChatService implements SendChatMessageUseCase {
 
         // BEFORE_INIT 상태인 경우 ALIVE로 전환 (첫 메시지 시)
         if (chatRoom.isBeforeInit()) {
-            // 현재 시점의 연애 상태를 반영한 두 번째 AI 메시지 생성 및 저장
-            String secondMessage = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
-            ChatMessage aiMessage = chatRoomDomainService.createAiMessage(
-                    chatRoomId, INIT_CHATROOM_LEVEL, 1, secondMessage);
-            chatRoomCommandHelper.saveChatMessage(aiMessage);
+            List<ChatMessage> initMessages = chatRoomQueryHelper.getChatRoomLevelAndDetailedLevelMessages(
+                    chatRoomId, INIT_CHATROOM_LEVEL, 1);
+            if (!hasPersistedSecondInitMessage(initMessages)) {
+                LocalDateTime anchorTime = initMessages.stream()
+                        .filter(message -> message.getSenderType() == SenderType.ASSISTANT)
+                        .map(ChatMessage::getCreatedAt)
+                        .filter(Objects::nonNull)
+                        .min(LocalDateTime::compareTo)
+                        .orElse(LocalDateTime.now());
+
+                // 현재 시점의 연애 상태를 반영한 두 번째 AI 메시지 생성 및 저장
+                String secondMessage = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+                ChatMessage aiMessage = chatRoomDomainService.createAiMessage(
+                        chatRoomId, INIT_CHATROOM_LEVEL, 1, secondMessage, anchorTime.plusNanos(1));
+                chatRoomCommandHelper.saveChatMessage(aiMessage);
+            }
 
             chatRoom.initialize();
             chatRoomCommandHelper.saveChatRoom(chatRoom);
@@ -115,6 +129,18 @@ public class ChatService implements SendChatMessageUseCase {
                 chatRoom.getDetailedLevel(),
                 message);
         return chatRoomCommandHelper.saveChatMessage(userMessage);
+    }
+
+    private boolean hasPersistedSecondInitMessage(List<ChatMessage> initMessages) {
+        return initMessages.stream()
+                .anyMatch(message -> message.getSenderType() == SenderType.ASSISTANT
+                        && isInitSecondMessageContent(message.getContent()));
+    }
+
+    private boolean isInitSecondMessageContent(String content) {
+        return GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE.equals(content)
+                || GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP.equals(content)
+                || GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP.equals(content);
     }
 
     private String getSecondMessageByRelationshipStatus(RelationshipStatus status) {
