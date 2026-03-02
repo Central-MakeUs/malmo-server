@@ -158,6 +158,16 @@ public class ChatRoomPersistenceAdapter
     }
 
     @Override
+    @Transactional
+    public void updateChatMessageCreatedAt(Long messageId, LocalDateTime createdAt) {
+        if (messageId == null) {
+            return;
+        }
+
+        chatMessageRepository.updateCreatedAtById(messageId, createdAt);
+    }
+
+    @Override
     public Optional<ChatRoom> loadChatRoomById(ChatRoomId chatRoomId) {
         return chatRoomRepository.findById(chatRoomId.getValue())
                 .map(chatRoomMapper::toDomain);

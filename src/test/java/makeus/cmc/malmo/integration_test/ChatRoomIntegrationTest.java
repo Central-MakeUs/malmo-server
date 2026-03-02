@@ -217,6 +217,56 @@ public class ChatRoomIntegrationTest {
         }
 
         @Test
+        @DisplayName("BEFORE_INIT에서 레거시 초기메시지 시각이 첫 메시지 저장 시 갱신된다")
+        void BEFORE_INIT_레거시초기메시지_시각_갱신_확인() throws Exception {
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.BEFORE_INIT)
+                    .build();
+            em.persist(chatRoom);
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("레거시 초기메시지1")
+                    .createdAt(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 0))
+                    .build());
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("레거시 초기메시지2")
+                    .createdAt(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 1))
+                    .build());
+            em.flush();
+            em.clear();
+
+            mockMvc.perform(post("/chatrooms/{chatRoomId}/messages", chatRoom.getId())
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createSendChatMessageRequestDto("안녕하세요"))))
+                    .andExpect(status().isOk());
+
+            List<ChatMessageEntity> messages = em.createQuery(
+                            "SELECT m FROM ChatMessageEntity m WHERE m.chatRoomEntityId.value = :chatRoomId ORDER BY m.createdAt ASC",
+                            ChatMessageEntity.class)
+                    .setParameter("chatRoomId", chatRoom.getId())
+                    .getResultList();
+
+            Assertions.assertThat(messages).hasSize(3);
+            Assertions.assertThat(messages.get(0).getSenderType()).isEqualTo(SenderType.ASSISTANT);
+            Assertions.assertThat(messages.get(0).getContent()).isEqualTo("레거시 초기메시지1");
+            Assertions.assertThat(messages.get(0).getCreatedAt())
+                    .isNotEqualTo(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 0));
+            Assertions.assertThat(messages.get(1).getSenderType()).isEqualTo(SenderType.ASSISTANT);
+            Assertions.assertThat(messages.get(1).getContent()).isEqualTo("레거시 초기메시지2");
+            Assertions.assertThat(messages.get(1).getCreatedAt())
+                    .isNotEqualTo(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 1));
+            Assertions.assertThat(messages.get(1).getCreatedAt()).isAfter(messages.get(0).getCreatedAt());
+            Assertions.assertThat(messages.get(2).getSenderType()).isEqualTo(SenderType.USER);
+        }
+
+        @Test
         @DisplayName("ALIVE 상태가 되면 새 채팅방 생성이 가능하다")
         void ALIVE_후_새_채팅방_생성() throws Exception {
             // given - BEFORE_INIT 채팅방 생성 및 ALIVE 전환
@@ -751,6 +801,41 @@ public class ChatRoomIntegrationTest {
                     .andExpect(jsonPath("$.data.totalCount").value(2))
                     .andExpect(jsonPath("$.data.list[0].messageId").isNotEmpty())
                     .andExpect(jsonPath("$.data.list[1].messageId").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("BEFORE_INIT에서 저장된 초기메시지의 조회 시각은 조회 시각으로 노출된다")
+        void BEFORE_INIT_저장된_초기메시지_조회_시각_노출() throws Exception {
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.BEFORE_INIT)
+                    .build();
+            em.persist(chatRoom);
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("레거시 초기메시지1")
+                    .createdAt(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 0))
+                    .build());
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("레거시 초기메시지2")
+                    .createdAt(java.time.LocalDateTime.of(2000, 1, 1, 0, 0, 1))
+                    .build());
+            em.flush();
+
+            mockMvc.perform(get("/chatrooms/{chatRoomId}/messages", chatRoom.getId())
+                            .header("Authorization", "Bearer " + accessToken)
+                            .param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalCount").value(2))
+                    .andExpect(jsonPath("$.data.list[0].messageId").isNotEmpty())
+                    .andExpect(jsonPath("$.data.list[1].messageId").isNotEmpty())
+                    .andExpect(jsonPath("$.data.list[0].createdAt").value(org.hamcrest.Matchers.not("2000-01-01T00:00:00")))
+                    .andExpect(jsonPath("$.data.list[1].createdAt").value(org.hamcrest.Matchers.not("2000-01-01T00:00:01")));
         }
 
         @Test

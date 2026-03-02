@@ -111,49 +111,59 @@ public class ChatRoomService
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
         long persistedMessageCount = result.getTotalElements();
         long injectedInitMessageCount = 0;
+        LocalDateTime now = LocalDateTime.now();
 
         LocalDateTime nextSyntheticTime = list.isEmpty()
-                ? LocalDateTime.now()
+                ? now
                 : list.get(list.size() - 1).getCreatedAt().plusNanos(1);
 
         // BEFORE_INIT 상태인 경우 초기 AI 메시지(FIRST/SECOND)를 동적으로 삽입
         if (chatRoom.isBeforeInit()) {
+            if (persistedMessageCount >= 1) {
+                List<GetChatRoomMessagesUseCase.ChatRoomMessageDto> persistedInitMessagesByTime = list.stream()
+                        .sorted(Comparator
+                                .comparing(GetChatRoomMessagesUseCase.ChatRoomMessageDto::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo))
+                                .thenComparing(dto -> dto.getMessageId(), Comparator.nullsLast(Long::compareTo))
+                        )
+                        .limit(2).toList();
+
+                for (int i = 0; i < persistedInitMessagesByTime.size(); i++) {
+                    persistedInitMessagesByTime.get(i).setCreatedAt(now.plusNanos(i));
+                }
+            }
+
             if (persistedMessageCount == 0) {
                 String firstMessageContent = JosaUtils.아야(member.getNickname()) + GlobalConstants.INIT_CHAT_MESSAGE_FIRST;
                 String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
-                LocalDateTime baseMessageTime = list.isEmpty()
-                        ? LocalDateTime.now()
-                        : list.get(0).getCreatedAt().minusNanos(1);
                 list.add(0, GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                         .messageId(null)
                         .senderType(SenderType.ASSISTANT)
                         .content(firstMessageContent)
-                        .createdAt(baseMessageTime)
+                        .createdAt(now)
                         .bookmarkId(null)
                         .build());
                 list.add(1, GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                         .messageId(null)
                         .senderType(SenderType.ASSISTANT)
                         .content(secondMessageContent)
-                        .createdAt(baseMessageTime.plusNanos(1))
+                        .createdAt(now.plusNanos(1))
                         .bookmarkId(null)
                         .build());
                 injectedInitMessageCount += 2;
-                nextSyntheticTime = baseMessageTime.plusNanos(2);
+                nextSyntheticTime = now.plusNanos(2);
             } else if (persistedMessageCount == 1) {
                 String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
-                LocalDateTime secondMessageTime = list.isEmpty()
-                        ? LocalDateTime.now()
-                        : list.get(list.size() - 1).getCreatedAt().plusNanos(1);
                 list.add(Math.min(1, list.size()), GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                         .messageId(null)
                         .senderType(SenderType.ASSISTANT)
                         .content(secondMessageContent)
-                        .createdAt(secondMessageTime)
+                        .createdAt(now.plusNanos(1))
                         .bookmarkId(null)
                         .build());
                 injectedInitMessageCount += 1;
-                nextSyntheticTime = secondMessageTime.plusNanos(1);
+                nextSyntheticTime = now.plusNanos(2);
+            } else {
+                nextSyntheticTime = now.plusNanos(2);
             }
         }
 

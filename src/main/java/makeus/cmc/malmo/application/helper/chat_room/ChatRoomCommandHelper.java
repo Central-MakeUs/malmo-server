@@ -56,6 +56,10 @@ public class ChatRoomCommandHelper {
         return saveChatMessagePort.saveChatMessages(chatMessages);
     }
 
+    public void updateChatMessageCreatedAt(Long messageId, LocalDateTime createdAt) {
+        saveChatMessagePort.updateChatMessageCreatedAt(messageId, createdAt);
+    }
+
     public ChatMessageSummary saveChatMessageSummary(ChatMessageSummary chatMessageSummary) {
         return saveChatMessageSummaryPort.saveChatMessageSummary(chatMessageSummary);
     }

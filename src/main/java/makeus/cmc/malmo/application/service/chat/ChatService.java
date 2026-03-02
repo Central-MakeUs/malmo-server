@@ -17,6 +17,7 @@ import makeus.cmc.malmo.domain.service.ChatRoomDomainService;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
+import makeus.cmc.malmo.domain.value.type.SenderType;
 import makeus.cmc.malmo.util.JosaUtils;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
 import makeus.cmc.malmo.util.GlobalConstants;
@@ -30,6 +31,7 @@ import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BRE
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 //import static makeus.cmc.malmo.util.GlobalConstants.FINAL_MESSAGE;
@@ -66,6 +68,25 @@ public class ChatService implements SendChatMessageUseCase {
         if (chatRoom.isBeforeInit()) {
             long messageCount = chatRoomQueryHelper.countMessagesByLevel(chatRoomId, INIT_CHATROOM_LEVEL);
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+            if (messageCount > 0) {
+                List<ChatMessage> initMessages = chatRoomQueryHelper.getChatRoomLevelMessages(chatRoomId, INIT_CHATROOM_LEVEL)
+                        .stream()
+                        .filter(m -> m.getSenderType() == SenderType.ASSISTANT)
+                        .sorted(Comparator
+                                .comparing(ChatMessage::getCreatedAt, Comparator.nullsLast(java.time.LocalDateTime::compareTo))
+                                .thenComparing(ChatMessage::getId, Comparator.nullsLast(Long::compareTo)))
+                        .limit(2)
+                        .toList();
+                for (int i = 0; i < initMessages.size(); i++) {
+                    ChatMessage initMessage = initMessages.get(i);
+                    chatRoomCommandHelper.updateChatMessageCreatedAt(
+                            initMessage.getId(),
+                        now.minus(2L - i, java.time.temporal.ChronoUnit.MILLIS)
+                    );
+                }
+            }
+
             if (messageCount == 0) {
                 chatRoomCommandHelper.saveChatMessage(chatRoomDomainService.createAiMessage(
                         chatRoomId,
