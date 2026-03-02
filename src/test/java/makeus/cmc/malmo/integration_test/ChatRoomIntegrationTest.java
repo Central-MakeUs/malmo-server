@@ -139,8 +139,7 @@ public class ChatRoomIntegrationTest {
             List<ChatMessageEntity> messages = em.createQuery("SELECT m FROM ChatMessageEntity m WHERE m.chatRoomEntityId.value = :chatRoomId ORDER BY m.createdAt ASC", ChatMessageEntity.class)
                     .setParameter("chatRoomId", chatRooms.get(0).getId())
                     .getResultList();
-            Assertions.assertThat(messages).hasSize(1);
-            Assertions.assertThat(messages.get(0).getContent()).contains(INIT_CHAT_MESSAGE_FIRST);
+            Assertions.assertThat(messages).hasSize(0);
         }
 
         @Test
@@ -199,9 +198,22 @@ public class ChatRoomIntegrationTest {
                             .content(objectMapper.writeValueAsString(ChatRoomRequestDtoFactory.createSendChatMessageRequestDto("안녕하세요"))))
                     .andExpect(status().isOk());
 
+            List<ChatMessageEntity> messages = em.createQuery(
+                            "SELECT m FROM ChatMessageEntity m WHERE m.chatRoomEntityId.value = :chatRoomId ORDER BY m.createdAt ASC",
+                            ChatMessageEntity.class)
+                    .setParameter("chatRoomId", chatRoomId)
+                    .getResultList();
+
             // then - ALIVE로 상태 전환 확인
             ChatRoomEntity updatedRoom = em.find(ChatRoomEntity.class, chatRoomId);
             Assertions.assertThat(updatedRoom.getChatRoomState()).isEqualTo(ChatRoomState.ALIVE);
+            Assertions.assertThat(messages).hasSize(3);
+            Assertions.assertThat(messages.get(0).getSenderType()).isEqualTo(SenderType.ASSISTANT);
+            Assertions.assertThat(messages.get(0).getContent()).contains(INIT_CHAT_MESSAGE_FIRST);
+            Assertions.assertThat(messages.get(1).getSenderType()).isEqualTo(SenderType.ASSISTANT);
+            Assertions.assertThat(messages.get(1).getContent()).isEqualTo(INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP);
+            Assertions.assertThat(messages.get(2).getSenderType()).isEqualTo(SenderType.USER);
+            Assertions.assertThat(messages.get(2).getContent()).isEqualTo("안녕하세요");
         }
 
         @Test
@@ -654,6 +666,91 @@ public class ChatRoomIntegrationTest {
                     .andExpect(jsonPath("$.data.totalCount").value(2))
                     .andExpect(jsonPath("$.data.list[0].content").value("메시지1"))
                     .andExpect(jsonPath("$.data.list[1].content").value("메시지2"));
+        }
+
+        @Test
+        @DisplayName("BEFORE_INIT에서 메시지 수 0개면 초기 메시지 2개를 동적으로 반환한다")
+        void BEFORE_INIT_메시지_수_0개_동적_초기메시지_2개_반환() throws Exception {
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.BEFORE_INIT)
+                    .build();
+            em.persist(chatRoom);
+            em.flush();
+
+            mockMvc.perform(get("/chatrooms/{chatRoomId}/messages", chatRoom.getId())
+                            .header("Authorization", "Bearer " + accessToken)
+                            .param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalCount").value(2))
+                    .andExpect(jsonPath("$.data.list[0].messageId").isEmpty())
+                    .andExpect(jsonPath("$.data.list[1].messageId").isEmpty())
+                    .andExpect(jsonPath("$.data.list[0].senderType").value("ASSISTANT"))
+                    .andExpect(jsonPath("$.data.list[1].senderType").value("ASSISTANT"))
+                    .andExpect(jsonPath("$.data.list[0].content").value(org.hamcrest.Matchers.containsString(INIT_CHAT_MESSAGE_FIRST)))
+                    .andExpect(jsonPath("$.data.list[1].content").value(INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP));
+        }
+
+        @Test
+        @DisplayName("BEFORE_INIT에서 메시지 수 1개면 SECOND를 동적으로 반환한다")
+        void BEFORE_INIT_메시지_수_1개_동적_SECOND_반환() throws Exception {
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.BEFORE_INIT)
+                    .build();
+            em.persist(chatRoom);
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("안녕하세요")
+                    .createdAt(LocalDateTime.now().minusMinutes(1))
+                    .build());
+            em.flush();
+
+            mockMvc.perform(get("/chatrooms/{chatRoomId}/messages", chatRoom.getId())
+                            .header("Authorization", "Bearer " + accessToken)
+                            .param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalCount").value(2))
+                    .andExpect(jsonPath("$.data.list[0].messageId").isNotEmpty())
+                    .andExpect(jsonPath("$.data.list[0].senderType").value("ASSISTANT"))
+                    .andExpect(jsonPath("$.data.list[1].messageId").isEmpty())
+                    .andExpect(jsonPath("$.data.list[1].senderType").value("ASSISTANT"))
+                    .andExpect(jsonPath("$.data.list[1].content").value(INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP));
+        }
+
+        @Test
+        @DisplayName("BEFORE_INIT에서 메시지 수 2개면 동적 초기 메시지를 생성하지 않는다")
+        void BEFORE_INIT_메시지_수_2개면_동적_생성되지_않음() throws Exception {
+            ChatRoomEntity chatRoom = ChatRoomEntity.builder()
+                    .memberEntityId(MemberEntityId.of(member.getId()))
+                    .chatRoomState(ChatRoomState.BEFORE_INIT)
+                    .build();
+            em.persist(chatRoom);
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("안녕하세요")
+                    .createdAt(LocalDateTime.now().minusMinutes(2))
+                    .build());
+            em.persist(ChatMessageEntity.builder()
+                    .chatRoomEntityId(ChatRoomEntityId.of(chatRoom.getId()))
+                    .level(1)
+                    .senderType(SenderType.ASSISTANT)
+                    .content("반갑습니다")
+                    .createdAt(LocalDateTime.now().minusMinutes(1))
+                    .build());
+            em.flush();
+
+            mockMvc.perform(get("/chatrooms/{chatRoomId}/messages", chatRoom.getId())
+                            .header("Authorization", "Bearer " + accessToken)
+                            .param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalCount").value(2))
+                    .andExpect(jsonPath("$.data.list[0].messageId").isNotEmpty())
+                    .andExpect(jsonPath("$.data.list[1].messageId").isNotEmpty());
         }
 
         @Test

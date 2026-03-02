@@ -8,7 +8,6 @@ import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.port.in.chat.DeleteChatRoomUseCase;
 import makeus.cmc.malmo.application.port.in.chat.GetChatRoomListUseCase;
 import makeus.cmc.malmo.application.port.in.chat.GetChatRoomMessagesUseCase;
-import makeus.cmc.malmo.application.port.in.chat.GetChatRoomMessagesUseCase.ChatRoomMessageDto;
 import makeus.cmc.malmo.application.port.in.chat.GetChatRoomSummaryUseCase;
 import makeus.cmc.malmo.application.port.out.chat.LoadMessagesPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessageSummary;
@@ -19,6 +18,7 @@ import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import makeus.cmc.malmo.util.GlobalConstants;
+import makeus.cmc.malmo.util.JosaUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -110,32 +109,56 @@ public class ChatRoomService
 
         boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
-        boolean isFirstPage = command.getPageable().getOffset() == 0;
-
-        LocalDateTime anchorTime = getEarliestAssistantMessageTime(list);
-        ChatRoomMessageDto storedInitSecond = chatRoom.isBeforeInit()
-                ? dedupeInitSecondMessages(list, anchorTime)
-                : null;
-
-        if (chatRoom.isBeforeInit() && isFirstPage && storedInitSecond == null) {
-            String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
-            LocalDateTime secondMessageTime = anchorTime == null
-                    ? LocalDateTime.now()
-                    : anchorTime.plusNanos(1);
-            list.add(Math.min(1, list.size()), GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
-                    .messageId(null)
-                    .senderType(SenderType.ASSISTANT)
-                    .content(secondMessageContent)
-                    .createdAt(secondMessageTime)
-                    .bookmarkId(null)
-                    .build());
-        }
+        long persistedMessageCount = result.getTotalElements();
+        long injectedInitMessageCount = 0;
 
         LocalDateTime nextSyntheticTime = list.isEmpty()
                 ? LocalDateTime.now()
                 : list.get(list.size() - 1).getCreatedAt().plusNanos(1);
 
+        // BEFORE_INIT 상태인 경우 초기 AI 메시지(FIRST/SECOND)를 동적으로 삽입
+        if (chatRoom.isBeforeInit()) {
+            if (persistedMessageCount == 0) {
+                String firstMessageContent = JosaUtils.아야(member.getNickname()) + GlobalConstants.INIT_CHAT_MESSAGE_FIRST;
+                String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+                LocalDateTime baseMessageTime = list.isEmpty()
+                        ? LocalDateTime.now()
+                        : list.get(0).getCreatedAt().minusNanos(1);
+                list.add(0, GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
+                        .messageId(null)
+                        .senderType(SenderType.ASSISTANT)
+                        .content(firstMessageContent)
+                        .createdAt(baseMessageTime)
+                        .bookmarkId(null)
+                        .build());
+                list.add(1, GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
+                        .messageId(null)
+                        .senderType(SenderType.ASSISTANT)
+                        .content(secondMessageContent)
+                        .createdAt(baseMessageTime.plusNanos(1))
+                        .bookmarkId(null)
+                        .build());
+                injectedInitMessageCount += 2;
+                nextSyntheticTime = baseMessageTime.plusNanos(2);
+            } else if (persistedMessageCount == 1) {
+                String secondMessageContent = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+                LocalDateTime secondMessageTime = list.isEmpty()
+                        ? LocalDateTime.now()
+                        : list.get(list.size() - 1).getCreatedAt().plusNanos(1);
+                list.add(Math.min(1, list.size()), GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
+                        .messageId(null)
+                        .senderType(SenderType.ASSISTANT)
+                        .content(secondMessageContent)
+                        .createdAt(secondMessageTime)
+                        .bookmarkId(null)
+                        .build());
+                injectedInitMessageCount += 1;
+                nextSyntheticTime = secondMessageTime.plusNanos(1);
+            }
+        }
+
         if (!hasUserMessages && member.getLoveTypeCategory() == null) {
+            // Append dynamic SYSTEM message (not persisted)
             list.add(GetChatRoomMessagesUseCase.ChatRoomMessageDto.builder()
                     .messageId(null)
                     .senderType(SenderType.SYSTEM)
@@ -152,51 +175,8 @@ public class ChatRoomService
 
         return GetCurrentChatRoomMessagesResponse.builder()
                 .messages(list)
-                .totalCount(result.getTotalElements())
+                .totalCount(result.getTotalElements() + injectedInitMessageCount)
                 .build();
-    }
-
-    private ChatRoomMessageDto dedupeInitSecondMessages(List<ChatRoomMessageDto> list, LocalDateTime anchorTime) {
-        List<ChatRoomMessageDto> initSecondMessages = list.stream()
-                .filter(message -> message.getSenderType() == SenderType.ASSISTANT)
-                .filter(message -> isInitSecondMessageContent(message.getContent()))
-                .toList();
-
-        if (initSecondMessages.isEmpty()) {
-            return null;
-        }
-
-        ChatRoomMessageDto kept = initSecondMessages.stream()
-                .min(Comparator
-                        .comparing(ChatRoomMessageDto::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(dto -> dto.getMessageId() == null ? Long.MAX_VALUE : dto.getMessageId())
-                )
-                .orElse(initSecondMessages.get(0));
-
-        if (anchorTime != null) {
-            kept.setCreatedAt(anchorTime.plusNanos(1));
-        }
-
-        ChatRoomMessageDto finalKept = kept;
-        list.removeIf(message -> message.getSenderType() == SenderType.ASSISTANT
-                && isInitSecondMessageContent(message.getContent())
-                && message != finalKept);
-        return kept;
-    }
-
-    private LocalDateTime getEarliestAssistantMessageTime(List<ChatRoomMessageDto> list) {
-        return list.stream()
-                .filter(message -> message.getSenderType() == SenderType.ASSISTANT)
-                .map(ChatRoomMessageDto::getCreatedAt)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
-    }
-
-    private boolean isInitSecondMessageContent(String content) {
-        return GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE.equals(content)
-                || GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP.equals(content)
-                || GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP.equals(content);
     }
 
     private String getSecondMessageByRelationshipStatus(RelationshipStatus status) {
