@@ -96,10 +96,11 @@ public class ChatMessageService implements ProcessMessageUseCase {
 
             // 마지막 충분성 조건이 아닌 경우
             if (!detailedPrompt.isLastDetailedPrompt()) {
-                // 다음 충분성 조건으로
-                chatRoom.upgradeDetailedLevel();
-                chatRoomCommandHelper.saveChatRoom(chatRoom);
-                return requestNextDetailedPromptOpening(chatRoom, command);
+                // 다음 충분성 조건 오프닝 생성 성공 후 레벨 업
+                return requestNextDetailedPromptOpening(chatRoom, command)
+                        .thenRun(() ->
+                            chatRoomCommandHelper.upgradeChatRoomDetailedLevel(chatRoom.getId(), command.getDetailedLevel() + 1)
+                        );
             }
 
             // 마지막 충분성 조건인 경우
@@ -108,10 +109,11 @@ public class ChatMessageService implements ProcessMessageUseCase {
                 requestTitleGenerationAsync(chatRoom);
             }
 
-            // 다음 단계 오프닝 생성 요청
-            chatRoom.upgradeToNextStage();
-            chatRoomCommandHelper.saveChatRoom(chatRoom);
-            return requestNextStageOpening(member, chatRoom, command);
+            // 다음 단계 오프닝 생성 성공 후 단계 전이
+            return requestNextStageOpening(member, chatRoom, command)
+                    .thenRun(() ->
+                        chatRoomCommandHelper.upgradeChatRoomLevel(chatRoom.getId(), command.getPromptLevel() + 1, 1)
+                    );
         });
     }
 
@@ -230,7 +232,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
                 detailedPrompt.getMetadataTitle(),
                 result.getSummary()
         );
-        memberChatRoomMetadataCommandHelper.saveMemberChatRoomMetadata(metadata);
+        memberChatRoomMetadataCommandHelper.saveMemberChatRoomMetadataIfAbsent(metadata);
     }
 
     private CompletableFuture<Void> requestNextDetailedPromptOpening(ChatRoom chatRoom, ProcessMessageCommand command) {
@@ -307,8 +309,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         
         return chatProcessor.requestTitleGeneration(messages, titlePrompt)
                 .thenAcceptAsync(title -> {
-                    chatRoom.updateTitle(title);
-                    chatRoomCommandHelper.saveChatRoom(chatRoom);
+                    chatRoomCommandHelper.updateChatRoomTitle(command.getChatRoomId(), title);
                     log.info("Title generated for chatRoomId: {}, title: {}", command.getChatRoomId(), title);
                 });
     }
@@ -337,13 +338,14 @@ public class ChatMessageService implements ProcessMessageUseCase {
             ));
         }
         
-        // 요약 프롬프트 조회 (4단계 요약 프롬프트 사용)
+        // 요약 프롬프트 조회 (level → 4 → 3 순서로 fallback)
         Prompt summaryPrompt = promptQueryHelper.getSummaryPromptByLevel(level)
-                .orElseGet(() -> {
-                    log.warn("Summary prompt not found for level: {}, using default", level);
-                    return promptQueryHelper.getSummaryPromptByLevel(3)
-                            .orElseThrow(() -> new RuntimeException("Summary prompt not found"));
-                });
+                .orElseGet(() -> promptQueryHelper.getSummaryPromptByLevel(4)
+                        .orElseGet(() -> {
+                            log.warn("Summary prompt not found for level: {}, using default", level);
+                            return promptQueryHelper.getSummaryPromptByLevel(3)
+                                    .orElseThrow(() -> new RuntimeException("Summary prompt not found"));
+                        }));
         
         // 비동기 요약 생성 및 저장
         return chatProcessor.requestConversationSummary(summaryMessages, summaryPrompt)

@@ -822,6 +822,10 @@ public class MemberIntegrationTest {
             float anxietyRate;
             String nickname;
             String email;
+
+            String relationshipStatus;
+            String personalityType;
+            String otherPersonalityType;
         }
 
         @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)

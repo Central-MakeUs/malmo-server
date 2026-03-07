@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -73,6 +74,7 @@ public class JwtAdaptor implements GenerateTokenPort, ValidateTokenPort {
         return Jwts.builder()
                 .setSubject(String.valueOf(memberId))
                 .claim("role", role)
+                .setId(UUID.randomUUID().toString())
                 .setIssuedAt(new Date())
                 .setExpiration(expiry)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

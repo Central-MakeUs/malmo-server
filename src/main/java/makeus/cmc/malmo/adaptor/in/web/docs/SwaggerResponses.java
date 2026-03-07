@@ -270,6 +270,15 @@ public class SwaggerResponses {
 
         @Schema(description = "이메일", example = "test@example.com")
         private String email;
+
+        @Schema(description = "연애 상태", example = "IN_RELATIONSHIP")
+        private RelationshipStatus relationshipStatus;
+
+        @Schema(description = "성격 유형", example = "INTJ")
+        private String personalityType;
+
+        @Schema(description = "상대방 성격 유형", example = "ENFP")
+        private String otherPersonalityType;
     }
 
     @Getter

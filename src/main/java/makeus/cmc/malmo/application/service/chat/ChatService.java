@@ -16,11 +16,22 @@ import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.service.ChatRoomDomainService;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
+import makeus.cmc.malmo.domain.value.type.SenderType;
+import makeus.cmc.malmo.util.JosaUtils;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
+import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.stereotype.Service;
+
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHATROOM_LEVEL;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_FIRST;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP;
+import static makeus.cmc.malmo.util.GlobalConstants.INIT_CHAT_MESSAGE_SECOND_BREAKUP;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 //import static makeus.cmc.malmo.util.GlobalConstants.FINAL_MESSAGE;
@@ -53,18 +64,69 @@ public class ChatService implements SendChatMessageUseCase {
         Member member = memberQueryHelper.getMemberByIdOrThrow(memberId);
         ChatRoom chatRoom = chatRoomQueryHelper.getChatRoomByIdOrThrow(chatRoomId);
 
+        // BEFORE_INIT 상태인 경우 ALIVE로 전환 (첫 메시지 시)
         if (chatRoom.isBeforeInit()) {
+            long messageCount = chatRoomQueryHelper.countMessagesByLevel(chatRoomId, INIT_CHATROOM_LEVEL);
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+            if (messageCount > 0) {
+                List<ChatMessage> initMessages = chatRoomQueryHelper.getChatRoomLevelMessages(chatRoomId, INIT_CHATROOM_LEVEL)
+                        .stream()
+                        .filter(m -> m.getSenderType() == SenderType.ASSISTANT)
+                        .sorted(Comparator
+                                .comparing(ChatMessage::getCreatedAt, Comparator.nullsLast(java.time.LocalDateTime::compareTo))
+                                .thenComparing(ChatMessage::getId, Comparator.nullsLast(Long::compareTo)))
+                        .limit(2)
+                        .toList();
+                for (int i = 0; i < initMessages.size(); i++) {
+                    ChatMessage initMessage = initMessages.get(i);
+                    chatRoomCommandHelper.updateChatMessageCreatedAt(
+                            initMessage.getId(),
+                        now.minus(2L - i, java.time.temporal.ChronoUnit.MILLIS)
+                    );
+                }
+            }
+
+            if (messageCount == 0) {
+                chatRoomCommandHelper.saveChatMessage(chatRoomDomainService.createAiMessage(
+                        chatRoomId,
+                        INIT_CHATROOM_LEVEL,
+                        1,
+                        JosaUtils.아야(member.getNickname()) + INIT_CHAT_MESSAGE_FIRST,
+                        now.minusNanos(2)));
+            }
+            if (messageCount <= 1) {
+                String secondMessage = getSecondMessageByRelationshipStatus(member.getRelationshipStatus());
+                chatRoomCommandHelper.saveChatMessage(chatRoomDomainService.createAiMessage(
+                        chatRoomId,
+                        INIT_CHATROOM_LEVEL,
+                        1,
+                        secondMessage,
+                        now.minusNanos(1)));
+            }
+
             chatRoom.initialize();
             chatRoomCommandHelper.saveChatRoom(chatRoom);
             log.info("채팅방 상태 전환: BEFORE_INIT -> ALIVE, chatRoomId={}", chatRoomId.getValue());
+        }
+
+        // 첫 메시지이고 애착 유형 미진단인 경우 시스템 메시지 추가
+        boolean hasUserMessages = chatRoomQueryHelper.hasUserMessages(chatRoomId);
+        if (!hasUserMessages && member.getLoveTypeCategory() == null) {
+            ChatMessage systemMessage = chatRoomDomainService.createSystemMessage(
+                    chatRoomId,
+                    chatRoom.getLevel(),
+                    chatRoom.getDetailedLevel(),
+                    GlobalConstants.ATTACHMENT_TYPE_PROMPT_MESSAGE
+            );
+            chatRoomCommandHelper.saveChatMessage(systemMessage);
         }
 
         // 현재 유저 메시지를 저장
         ChatMessage savedUserMessage = saveUserMessage(chatRoom, command.getMessage());
 
         // 채팅방의 마지막 메시지 전송 시간 갱신
-        chatRoom.updateLastMessageSentTime();
-        chatRoomCommandHelper.saveChatRoom(chatRoom);
+        chatRoomCommandHelper.updateChatRoomLastMessageSentTime(chatRoom.getId(), java.time.LocalDateTime.now());
 
         // 채팅 응답 API 요청 스트림에 추가
         outboxHelper.publish(
@@ -90,6 +152,17 @@ public class ChatService implements SendChatMessageUseCase {
                 chatRoom.getDetailedLevel(),
                 message);
         return chatRoomCommandHelper.saveChatMessage(userMessage);
+    }
+
+    private String getSecondMessageByRelationshipStatus(RelationshipStatus status) {
+        if (status == null) {
+            return INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+        }
+        return switch (status) {
+            case SEEING_SOMEONE -> INIT_CHAT_MESSAGE_SECOND_SEEING_SOMEONE;
+            case IN_RELATIONSHIP -> INIT_CHAT_MESSAGE_SECOND_IN_RELATIONSHIP;
+            case BREAKUP -> INIT_CHAT_MESSAGE_SECOND_BREAKUP;
+        };
     }
 
     private void saveAiMessage(MemberId memberId, ChatRoomId chatRoomId, int level, int detailedLevel, String fullAnswer) {

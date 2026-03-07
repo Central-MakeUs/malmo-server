@@ -43,6 +43,27 @@ public class ChatMessage {
                 .build();
     }
 
+    public static ChatMessage createAssistantTextMessage(ChatRoomId chatRoomId, int level, int detailedLevel, String content, LocalDateTime createdAt) {
+        return ChatMessage.builder()
+                .chatRoomId(chatRoomId)
+                .level(level)
+                .detailedLevel(detailedLevel)
+                .content(content)
+                .senderType(SenderType.ASSISTANT)
+                .createdAt(createdAt)
+                .build();
+    }
+
+    public static ChatMessage createSystemTextMessage(ChatRoomId chatRoomId, int level, int detailedLevel, String content) {
+        return ChatMessage.builder()
+                .chatRoomId(chatRoomId)
+                .level(level)
+                .detailedLevel(detailedLevel)
+                .content(content)
+                .senderType(SenderType.SYSTEM)
+                .build();
+    }
+
     public static ChatMessage from(Long id, ChatRoomId chatRoomId, int level, int detailedLevel, String content, SenderType senderType, LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
         return ChatMessage.builder()
                 .id(id)

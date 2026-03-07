@@ -11,6 +11,7 @@ import makeus.cmc.malmo.domain.model.chat.ChatRoom;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -27,6 +28,22 @@ public class ChatRoomCommandHelper {
         return saveChatRoomPort.saveChatRoom(chatRoom);
     }
 
+    public void updateChatRoomTitle(Long chatRoomId, String title) {
+        saveChatRoomPort.updateChatRoomTitle(chatRoomId, title);
+    }
+
+    public void upgradeChatRoomLevel(Long chatRoomId, int level, int detailedLevel) {
+        saveChatRoomPort.upgradeChatRoomLevel(chatRoomId, level, detailedLevel);
+    }
+
+    public void upgradeChatRoomDetailedLevel(Long chatRoomId, int detailedLevel) {
+        saveChatRoomPort.upgradeChatRoomDetailedLevel(chatRoomId, detailedLevel);
+    }
+
+    public void updateChatRoomLastMessageSentTime(Long chatRoomId, LocalDateTime lastMessageSentTime) {
+        saveChatRoomPort.updateChatRoomLastMessageSentTime(chatRoomId, lastMessageSentTime);
+    }
+
     public void deleteChatRooms(List<ChatRoomId> chatRoomIds) {
         deleteChatRoomPort.deleteChatRooms(chatRoomIds);
     }
@@ -37,6 +54,10 @@ public class ChatRoomCommandHelper {
 
     public List<ChatMessage> saveChatMessages(List<ChatMessage> chatMessages) {
         return saveChatMessagePort.saveChatMessages(chatMessages);
+    }
+
+    public void updateChatMessageCreatedAt(Long messageId, LocalDateTime createdAt) {
+        saveChatMessagePort.updateChatMessageCreatedAt(messageId, createdAt);
     }
 
     public ChatMessageSummary saveChatMessageSummary(ChatMessageSummary chatMessageSummary) {

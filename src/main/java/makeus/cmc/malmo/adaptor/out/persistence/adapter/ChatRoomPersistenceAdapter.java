@@ -16,11 +16,14 @@ import makeus.cmc.malmo.domain.model.chat.ChatMessageSummary;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.SenderType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +87,11 @@ public class ChatRoomPersistenceAdapter
     }
 
     @Override
+    public boolean hasUserMessages(ChatRoomId chatRoomId) {
+        return chatMessageRepository.existsByChatRoomIdAndSenderType(chatRoomId.getValue(), SenderType.USER);
+    }
+
+    @Override
     public List<ChatRoom> loadActiveChatRoomsByMemberId(MemberId memberId) {
         return chatRoomRepository.findActiveChatRoomsByMemberEntityId(memberId.getValue())
                 .stream()
@@ -105,6 +113,30 @@ public class ChatRoomPersistenceAdapter
     }
 
     @Override
+    @Transactional
+    public void updateChatRoomTitle(Long chatRoomId, String title) {
+        chatRoomRepository.updateTitle(chatRoomId, title);
+    }
+
+    @Override
+    @Transactional
+    public void upgradeChatRoomLevel(Long chatRoomId, int level, int detailedLevel) {
+        chatRoomRepository.upgradeLevel(chatRoomId, level, detailedLevel);
+    }
+
+    @Override
+    @Transactional
+    public void upgradeChatRoomDetailedLevel(Long chatRoomId, int detailedLevel) {
+        chatRoomRepository.upgradeDetailedLevel(chatRoomId, detailedLevel);
+    }
+
+    @Override
+    @Transactional
+    public void updateChatRoomLastMessageSentTime(Long chatRoomId, LocalDateTime lastMessageSentTime) {
+        chatRoomRepository.updateLastMessageSentTime(chatRoomId, lastMessageSentTime);
+    }
+
+    @Override
     public ChatMessage saveChatMessage(ChatMessage chatMessage) {
         ChatMessageEntity entity = chatMessageMapper.toEntity(chatMessage);
         ChatMessageEntity savedEntity = chatMessageRepository.save(entity);
@@ -123,6 +155,16 @@ public class ChatRoomPersistenceAdapter
         return savedEntities.stream()
                 .map(chatMessageMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateChatMessageCreatedAt(Long messageId, LocalDateTime createdAt) {
+        if (messageId == null) {
+            return;
+        }
+
+        chatMessageRepository.updateCreatedAtById(messageId, createdAt);
     }
 
     @Override
