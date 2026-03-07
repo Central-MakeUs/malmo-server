@@ -14,6 +14,7 @@ import makeus.cmc.malmo.adaptor.in.web.docs.ApiCommonResponses;
 import makeus.cmc.malmo.adaptor.in.web.docs.SwaggerResponses;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseResponse;
 import makeus.cmc.malmo.application.port.in.member.SignUpUseCase;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,6 +59,9 @@ public class SignUpController {
                 .terms(termsCommandList)
                 .nickname(requestDto.getNickname())
                 .loveTypeId(requestDto.getLoveTypeId())
+                .relationshipStatus(requestDto.getRelationshipStatus())
+                .personalityType(requestDto.getPersonalityType())
+                .otherPersonalityType(requestDto.getOtherPersonalityType())
                 .build();
 
         signUpUseCase.signUp(command);
@@ -75,7 +79,13 @@ public class SignUpController {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "닉네임은 한글, 영문, 숫자만 사용 가능합니다.")
         private String nickname;
 
-        private Long loveTypeId; // Optional, 애착 유형 결과를 매핑하기 위한 ID
+        private Long loveTypeId;
+
+        private RelationshipStatus relationshipStatus;
+
+        private String personalityType;
+
+        private String otherPersonalityType;
     }
 
     @Data

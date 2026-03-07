@@ -2,6 +2,7 @@ package makeus.cmc.malmo.application.port.in.member;
 
 import lombok.Builder;
 import lombok.Data;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
 public interface UpdateMemberUseCase {
 
@@ -12,11 +13,17 @@ public interface UpdateMemberUseCase {
     class UpdateMemberCommand {
         private Long memberId;
         private String nickname;
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
     }
 
     @Data
     @Builder
     class UpdateMemberResponseDto {
         private String nickname;
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
     }
 }

@@ -34,7 +34,10 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
                         memberEntity.avoidanceRate,
                         memberEntity.anxietyRate,
                         memberEntity.nickname,
-                        memberEntity.email
+                        memberEntity.email,
+                        memberEntity.relationshipStatus,
+                        memberEntity.personalityType,
+                        memberEntity.otherPersonalityType
                 ))
                 .from(memberEntity)
                 .leftJoin(coupleEntity)

@@ -16,6 +16,7 @@ import makeus.cmc.malmo.adaptor.in.web.docs.SwaggerResponses;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseListResponse;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseResponse;
 import makeus.cmc.malmo.application.port.in.member.*;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
@@ -101,6 +102,9 @@ public class MemberController {
         UpdateMemberUseCase.UpdateMemberCommand command = UpdateMemberUseCase.UpdateMemberCommand.builder()
                 .memberId(Long.valueOf(user.getUsername()))
                 .nickname(requestDto.getNickname())
+                .relationshipStatus(requestDto.getRelationshipStatus())
+                .personalityType(requestDto.getPersonalityType())
+                .otherPersonalityType(requestDto.getOtherPersonalityType())
                 .build();
         return BaseResponse.success(updateMemberUseCase.updateMember(command));
     }
@@ -242,10 +246,13 @@ public class MemberController {
 
     @Data
     public static class UpdateMemberRequestDto {
-        @NotBlank(message = "닉네임은 필수 입력값입니다.")
         @Size(min = 1, max = 10, message = "닉네임은 1자 이상 10자 이하여야 합니다.")
         @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "닉네임은 한글, 영문, 숫자만 사용 가능합니다.")
         private String nickname;
+        
+        private RelationshipStatus relationshipStatus;
+        private String personalityType;
+        private String otherPersonalityType;
     }
 
     @Data

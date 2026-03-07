@@ -50,6 +50,14 @@ public class Outbox {
         this.state = OutboxState.DONE;
     }
 
+    public void markAsDead() {
+        this.state = OutboxState.DEAD;
+    }
+
+    public boolean isRetryable(int maxRetryCount) {
+        return this.retryCount < maxRetryCount && this.state != OutboxState.DEAD;
+    }
+
     public static Outbox create(String type, String payload) {
         return Outbox.builder()
                 .type(type)

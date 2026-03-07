@@ -280,7 +280,7 @@ public class SignInIntegrationTest {
             String refreshToken = objectMapper.readTree(responseContent).get("data").get("refreshToken").asText();
 
             // when & then
-            mockMvc.perform(post("/refresh")
+            MvcResult refreshResult = mockMvc.perform(post("/refresh")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
                                     SignInRequestDtoFactory.createRefreshRequestDto(refreshToken)
@@ -288,12 +288,16 @@ public class SignInIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
                     .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
-                    .andExpect(jsonPath("$.data.grantType").value("Bearer"));
+                    .andExpect(jsonPath("$.data.grantType").value("Bearer"))
+                    .andReturn();
+            String refreshResponseContent = refreshResult.getResponse().getContentAsString();
+            String rotatedRefreshToken = objectMapper.readTree(refreshResponseContent).get("data").get("refreshToken").asText();
 
             // RTR 방식을 이용하기 때문에 Refresh Token도 변경되어야 함
             MemberEntity savedMember = em.find(MemberEntity.class, appleMember.getId());
             Assertions.assertThat(savedMember.getRefreshToken()).isNotNull();
-            Assertions.assertThat(savedMember.getRefreshToken()).isEqualTo(refreshToken);
+            Assertions.assertThat(savedMember.getRefreshToken()).isEqualTo(rotatedRefreshToken);
+            Assertions.assertThat(savedMember.getRefreshToken()).isNotEqualTo(refreshToken);
         }
 
         @Test

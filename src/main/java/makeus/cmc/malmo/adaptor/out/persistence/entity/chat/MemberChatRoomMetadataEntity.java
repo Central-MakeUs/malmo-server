@@ -11,7 +11,10 @@ import makeus.cmc.malmo.adaptor.out.persistence.entity.BaseTimeEntity;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "member_chat_room_metadata")
+@Table(name = "member_chat_room_metadata",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_member_chat_room_metadata_room_member_level",
+                columnNames = {"chatRoomId", "memberId", "level", "detailedLevel"}))
 public class MemberChatRoomMetadataEntity extends BaseTimeEntity {
 
     @Column(name = "memberChatRoomMetadataId")
