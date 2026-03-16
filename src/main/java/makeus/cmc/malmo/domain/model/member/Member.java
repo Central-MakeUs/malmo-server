@@ -133,20 +133,9 @@ public class Member {
         this.memberState = MemberState.ALIVE;
     }
 
-    /**
-     * V2 회원가입 - startLoveDate 없이 회원가입
-     * 커플 연동 후 별도로 연애 시작일을 설정합니다.
-     */
-    public void signUp(String nickname) {
-        this.nickname = nickname;
-        this.memberState = MemberState.ALIVE;
-    }
-
-    public void signUp(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
+    public void signUp(String nickname, RelationshipStatus relationshipStatus) {
         this.nickname = nickname;
         this.relationshipStatus = relationshipStatus;
-        this.personalityType = personalityType;
-        this.otherPersonalityType = otherPersonalityType;
         this.memberState = MemberState.ALIVE;
     }
 

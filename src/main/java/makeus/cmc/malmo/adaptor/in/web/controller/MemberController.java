@@ -142,7 +142,8 @@ public class MemberController {
 
     @Operation(
             summary = "사용자 초대 코드 조회",
-            description = "현재 로그인된 사용자의 초대 코드를 조회합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 현재 로그인된 사용자의 초대 코드를 조회합니다. 커플 연동 기능은 제거 예정이며, 앞으로는 사용자가 커플 정보를 직접 입력하는 방식을 사용합니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -152,6 +153,7 @@ public class MemberController {
     )
     @ApiCommonResponses.RequireAuth
     @GetMapping("/invite-code")
+    @Deprecated
     public BaseResponse<GetInviteCodeUseCase.InviteCodeResponseDto> getMemberInviteCode(
             @AuthenticationPrincipal User user
     ) {
@@ -221,7 +223,8 @@ public class MemberController {
 
     @Operation(
             summary = "연애 시작일 변경",
-            description = "커플로 연동된 사용자의 연애 시작일을 변경합니다. 커플이 아닌 사용자는 사용할 수 없습니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 커플로 연동된 사용자의 연애 시작일을 변경합니다. 커플 연동 기능은 제거 예정이며, 앞으로는 사용자가 커플 정보를 직접 입력하는 방식을 사용합니다. 커플이 아닌 사용자는 사용할 수 없습니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -232,6 +235,7 @@ public class MemberController {
     @ApiCommonResponses.RequireAuth
     @ApiCommonResponses.OnlyCouple
     @PatchMapping("/start-love-date")
+    @Deprecated
     public BaseResponse<UpdateStartLoveDateUseCase.UpdateStartLoveDateResponse> updateStartLoveDate(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody UpdateStartLoveDateRequestDto requestDto
@@ -261,6 +265,8 @@ public class MemberController {
     }
 
     @Data
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 변경 요청 DTO")
     public static class UpdateStartLoveDateRequestDto {
         @NotNull(message = "시작일은 필수 입력값입니다.")
         @PastOrPresent(message = "시작일은 오늘 또는 과거 날짜여야 합니다.")

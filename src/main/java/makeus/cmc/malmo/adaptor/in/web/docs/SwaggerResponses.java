@@ -109,18 +109,21 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "멤버 초대 코드 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 멤버 초대 코드 성공 응답")
     public static class GetInviteCodeSuccessResponse extends BaseSwaggerResponse<InviteCodeResponseData> {
     }
 
     // 커플 관련 응답
     @Getter
-    @Schema(description = "커플 연결 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 성공 응답")
     public static class CoupleLinkSuccessResponse extends BaseSwaggerResponse<CoupleLinkData> {
     }
 
     @Getter
-    @Schema(description = "커플 연결 끊기 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 끊기 성공 응답")
     public static class CoupleUnlinkSuccessResponse extends BaseSwaggerResponse<CoupleUnlinkData> {
     }
 
@@ -141,7 +144,8 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "연애 시작일 갱신 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 갱신 성공 응답")
     public static class UpdateStartLoveDateSuccessResponse extends BaseSwaggerResponse<UpdateStartLoveDateData> {
     }
 
@@ -348,14 +352,16 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "커플 연결 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 응답 데이터")
     public static class CoupleLinkData {
         @Schema(description = "생성된 커플 ID", example = "1")
         private Long coupleId;
     }
 
     @Getter
-    @Schema(description = "커플 연결 끊기 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 끊기 응답 데이터")
     public static class CoupleUnlinkData {
         @Schema(description = "해제된 커플 ID", example = "1")
         private Long coupleId;
@@ -387,7 +393,8 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "연애 시작일 갱신 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 갱신 응답 데이터")
     public static class UpdateStartLoveDateData {
         @Schema(description = "변경된 연애 시작일", example = "2023-01-15")
         private LocalDate startLoveDate;
@@ -534,7 +541,8 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "초대 코드 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 초대 코드 응답 데이터")
     public static class InviteCodeResponseData {
         private String coupleCode;
     }

@@ -18,8 +18,6 @@ public interface SignUpUseCase {
         private String nickname;
         private Long loveTypeId;
         private RelationshipStatus relationshipStatus;
-        private String personalityType;
-        private String otherPersonalityType;
     }
 
     @Data
