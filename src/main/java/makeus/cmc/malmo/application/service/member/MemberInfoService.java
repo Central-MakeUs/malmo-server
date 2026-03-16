@@ -1,7 +1,6 @@
 package makeus.cmc.malmo.application.service.member;
 
 import lombok.RequiredArgsConstructor;
-import makeus.cmc.malmo.adaptor.in.aop.CheckCoupleMember;
 import makeus.cmc.malmo.adaptor.in.aop.CheckValidMember;
 import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.port.in.member.GetMemberUseCase;
@@ -33,23 +32,21 @@ public class MemberInfoService implements GetMemberUseCase, GetPartnerUseCase {
                 .nickname(member.getNickname())
                 .email(member.getEmail())
                 .relationshipStatus(member.getRelationshipStatus())
-                .personalityType(member.getPersonalityType())
-                .otherPersonalityType(member.getOtherPersonalityType())
+                .mbti(member.getMbti())
+                .partnerMbti(member.getPartnerMbti())
+                .partnerLoveTypeCategory(member.getPartnerLoveTypeCategory())
                 .build();
     }
 
     @Override
-    @CheckCoupleMember
+    @CheckValidMember
     public PartnerMemberResponseDto getPartnerInfo(PartnerInfoCommand command) {
         MemberQueryHelper.PartnerMemberDto partner = memberQueryHelper.getPartnerInfoOrThrow(MemberId.of(command.getUserId()));
 
         return PartnerMemberResponseDto.builder()
-                .memberState(MemberState.valueOf(partner.getMemberState()))
+                .mbti(partner.getMbti())
                 .loveTypeCategory(partner.getLoveTypeCategory())
-                .avoidanceRate(partner.getAvoidanceRate())
-                .anxietyRate(partner.getAnxietyRate())
-                .nickname(partner.getNickname())
-                .isStartLoveDateUpdated(partner.getIsStartLoveDateUpdated())
+                .description(partner.getDescription())
                 .build();
     }
 }

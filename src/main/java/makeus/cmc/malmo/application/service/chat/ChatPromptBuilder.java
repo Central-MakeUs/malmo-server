@@ -81,11 +81,11 @@ public class ChatPromptBuilder {
         String relationshipStatus = member.getRelationshipStatus() != null ? member.getRelationshipStatus().name() : "알 수 없음";
         metadataBuilder.append("- 사용자 연애 상태: ").append(relationshipStatus).append("\n");
 
-        String personalityType = member.getPersonalityType() != null ? member.getPersonalityType() : "알 수 없음";
-        metadataBuilder.append("- 사용자 MBTI: ").append(personalityType).append("\n");
+        String mbti = member.getMbti() != null ? member.getMbti() : "알 수 없음";
+        metadataBuilder.append("- 사용자 MBTI: ").append(mbti).append("\n");
 
-        String otherPersonalityType = member.getOtherPersonalityType() != null ? member.getOtherPersonalityType() : "알 수 없음";
-        metadataBuilder.append("- 상대방 MBTI: ").append(otherPersonalityType).append("\n");
+        String partnerMbti = member.getPartnerMbti() != null ? member.getPartnerMbti() : "알 수 없음";
+        metadataBuilder.append("- 상대방 MBTI: ").append(partnerMbti).append("\n");
 
 //        String dDayState = memberDomainService.getMemberDDayState(member.getStartLoveDate());
 //        metadataBuilder.append("- 연애 기간: ").append(dDayState).append("\n");
@@ -94,7 +94,7 @@ public class ChatPromptBuilder {
         String memberLoveTypeTitle = chatRoomMetadataDto.memberLoveType() != null ? chatRoomMetadataDto.memberLoveType().getTitle() : "알 수 없음";
         metadataBuilder.append("- 사용자 애착 유형: ").append(memberLoveTypeTitle).append("\n");
 
-        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getTitle() : "알 수 없음";
+        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getDescription() : "알 수 없음";
         metadataBuilder.append("- 애인 애착 유형: ").append(partnerLoveType).append("\n");
         metadataBuilder.append(memberMemoryList);
 

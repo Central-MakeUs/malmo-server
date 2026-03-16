@@ -20,7 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "오늘의 질문 API", description = "커플 오늘의 질문 API")
+@Tag(name = "오늘의 질문 API", description = "오늘의 질문 API (Deprecated)")
 @Slf4j
 @RestController
 @RequestMapping("/questions")
@@ -33,7 +33,8 @@ public class QuestionController {
 
     @Operation(
             summary = "오늘의 질문 조회",
-            description = "커플 오늘의 질문을 조회합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 오늘의 질문 기능은 제거 예정입니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -43,6 +44,7 @@ public class QuestionController {
     )
     @ApiCommonResponses.RequireAuth
     @GetMapping("/today")
+    @Deprecated
     public BaseResponse<GetQuestionUseCase.GetQuestionResponse> getTodayQuestion(
             @AuthenticationPrincipal User user
     ) {
@@ -55,7 +57,8 @@ public class QuestionController {
 
     @Operation(
             summary = "과거 질문 조회",
-            description = "커플 오늘의 질문을 조회합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 오늘의 질문 기능은 제거 예정입니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -66,6 +69,7 @@ public class QuestionController {
     @ApiCommonResponses.OnlyCouple
     @ApiCommonResponses.RequireAuth
     @GetMapping("/{level}")
+    @Deprecated
     public BaseResponse<GetQuestionUseCase.GetQuestionResponse> getQuestion(
             @AuthenticationPrincipal User user,
             @PathVariable int level) {
@@ -79,7 +83,8 @@ public class QuestionController {
 
     @Operation(
             summary = "질문 답변 조회",
-            description = "커플 질문 답변을 조회합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 오늘의 질문 기능은 제거 예정입니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -90,6 +95,7 @@ public class QuestionController {
     @ApiCommonResponses.OnlyOwner
     @ApiCommonResponses.RequireAuth
     @GetMapping("/{coupleQuestionId}/answers")
+    @Deprecated
     public BaseResponse<GetQuestionAnswerUseCase.AnswerResponseDto> getAnswers(
             @AuthenticationPrincipal User user,
             @PathVariable Long coupleQuestionId) {
@@ -103,7 +109,8 @@ public class QuestionController {
 
     @Operation(
             summary = "오늘의 질문 답변 등록",
-            description = "커플 오늘의 질문에 답변을 등록합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 오늘의 질문 기능은 제거 예정입니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -113,6 +120,7 @@ public class QuestionController {
     )
     @ApiCommonResponses.RequireAuth
     @PostMapping("/today/answers")
+    @Deprecated
     public BaseResponse<AnswerQuestionUseCase.QuestionAnswerResponse> postAnswer(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody AnswerRequestDto requestDto
@@ -127,7 +135,8 @@ public class QuestionController {
 
     @Operation(
             summary = "오늘의 질문 답변 수정",
-            description = "커플 오늘의 질문에 답변을 수정합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 오늘의 질문 기능은 제거 예정입니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -137,6 +146,7 @@ public class QuestionController {
     )
     @ApiCommonResponses.RequireAuth
     @PatchMapping("/today/answers")
+    @Deprecated
     public BaseResponse<AnswerQuestionUseCase.QuestionAnswerResponse> updateAnswer(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody AnswerRequestDto requestDto

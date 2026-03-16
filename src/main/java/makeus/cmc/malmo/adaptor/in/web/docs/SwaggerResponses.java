@@ -84,6 +84,11 @@ public class SwaggerResponses {
     }
 
     @Getter
+    @Schema(description = "상대 프로필 등록/수정 성공 응답")
+    public static class PartnerProfileSuccessResponse extends BaseSwaggerResponse<PartnerProfileData> {
+    }
+
+    @Getter
     @Schema(description = "멤버 정보 수정 성공 응답")
     public static class UpdateMemberSuccessResponse extends BaseSwaggerResponse<UpdateMemberData> {
     }
@@ -278,33 +283,41 @@ public class SwaggerResponses {
         @Schema(description = "연애 상태", example = "IN_RELATIONSHIP")
         private RelationshipStatus relationshipStatus;
 
-        @Schema(description = "성격 유형", example = "INTJ")
-        private String personalityType;
+        @Schema(description = "내 MBTI", example = "INTJ")
+        private String mbti;
 
-        @Schema(description = "상대방 성격 유형", example = "ENFP")
-        private String otherPersonalityType;
+        @Schema(description = "상대방 MBTI", example = "ENFP")
+        private String partnerMbti;
+
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 
     @Getter
-    @Schema(description = "파트너 멤버 정보 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 상대 프로필 조회 응답 데이터")
     public static class PartnerMemberData {
-        @Schema(description = "멤버 상태", example = "ALIVE")
-        private MemberState memberState;
+        @Schema(description = "상대방 MBTI", example = "ENFP")
+        private String mbti;
 
-        @Schema(description = "애착 유형", example = "STABLE_TYPE")
-        private LoveTypeCategory loveTypeCategory;
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory loveTypeCategory;
 
-        @Schema(description = "회피 비율", example = "0.3")
-        private float avoidanceRate;
+        @Schema(description = "애착 유형 설명", example = "모르겠어요")
+        private String description;
+    }
 
-        @Schema(description = "불안 비율", example = "0.2")
-        private float anxietyRate;
+    @Getter
+    @Schema(description = "상대 프로필 응답 데이터")
+    public static class PartnerProfileData {
+        @Schema(description = "상대방 MBTI", example = "ENFP")
+        private String mbti;
 
-        @Schema(description = "닉네임", example = "김영희")
-        private String nickname;
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory loveTypeCategory;
 
-        @Schema(description = "디데이 변경 이력 여부", example = "false")
-        private Boolean isStartLoveDateUpdated;
+        @Schema(description = "애착 유형 설명", example = "모르겠어요")
+        private String description;
     }
 
     @Getter
@@ -313,8 +326,14 @@ public class SwaggerResponses {
         @Schema(description = "닉네임", example = "홍길동")
         private String nickname;
 
-        @Schema(description = "이메일", example = "test@example.com")
-        private String email;
+        @Schema(description = "연애 상태", example = "IN_RELATIONSHIP")
+        private RelationshipStatus relationshipStatus;
+
+        @Schema(description = "내 MBTI", example = "INTJ")
+        private String mbti;
+
+        @Schema(description = "내 애착 유형", example = "STABLE_TYPE")
+        private LoveTypeCategory loveTypeCategory;
     }
 
     @Data

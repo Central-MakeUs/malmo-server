@@ -9,6 +9,7 @@ import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
@@ -45,8 +46,9 @@ public class Member {
     private CoupleId coupleId;
 
     private RelationshipStatus relationshipStatus;
-    private String personalityType;
-    private String otherPersonalityType;
+    private String mbti;
+    private String partnerMbti;
+    private PartnerLoveTypeCategory partnerLoveTypeCategory;
 
     // BaseTimeEntity fields
     private LocalDateTime createdAt;
@@ -87,8 +89,9 @@ public class Member {
             String oauthToken,
             CoupleId coupleId,
             RelationshipStatus relationshipStatus,
-            String personalityType,
-            String otherPersonalityType,
+            String mbti,
+            String partnerMbti,
+            PartnerLoveTypeCategory partnerLoveTypeCategory,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt,
             LocalDateTime deletedAt
@@ -113,8 +116,9 @@ public class Member {
                 .oauthToken(oauthToken)
                 .coupleId(coupleId)
                 .relationshipStatus(relationshipStatus)
-                .personalityType(personalityType)
-                .otherPersonalityType(otherPersonalityType)
+                .mbti(normalizeMbti(mbti))
+                .partnerMbti(normalizeMbti(partnerMbti))
+                .partnerLoveTypeCategory(partnerLoveTypeCategory)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
                 .deletedAt(deletedAt)
@@ -139,18 +143,36 @@ public class Member {
         this.memberState = MemberState.ALIVE;
     }
 
-    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
+    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String mbti, LoveTypeCategory loveTypeCategory) {
         if (nickname != null) {
             this.nickname = nickname;
         }
         if (relationshipStatus != null) {
             this.relationshipStatus = relationshipStatus;
         }
-        if (personalityType != null) {
-            this.personalityType = personalityType;
+        if (mbti != null) {
+            this.mbti = normalizeMbti(mbti);
         }
-        if (otherPersonalityType != null) {
-            this.otherPersonalityType = otherPersonalityType;
+        if (loveTypeCategory != null) {
+            this.loveTypeCategory = loveTypeCategory;
+        }
+    }
+
+    public boolean hasPartnerProfile() {
+        return this.partnerMbti != null;
+    }
+
+    public void createPartnerProfile(String partnerMbti, PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        this.partnerMbti = normalizeMbti(partnerMbti);
+        this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+    }
+
+    public void updatePartnerProfile(String partnerMbti, PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        if (partnerMbti != null) {
+            this.partnerMbti = normalizeMbti(partnerMbti);
+        }
+        if (partnerLoveTypeCategory != null) {
+            this.partnerLoveTypeCategory = partnerLoveTypeCategory;
         }
     }
 
@@ -210,5 +232,9 @@ public class Member {
 
     public void unlinkCouple() {
         this.coupleId = null;
+    }
+
+    private static String normalizeMbti(String mbti) {
+        return mbti == null ? null : mbti.toUpperCase();
     }
 }

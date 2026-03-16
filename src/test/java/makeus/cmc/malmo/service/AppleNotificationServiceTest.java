@@ -12,6 +12,7 @@ import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -90,8 +91,9 @@ class AppleNotificationServiceTest {
                 oauthToken,
                 null,
                 null, // relationshipStatus
-                null, // personalityType
-                null, // otherPersonalityType
+                null, // mbti
+                null, // partnerMbti
+                null, // partnerLoveTypeCategory
                 null,
                 null,
                 null
@@ -347,4 +349,3 @@ class AppleNotificationServiceTest {
         }
     }
 }
-

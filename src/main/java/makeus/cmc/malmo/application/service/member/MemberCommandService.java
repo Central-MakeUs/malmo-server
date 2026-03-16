@@ -10,14 +10,19 @@ import makeus.cmc.malmo.application.helper.member.MemberMemoryCommandHelper;
 import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.helper.member.OauthTokenHelper;
 import makeus.cmc.malmo.application.helper.notification.MemberNotificationCommandHelper;
+import makeus.cmc.malmo.application.port.in.member.CreatePartnerProfileUseCase;
 import makeus.cmc.malmo.application.port.in.member.DeleteMemberUseCase;
+import makeus.cmc.malmo.application.port.in.member.UpdatePartnerProfileUseCase;
 import makeus.cmc.malmo.application.port.in.member.UpdateMemberUseCase;
 import makeus.cmc.malmo.application.port.in.member.UpdateStartLoveDateUseCase;
+import makeus.cmc.malmo.application.exception.PartnerProfileAlreadyExistsException;
+import makeus.cmc.malmo.application.exception.PartnerProfileNotFoundException;
 import makeus.cmc.malmo.application.port.out.sse.SendSseEventPort;
 import makeus.cmc.malmo.application.port.out.sse.ValidateSsePort;
 import makeus.cmc.malmo.domain.model.couple.Couple;
 import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +33,12 @@ import static makeus.cmc.malmo.application.port.out.sse.SendSseEventPort.SseEven
 
 @Service
 @RequiredArgsConstructor
-public class MemberCommandService implements UpdateMemberUseCase, UpdateStartLoveDateUseCase, DeleteMemberUseCase {
+public class MemberCommandService implements
+        UpdateMemberUseCase,
+        CreatePartnerProfileUseCase,
+        UpdatePartnerProfileUseCase,
+        UpdateStartLoveDateUseCase,
+        DeleteMemberUseCase {
 
     private final CoupleQueryHelper coupleQueryHelper;
     private final CoupleCommandHelper coupleCommandHelper;
@@ -51,8 +61,8 @@ public class MemberCommandService implements UpdateMemberUseCase, UpdateStartLov
         member.updateMemberProfile(
                 command.getNickname(),
                 command.getRelationshipStatus(),
-                command.getPersonalityType(),
-                command.getOtherPersonalityType()
+                command.getMbti(),
+                command.getLoveTypeCategory()
         );
 
         Member savedMember = memberCommandHelper.saveMember(member);
@@ -60,9 +70,46 @@ public class MemberCommandService implements UpdateMemberUseCase, UpdateStartLov
         return UpdateMemberResponseDto.builder()
                 .nickname(savedMember.getNickname())
                 .relationshipStatus(savedMember.getRelationshipStatus())
-                .personalityType(savedMember.getPersonalityType())
-                .otherPersonalityType(savedMember.getOtherPersonalityType())
+                .mbti(savedMember.getMbti())
+                .loveTypeCategory(savedMember.getLoveTypeCategory())
                 .build();
+    }
+
+    @Override
+    @CheckValidMember
+    @Transactional
+    public PartnerProfileResponseDto createPartnerProfile(CreatePartnerProfileCommand command) {
+        Member member = memberQueryHelper.getMemberByIdOrThrow(MemberId.of(command.getMemberId()));
+        if (member.hasPartnerProfile()) {
+            throw new PartnerProfileAlreadyExistsException("이미 상대 프로필이 등록되어 있습니다.");
+        }
+
+        PartnerLoveTypeCategory partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
+        member.createPartnerProfile(command.getMbti(), partnerLoveTypeCategory);
+        Member savedMember = memberCommandHelper.saveMember(member);
+
+        return toPartnerProfileResponse(savedMember);
+    }
+
+    @Override
+    @CheckValidMember
+    @Transactional
+    public PartnerProfileResponseDto updatePartnerProfile(UpdatePartnerProfileCommand command) {
+        Member member = memberQueryHelper.getMemberByIdOrThrow(MemberId.of(command.getMemberId()));
+        if (!member.hasPartnerProfile()) {
+            throw new PartnerProfileNotFoundException("등록된 상대 프로필이 없습니다.");
+        }
+
+        String partnerMbti = command.isMbtiProvided() ? command.getMbti() : null;
+        PartnerLoveTypeCategory partnerLoveTypeCategory = null;
+        if (command.isLoveTypeCategoryProvided()) {
+            partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
+        }
+
+        member.updatePartnerProfile(partnerMbti, partnerLoveTypeCategory);
+        Member savedMember = memberCommandHelper.saveMember(member);
+
+        return toPartnerProfileResponse(savedMember);
     }
 
     @Override
@@ -130,5 +177,19 @@ public class MemberCommandService implements UpdateMemberUseCase, UpdateStartLov
             // 상대방이 온라인이 아닐 경우 알림 생성
             memberNotificationCommandHelper.createAndSaveCoupleDisconnectedNotification(partnerId);
         }
+    }
+
+    private PartnerProfileResponseDto toPartnerProfileResponse(Member savedMember) {
+        return PartnerProfileResponseDto.builder()
+                .mbti(savedMember.getPartnerMbti())
+                .loveTypeCategory(savedMember.getPartnerLoveTypeCategory())
+                .description(savedMember.getPartnerLoveTypeCategory() == null
+                        ? null
+                        : savedMember.getPartnerLoveTypeCategory().getDescription())
+                .build();
+    }
+
+    private PartnerLoveTypeCategory resolvePartnerLoveTypeCategory(PartnerLoveTypeCategory loveTypeCategory) {
+        return loveTypeCategory == null ? PartnerLoveTypeCategory.UNKNOWN : loveTypeCategory;
     }
 }

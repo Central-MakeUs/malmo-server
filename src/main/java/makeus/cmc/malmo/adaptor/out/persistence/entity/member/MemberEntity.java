@@ -13,6 +13,7 @@ import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
@@ -74,7 +75,10 @@ public class MemberEntity extends BaseTimeEntity {
     @Enumerated(value = EnumType.STRING)
     private RelationshipStatus relationshipStatus;
 
-    private String personalityType;
+    private String mbti;
 
-    private String otherPersonalityType;
+    private String partnerMbti;
+
+    @Enumerated(value = EnumType.STRING)
+    private PartnerLoveTypeCategory partnerLoveTypeCategory;
 }

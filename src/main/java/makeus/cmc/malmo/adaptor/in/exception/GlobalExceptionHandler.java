@@ -168,6 +168,18 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.NO_SUCH_MESSAGE);
     }
 
+    @ExceptionHandler({PartnerProfileAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponse> handlePartnerProfileAlreadyExistsException(PartnerProfileAlreadyExistsException e) {
+        log.info("[GlobalExceptionHandler: handlePartnerProfileAlreadyExistsException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.PARTNER_PROFILE_ALREADY_EXISTS);
+    }
+
+    @ExceptionHandler({PartnerProfileNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handlePartnerProfileNotFoundException(PartnerProfileNotFoundException e) {
+        log.info("[GlobalExceptionHandler: handlePartnerProfileNotFoundException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.NO_SUCH_PARTNER_PROFILE);
+    }
+
 
 
     /**

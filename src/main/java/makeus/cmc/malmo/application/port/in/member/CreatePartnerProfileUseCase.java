@@ -4,19 +4,21 @@ import lombok.Builder;
 import lombok.Data;
 import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 
-public interface GetPartnerUseCase {
+public interface CreatePartnerProfileUseCase {
 
-    PartnerMemberResponseDto getPartnerInfo(PartnerInfoCommand command);
+    PartnerProfileResponseDto createPartnerProfile(CreatePartnerProfileCommand command);
 
     @Data
     @Builder
-    class PartnerInfoCommand {
-        private Long userId;
+    class CreatePartnerProfileCommand {
+        private Long memberId;
+        private String mbti;
+        private PartnerLoveTypeCategory loveTypeCategory;
     }
 
     @Data
     @Builder
-    class PartnerMemberResponseDto {
+    class PartnerProfileResponseDto {
         private String mbti;
         private PartnerLoveTypeCategory loveTypeCategory;
         private String description;
