@@ -519,9 +519,9 @@ public class CoupleIntegrationTest {
             mockMvc.perform(get("/members/partner")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("message").value(NOT_COUPLE_MEMBER.getMessage()))
-                    .andExpect(jsonPath("code").value(NOT_COUPLE_MEMBER.getCode()));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(NO_SUCH_PARTNER_PROFILE.getMessage()))
+                    .andExpect(jsonPath("code").value(NO_SUCH_PARTNER_PROFILE.getCode()));
         }
 
         @Test

@@ -1,8 +1,10 @@
 package makeus.cmc.malmo.application.service.chat;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataQueryHelper;
+import makeus.cmc.malmo.application.helper.love_type.LoveTypeMbtiPromptQueryHelper;
 import makeus.cmc.malmo.application.port.out.chat.LoadChatRoomMetadataPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessage;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
@@ -12,19 +14,26 @@ import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.model.member.MemberMemory;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatPromptBuilder {
 
+    private static final String UNKNOWN_INFERENCE_PROMPT = "UNKNOWN, 사용자와의 대화로부터 유추할 것";
+
     private final ChatRoomQueryHelper chatRoomQueryHelper;
     private final MemberChatRoomMetadataQueryHelper memberChatRoomMetadataQueryHelper;
+    private final LoveTypeMbtiPromptQueryHelper loveTypeMbtiPromptQueryHelper;
 
     public List<Map<String, String>> createForProcessUserMessage(Member member, ChatRoom chatRoom, String userMessage) {
         List<Map<String, String>> messages = new ArrayList<>();
@@ -81,11 +90,11 @@ public class ChatPromptBuilder {
         String relationshipStatus = member.getRelationshipStatus() != null ? member.getRelationshipStatus().name() : "알 수 없음";
         metadataBuilder.append("- 사용자 연애 상태: ").append(relationshipStatus).append("\n");
 
-        String personalityType = member.getPersonalityType() != null ? member.getPersonalityType() : "알 수 없음";
-        metadataBuilder.append("- 사용자 MBTI: ").append(personalityType).append("\n");
+        String mbti = member.getMbti() != null ? member.getMbti() : "알 수 없음";
+        metadataBuilder.append("- 사용자 MBTI: ").append(mbti).append("\n");
 
-        String otherPersonalityType = member.getOtherPersonalityType() != null ? member.getOtherPersonalityType() : "알 수 없음";
-        metadataBuilder.append("- 상대방 MBTI: ").append(otherPersonalityType).append("\n");
+        String partnerMbti = member.getPartnerMbti() != null ? member.getPartnerMbti() : "알 수 없음";
+        metadataBuilder.append("- 상대방 MBTI: ").append(partnerMbti).append("\n");
 
 //        String dDayState = memberDomainService.getMemberDDayState(member.getStartLoveDate());
 //        metadataBuilder.append("- 연애 기간: ").append(dDayState).append("\n");
@@ -94,11 +103,56 @@ public class ChatPromptBuilder {
         String memberLoveTypeTitle = chatRoomMetadataDto.memberLoveType() != null ? chatRoomMetadataDto.memberLoveType().getTitle() : "알 수 없음";
         metadataBuilder.append("- 사용자 애착 유형: ").append(memberLoveTypeTitle).append("\n");
 
-        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getTitle() : "알 수 없음";
+        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getDescription() : "알 수 없음";
         metadataBuilder.append("- 애인 애착 유형: ").append(partnerLoveType).append("\n");
+        metadataBuilder.append("- 사용자 성향 프롬프트:\n")
+                .append(resolveMemberPrompt(member))
+                .append("\n");
+
+        if (StringUtils.hasText(member.getPartnerMbti())) {
+            metadataBuilder.append("- 상대방 성향 프롬프트:\n")
+                    .append(resolvePartnerPrompt(member))
+                    .append("\n");
+        }
+
         metadataBuilder.append(memberMemoryList);
 
         return metadataBuilder.toString();
+    }
+
+    private String resolveMemberPrompt(Member member) {
+        if (!StringUtils.hasText(member.getMbti()) || member.getLoveTypeCategory() == null) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        return loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory(member.getMbti(), member.getLoveTypeCategory())
+                .map(prompt -> prompt.getPrompts())
+                .filter(StringUtils::hasText)
+                .orElseGet(() -> {
+                    log.warn("Missing love_type_mbti_prompt row for member. mbti={}, loveType={}",
+                            member.getMbti(), member.getLoveTypeCategory());
+                    return UNKNOWN_INFERENCE_PROMPT;
+                });
+    }
+
+    private String resolvePartnerPrompt(Member member) {
+        if (!StringUtils.hasText(member.getPartnerMbti())) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        if (member.getPartnerLoveTypeCategory() == null || member.getPartnerLoveTypeCategory() == PartnerLoveTypeCategory.UNKNOWN) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        LoveTypeCategory partnerLoveTypeCategory = LoveTypeCategory.valueOf(member.getPartnerLoveTypeCategory().name());
+        return loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory(member.getPartnerMbti(), partnerLoveTypeCategory)
+                .map(prompt -> prompt.getPrompts())
+                .filter(StringUtils::hasText)
+                .orElseGet(() -> {
+                    log.warn("Missing love_type_mbti_prompt row for partner. memberId={}, partnerMbti={}, partnerLoveType={}",
+                            member.getId(), member.getPartnerMbti(), partnerLoveTypeCategory);
+                    return UNKNOWN_INFERENCE_PROMPT;
+                });
     }
 
     public String getMemberMemoriesByMemberId(MemberId memberId) {

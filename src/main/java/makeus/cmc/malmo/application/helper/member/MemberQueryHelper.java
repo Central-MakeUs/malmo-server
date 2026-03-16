@@ -7,11 +7,13 @@ import makeus.cmc.malmo.application.exception.InviteCodeNotFoundException;
 import makeus.cmc.malmo.application.exception.MemberNotFoundException;
 import makeus.cmc.malmo.application.exception.NotCoupleMemberException;
 import makeus.cmc.malmo.application.exception.NotValidCoupleCodeException;
+import makeus.cmc.malmo.application.exception.PartnerProfileNotFoundException;
 import makeus.cmc.malmo.application.port.out.member.*;
 import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.stereotype.Component;
@@ -49,7 +51,7 @@ public class MemberQueryHelper {
 
     public PartnerMemberDto getPartnerInfoOrThrow(MemberId memberId) {
         return loadPartnerPort.loadPartnerByMemberId(memberId)
-                .orElseThrow(MemberNotFoundException::new);
+                .orElseThrow(() -> new PartnerProfileNotFoundException("등록된 상대 프로필이 없습니다."));
     }
 
     public Optional<Member> getMemberByProviderId(Provider provider, String providerId) {
@@ -102,19 +104,17 @@ public class MemberQueryHelper {
         private int totalCoupleQuestionCount;
 
         private RelationshipStatus relationshipStatus;
-        private String personalityType;
-        private String otherPersonalityType;
+        private String mbti;
+        private String partnerMbti;
+        private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 
     @Data
     @Builder
     public static class PartnerMemberDto {
-        private String memberState;
-        private LoveTypeCategory loveTypeCategory;
-        private float avoidanceRate;
-        private float anxietyRate;
-        private String nickname;
-        private Boolean isStartLoveDateUpdated;
+        private String mbti;
+        private PartnerLoveTypeCategory loveTypeCategory;
+        private String description;
     }
 
 }

@@ -32,7 +32,7 @@ public class SignUpController {
 
     @Operation(
             summary = "회원가입",
-            description = "인증된 사용자의 추가 정보를 입력받아 회원가입을 완료합니다. 연애 시작일은 커플 연동 시 자동으로 설정됩니다. JWT 토큰이 필요합니다.",
+            description = "인증된 사용자의 추가 정보와 연애 상태를 입력받아 회원가입을 완료합니다. MBTI 관련 정보는 회원가입 이후 프로필 수정에서 관리합니다. JWT 토큰이 필요합니다.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -60,8 +60,6 @@ public class SignUpController {
                 .nickname(requestDto.getNickname())
                 .loveTypeId(requestDto.getLoveTypeId())
                 .relationshipStatus(requestDto.getRelationshipStatus())
-                .personalityType(requestDto.getPersonalityType())
-                .otherPersonalityType(requestDto.getOtherPersonalityType())
                 .build();
 
         signUpUseCase.signUp(command);
@@ -82,10 +80,6 @@ public class SignUpController {
         private Long loveTypeId;
 
         private RelationshipStatus relationshipStatus;
-
-        private String personalityType;
-
-        private String otherPersonalityType;
     }
 
     @Data

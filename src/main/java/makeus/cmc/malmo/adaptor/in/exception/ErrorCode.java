@@ -26,6 +26,9 @@ public enum ErrorCode {
     NO_SUCH_BOOKMARK(HttpStatus.BAD_REQUEST, 40014, "북마크가 존재하지 않습니다."),
     BOOKMARK_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, 40015, "이미 북마크된 메시지입니다."),
     NO_SUCH_MESSAGE(HttpStatus.BAD_REQUEST, 40016, "메시지가 존재하지 않습니다."),
+    PARTNER_PROFILE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, 40017, "이미 상대 프로필이 등록되어 있습니다."),
+    NO_SUCH_PARTNER_PROFILE(HttpStatus.BAD_REQUEST, 40018, "등록된 상대 프로필이 존재하지 않습니다."),
+    NO_SUCH_LOVE_TYPE_MBTI_RESULT(HttpStatus.BAD_REQUEST, 40019, "해당 MBTI와 애착 유형 결과가 존재하지 않습니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 40100, "인증되지 않은 사용자입니다."),

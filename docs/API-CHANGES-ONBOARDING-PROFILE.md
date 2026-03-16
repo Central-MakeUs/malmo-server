@@ -2,10 +2,13 @@
 
 ## 개요
 
-온보딩 및 멤버 프로필에 다음 3개 필드가 추가되었습니다:
+멤버 프로필에는 다음 3개 필드가 추가되었습니다:
 - `relationshipStatus` - 연애 상태 (Enum)
 - `personalityType` - 본인 MBTI (String)
 - `otherPersonalityType` - 상대방 MBTI (String)
+
+추가로, 커플 초대 코드 기반 연동 플로우는 deprecated 되었고 신규 사용자 플로우는 직접 입력 방식으로 전환되었습니다.
+단, `POST /members/onboarding`에서는 이제 `relationshipStatus`만 받고 `personalityType`, `otherPersonalityType`는 받지 않습니다.
 
 ---
 
@@ -40,8 +43,6 @@
 {
   "nickname": "닉네임",
   "relationshipStatus": "IN_RELATIONSHIP",
-  "personalityType": "INTJ",
-  "otherPersonalityType": "ENFP",
   "terms": [
     { "termsId": 1, "isAgreed": true }
   ]
@@ -52,9 +53,10 @@
 |------|------|-----------|------|
 | `nickname` | String | 필수 | 닉네임 (1-10자, 한글/영문/숫자) |
 | `relationshipStatus` | Enum | 선택 | 연애 상태 |
-| `personalityType` | String | 선택 | 본인 MBTI |
-| `otherPersonalityType` | String | 선택 | 상대방 MBTI |
 | `terms` | Array | 필수 | 약관 동의 목록 |
+
+> **Note:** 커플/상대 관련 정보는 초대 코드 연동이 아니라 사용자의 직접 입력을 기준으로 관리합니다.
+> **Note:** `personalityType`, `otherPersonalityType`는 회원가입 요청에서는 제거되었고, 필요 시 `PATCH /members`에서 관리합니다.
 
 ---
 
@@ -104,6 +106,7 @@
 | `otherPersonalityType` | String (nullable) | 상대방 MBTI |
 
 > **Note:** 기존 사용자의 경우 위 필드들이 `null`로 반환될 수 있습니다.
+> **Note:** 응답의 `inviteCode`, `isCouple`, `startLoveDate`는 레거시 커플 연동 흐름과 연결된 필드이므로 신규 클라이언트 플로우의 기준으로 사용하지 않는 것을 권장합니다.
 
 ---
 
@@ -163,7 +166,7 @@
 ### 온보딩 화면 업데이트
 1. 닉네임 입력 후 추가 정보 입력 화면 구성
 2. 연애 상태 선택 (3가지 옵션)
-3. MBTI 입력 (본인/상대방)
+3. MBTI 입력은 온보딩 이후 프로필 수정 플로우로 이동
 
 ### 프로필 수정 화면 업데이트
 1. 기존 닉네임 수정 기능 유지
@@ -178,7 +181,7 @@
 - `Member.java` - 3개 필드 추가, `signUp()` 오버로드, `updateMemberProfile()` 확장
 
 ### Application Layer
-- `SignUpUseCase.java` - SignUpCommand에 3개 필드 추가
+- `SignUpUseCase.java` - SignUpCommand에 연애 상태 필드 추가
 - `GetMemberUseCase.java` - MemberResponseDto에 3개 필드 추가
 - `UpdateMemberUseCase.java` - Command/ResponseDto에 3개 필드 추가
 - `SignUpService.java` - 새 signUp 메서드 호출
@@ -191,7 +194,7 @@
 - `MemberMapper.java` - 양방향 매핑 확장
 - `MemberPersistenceAdapter.java` - RepositoryDto에 3개 필드 추가
 - `MemberRepositoryCustomImpl.java` - QueryDSL select 확장
-- `SignUpController.java` - RequestDto에 3개 필드 추가
+- `SignUpController.java` - RequestDto에 `relationshipStatus` 추가
 - `MemberController.java` - UpdateMemberRequestDto에 3개 필드 추가
 
 ### Enum

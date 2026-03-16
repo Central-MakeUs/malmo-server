@@ -16,6 +16,8 @@ import makeus.cmc.malmo.adaptor.in.web.docs.SwaggerResponses;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseListResponse;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseResponse;
 import makeus.cmc.malmo.application.port.in.member.*;
+import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -35,6 +37,8 @@ public class MemberController {
     private final GetPartnerUseCase getPartnerUseCase;
     private final GetInviteCodeUseCase getInviteCodeUseCase;
     private final UpdateMemberUseCase updateMemberUseCase;
+    private final CreatePartnerProfileUseCase createPartnerProfileUseCase;
+    private final UpdatePartnerProfileUseCase updatePartnerProfileUseCase;
     private final UpdateTermsAgreementUseCase updateTermsAgreementUseCase;
     private final UpdateMemberLoveTypeUseCase updateMemberLoveTypeUseCase;
     private final UpdateStartLoveDateUseCase updateStartLoveDateUseCase;
@@ -62,8 +66,9 @@ public class MemberController {
     }
 
     @Operation(
-            summary = "커플 상대 정보 조회",
-            description = "현재 로그인된 멤버의 파트너 정보를 조회합니다. JWT 토큰이 필요합니다.",
+            summary = "상대 프로필 조회",
+            description = "[Deprecated] 현재 로그인된 멤버가 직접 입력한 상대 프로필을 조회합니다. 신규 클라이언트는 GET /members 응답의 partner 필드를 사용하세요. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -71,9 +76,9 @@ public class MemberController {
             description = "파트너 멤버 정보 조회 성공",
             content = @Content(schema = @Schema(implementation = SwaggerResponses.PartnerMemberInfoSuccessResponse.class))
     )
-    @ApiCommonResponses.OnlyCouple
     @ApiCommonResponses.RequireAuth
     @GetMapping("/partner")
+    @Deprecated
     public BaseResponse<GetPartnerUseCase.PartnerMemberResponseDto> getPartnerMemberInfo(
             @AuthenticationPrincipal User user
     ) {
@@ -103,10 +108,64 @@ public class MemberController {
                 .memberId(Long.valueOf(user.getUsername()))
                 .nickname(requestDto.getNickname())
                 .relationshipStatus(requestDto.getRelationshipStatus())
-                .personalityType(requestDto.getPersonalityType())
-                .otherPersonalityType(requestDto.getOtherPersonalityType())
+                .mbti(normalizeMbti(requestDto.getMbti()))
+                .loveTypeCategory(requestDto.getLoveTypeCategory())
                 .build();
         return BaseResponse.success(updateMemberUseCase.updateMember(command));
+    }
+
+    @Operation(
+            summary = "상대 프로필 최초 등록",
+            description = "현재 로그인된 사용자가 상대방 MBTI와 애착 유형을 직접 입력합니다. JWT 토큰이 필요합니다.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "상대 프로필 등록 성공",
+            content = @Content(schema = @Schema(implementation = SwaggerResponses.PartnerProfileSuccessResponse.class))
+    )
+    @ApiCommonResponses.RequireAuth
+    @PostMapping("/partners")
+    public BaseResponse<CreatePartnerProfileUseCase.PartnerProfileResponseDto> createPartnerProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid CreatePartnerProfileRequestDto requestDto
+    ) {
+        CreatePartnerProfileUseCase.CreatePartnerProfileCommand command =
+                CreatePartnerProfileUseCase.CreatePartnerProfileCommand.builder()
+                        .memberId(Long.valueOf(user.getUsername()))
+                        .mbti(normalizeMbti(requestDto.getMbti()))
+                        .loveTypeCategory(requestDto.getLoveTypeCategory())
+                        .build();
+
+        return BaseResponse.success(createPartnerProfileUseCase.createPartnerProfile(command));
+    }
+
+    @Operation(
+            summary = "상대 프로필 수정",
+            description = "현재 로그인된 사용자가 직접 입력한 상대 프로필을 수정합니다. JWT 토큰이 필요합니다.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "상대 프로필 수정 성공",
+            content = @Content(schema = @Schema(implementation = SwaggerResponses.PartnerProfileSuccessResponse.class))
+    )
+    @ApiCommonResponses.RequireAuth
+    @PatchMapping("/partners")
+    public BaseResponse<CreatePartnerProfileUseCase.PartnerProfileResponseDto> updatePartnerProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid UpdatePartnerProfileRequestDto requestDto
+    ) {
+        UpdatePartnerProfileUseCase.UpdatePartnerProfileCommand command =
+                UpdatePartnerProfileUseCase.UpdatePartnerProfileCommand.builder()
+                        .memberId(Long.valueOf(user.getUsername()))
+                        .mbti(normalizeMbti(requestDto.getMbti()))
+                        .mbtiProvided(requestDto.isMbtiProvided())
+                        .loveTypeCategory(requestDto.getLoveTypeCategory())
+                        .loveTypeCategoryProvided(requestDto.isLoveTypeCategoryProvided())
+                        .build();
+
+        return BaseResponse.success(updatePartnerProfileUseCase.updatePartnerProfile(command));
     }
 
     @Operation(
@@ -142,7 +201,8 @@ public class MemberController {
 
     @Operation(
             summary = "사용자 초대 코드 조회",
-            description = "현재 로그인된 사용자의 초대 코드를 조회합니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 현재 로그인된 사용자의 초대 코드를 조회합니다. 커플 연동 기능은 제거 예정이며, 앞으로는 사용자가 커플 정보를 직접 입력하는 방식을 사용합니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -152,6 +212,7 @@ public class MemberController {
     )
     @ApiCommonResponses.RequireAuth
     @GetMapping("/invite-code")
+    @Deprecated
     public BaseResponse<GetInviteCodeUseCase.InviteCodeResponseDto> getMemberInviteCode(
             @AuthenticationPrincipal User user
     ) {
@@ -221,7 +282,8 @@ public class MemberController {
 
     @Operation(
             summary = "연애 시작일 변경",
-            description = "커플로 연동된 사용자의 연애 시작일을 변경합니다. 커플이 아닌 사용자는 사용할 수 없습니다. JWT 토큰이 필요합니다.",
+            description = "[Deprecated] 커플로 연동된 사용자의 연애 시작일을 변경합니다. 커플 연동 기능은 제거 예정이며, 앞으로는 사용자가 커플 정보를 직접 입력하는 방식을 사용합니다. 커플이 아닌 사용자는 사용할 수 없습니다. JWT 토큰이 필요합니다.",
+            deprecated = true,
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponse(
@@ -232,6 +294,7 @@ public class MemberController {
     @ApiCommonResponses.RequireAuth
     @ApiCommonResponses.OnlyCouple
     @PatchMapping("/start-love-date")
+    @Deprecated
     public BaseResponse<UpdateStartLoveDateUseCase.UpdateStartLoveDateResponse> updateStartLoveDate(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody UpdateStartLoveDateRequestDto requestDto
@@ -249,10 +312,56 @@ public class MemberController {
         @Size(min = 1, max = 10, message = "닉네임은 1자 이상 10자 이하여야 합니다.")
         @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "닉네임은 한글, 영문, 숫자만 사용 가능합니다.")
         private String nickname;
-        
+
         private RelationshipStatus relationshipStatus;
-        private String personalityType;
-        private String otherPersonalityType;
+
+        @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
+        private String mbti;
+
+        private LoveTypeCategory loveTypeCategory;
+    }
+
+    @Data
+    public static class CreatePartnerProfileRequestDto {
+        @NotBlank(message = "상대 MBTI는 필수 입력값입니다.")
+        @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
+        private String mbti;
+
+        private PartnerLoveTypeCategory loveTypeCategory;
+    }
+
+    public static class UpdatePartnerProfileRequestDto {
+        @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
+        private String mbti;
+        private boolean mbtiProvided;
+        private PartnerLoveTypeCategory loveTypeCategory;
+        private boolean loveTypeCategoryProvided;
+
+        public String getMbti() {
+            return mbti;
+        }
+
+        public boolean isMbtiProvided() {
+            return mbtiProvided;
+        }
+
+        public PartnerLoveTypeCategory getLoveTypeCategory() {
+            return loveTypeCategory;
+        }
+
+        public boolean isLoveTypeCategoryProvided() {
+            return loveTypeCategoryProvided;
+        }
+
+        public void setMbti(String mbti) {
+            this.mbti = mbti;
+            this.mbtiProvided = true;
+        }
+
+        public void setLoveTypeCategory(PartnerLoveTypeCategory loveTypeCategory) {
+            this.loveTypeCategory = loveTypeCategory;
+            this.loveTypeCategoryProvided = true;
+        }
     }
 
     @Data
@@ -261,6 +370,8 @@ public class MemberController {
     }
 
     @Data
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 변경 요청 DTO")
     public static class UpdateStartLoveDateRequestDto {
         @NotNull(message = "시작일은 필수 입력값입니다.")
         @PastOrPresent(message = "시작일은 오늘 또는 과거 날짜여야 합니다.")
@@ -288,6 +399,10 @@ public class MemberController {
         @NotNull(message = "점수는 필수 입력값입니다.")
         @Max(5) @Min(1)
         private Integer score;
+    }
+
+    private static String normalizeMbti(String mbti) {
+        return mbti == null ? null : mbti.toUpperCase();
     }
 
 }

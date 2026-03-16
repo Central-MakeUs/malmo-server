@@ -35,9 +35,7 @@ public class SignUpService implements SignUpUseCase {
         Member member = memberQueryHelper.getMemberByIdOrThrow(MemberId.of(command.getMemberId()));
         member.signUp(
                 command.getNickname(),
-                command.getRelationshipStatus(),
-                command.getPersonalityType(),
-                command.getOtherPersonalityType()
+                command.getRelationshipStatus()
         );
 
         // 회원가입 전 애착 유형 검사를 진행했던 사용자인 경우 해당 정보를 가져와 덮어쓰기

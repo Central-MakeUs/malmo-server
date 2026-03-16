@@ -19,6 +19,7 @@ import makeus.cmc.malmo.domain.value.id.CoupleId;
 import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import org.springframework.stereotype.Component;
@@ -104,8 +105,9 @@ public class MemberPersistenceAdapter implements
         private String nickname;
         private String email;
         private RelationshipStatus relationshipStatus;
-        private String personalityType;
-        private String otherPersonalityType;
+        private String mbti;
+        private String partnerMbti;
+        private PartnerLoveTypeCategory partnerLoveTypeCategory;
 
         public MemberQueryHelper.MemberInfoDto toDto(int totalChatRoomCount, int totalCoupleQuestionCount) {
             return MemberQueryHelper.MemberInfoDto.builder()
@@ -120,8 +122,9 @@ public class MemberPersistenceAdapter implements
                     .totalChatRoomCount(totalChatRoomCount)
                     .totalCoupleQuestionCount(totalCoupleQuestionCount)
                     .relationshipStatus(relationshipStatus)
-                    .personalityType(personalityType)
-                    .otherPersonalityType(otherPersonalityType)
+                    .mbti(mbti)
+                    .partnerMbti(partnerMbti)
+                    .partnerLoveTypeCategory(partnerLoveTypeCategory)
                     .build();
         }
     }
@@ -129,21 +132,14 @@ public class MemberPersistenceAdapter implements
     @Data
     @AllArgsConstructor
     public static class PartnerMemberRepositoryDto {
-        private String memberState;
-        private LoveTypeCategory loveTypeCategory;
-        private float avoidanceRate;
-        private float anxietyRate;
-        private String nickname;
-        private Boolean isStartLoveDateUpdated;
+        private String mbti;
+        private PartnerLoveTypeCategory loveTypeCategory;
 
         public MemberQueryHelper.PartnerMemberDto toDto() {
             return MemberQueryHelper.PartnerMemberDto.builder()
-                    .memberState(memberState)
+                    .mbti(mbti)
                     .loveTypeCategory(loveTypeCategory)
-                    .avoidanceRate(avoidanceRate)
-                    .anxietyRate(anxietyRate)
-                    .nickname(nickname)
-                    .isStartLoveDateUpdated(isStartLoveDateUpdated)
+                    .description(loveTypeCategory == null ? null : loveTypeCategory.getDescription())
                     .build();
         }
     }
