@@ -10,7 +10,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class LoveTypeMbtiPromptEntityId implements Serializable {
-    private String mbti;
+public class LoveTypePersonalityTypePromptEntityId implements Serializable {
+    private String personalityType;
     private LoveTypeCategory loveTypeCategory;
 }

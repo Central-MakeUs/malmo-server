@@ -826,14 +826,14 @@ public class MemberIntegrationTest {
             String email;
 
             String relationshipStatus;
-            String mbti;
-            String partnerMbti;
+            String personalityType;
+            String otherPersonalityType;
             String partnerLoveTypeCategory;
         }
 
         @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
         public static class PartnerResponseDto {
-            private String mbti;
+            private String personalityType;
             private String loveTypeCategory;
             private String description;
         }
@@ -857,8 +857,8 @@ public class MemberIntegrationTest {
             Assertions.assertThat(memberResponse.anxietyRate).isEqualTo(member.getAnxietyRate());
             Assertions.assertThat(memberResponse.nickname).isEqualTo(member.getNickname());
             Assertions.assertThat(memberResponse.email).isEqualTo(member.getEmail());
-            Assertions.assertThat(memberResponse.mbti).isEqualTo(member.getMbti());
-            Assertions.assertThat(memberResponse.partnerMbti).isEqualTo(member.getPartnerMbti());
+            Assertions.assertThat(memberResponse.personalityType).isEqualTo(member.getPersonalityType());
+            Assertions.assertThat(memberResponse.otherPersonalityType).isEqualTo(member.getOtherPersonalityType());
             Assertions.assertThat(memberResponse.partnerLoveTypeCategory)
                     .isEqualTo(member.getPartnerLoveTypeCategory() == null ? null : member.getPartnerLoveTypeCategory().name());
         }
@@ -991,7 +991,7 @@ public class MemberIntegrationTest {
         void 파트너_멤버_정보_조회_성공() throws Exception {
             // given
             Map<String, Object> requestDto = Map.of(
-                    "mbti", "enfp",
+                    "personalityType", "enfp",
                     "loveTypeCategory", "CONFUSION_TYPE"
             );
 
@@ -1000,7 +1000,7 @@ public class MemberIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(requestDto)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.mbti").value("ENFP"))
+                    .andExpect(jsonPath("$.data.personalityType").value("ENFP"))
                     .andExpect(jsonPath("$.data.loveTypeCategory").value("CONFUSION_TYPE"))
                     .andExpect(jsonPath("$.data.description").value("혼란형"));
 
@@ -1020,7 +1020,7 @@ public class MemberIntegrationTest {
 
             // 상대 프로필이 정상적으로 조회되는지 검증
             PartnerResponseDto partnerDto = responseDto.data;
-            Assertions.assertThat(partnerDto.mbti).isEqualTo("ENFP");
+            Assertions.assertThat(partnerDto.personalityType).isEqualTo("ENFP");
             Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo("CONFUSION_TYPE");
             Assertions.assertThat(partnerDto.description).isEqualTo("혼란형");
         }
@@ -1032,7 +1032,7 @@ public class MemberIntegrationTest {
             mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("mbti", "enfp"))))
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "enfp"))))
                     .andExpect(status().isOk());
 
             mockMvc.perform(patch("/members/partners")
@@ -1060,7 +1060,7 @@ public class MemberIntegrationTest {
             );
 
             PartnerResponseDto partnerDto = responseDto.data;
-            Assertions.assertThat(partnerDto.mbti).isEqualTo("ENFP");
+            Assertions.assertThat(partnerDto.personalityType).isEqualTo("ENFP");
             Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo("UNKNOWN");
             Assertions.assertThat(partnerDto.description).isEqualTo("모르겠어요");
         }
@@ -1084,13 +1084,13 @@ public class MemberIntegrationTest {
             mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("mbti", "ENFP"))))
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "ENFP"))))
                     .andExpect(status().isOk());
 
             mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("mbti", "INTJ"))))
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "INTJ"))))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("message").value(PARTNER_PROFILE_ALREADY_EXISTS.getMessage()))
                     .andExpect(jsonPath("code").value(PARTNER_PROFILE_ALREADY_EXISTS.getCode()));
@@ -1103,18 +1103,18 @@ public class MemberIntegrationTest {
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                    {"relationshipStatus":"IN_RELATIONSHIP","mbti":"intj","loveTypeCategory":"STABLE_TYPE"}
+                                    {"relationshipStatus":"IN_RELATIONSHIP","personalityType":"intj","loveTypeCategory":"STABLE_TYPE"}
                                     """))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.relationshipStatus").value(RelationshipStatus.IN_RELATIONSHIP.name()))
-                    .andExpect(jsonPath("$.data.mbti").value("INTJ"))
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
                     .andExpect(jsonPath("$.data.loveTypeCategory").value(LoveTypeCategory.STABLE_TYPE.name()));
 
             em.flush();
             em.clear();
 
             MemberEntity updatedMember = em.find(MemberEntity.class, member.getId());
-            Assertions.assertThat(updatedMember.getMbti()).isEqualTo("INTJ");
+            Assertions.assertThat(updatedMember.getPersonalityType()).isEqualTo("INTJ");
             Assertions.assertThat(updatedMember.getLoveTypeCategory()).isEqualTo(LoveTypeCategory.STABLE_TYPE);
         }
 

@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import makeus.cmc.malmo.adaptor.out.persistence.entity.value.LoveTypeMbtiPromptEntityId;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.LoveTypePersonalityTypePromptEntityId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 
 @Getter
@@ -20,13 +20,13 @@ import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@IdClass(LoveTypeMbtiPromptEntityId.class)
-@Table(name = "love_type_mbti_prompt")
-public class LoveTypeMbtiPromptEntity {
+@IdClass(LoveTypePersonalityTypePromptEntityId.class)
+@Table(name = "love_type_personality_type_prompt")
+public class LoveTypePersonalityTypePromptEntity {
 
     @Id
-    @Column(name = "mbti")
-    private String mbti;
+    @Column(name = "personality_type")
+    private String personalityType;
 
     @Id
     @Column(name = "lovetype")

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataQueryHelper;
-import makeus.cmc.malmo.application.helper.love_type.LoveTypeMbtiPromptQueryHelper;
+import makeus.cmc.malmo.application.helper.love_type.LoveTypePersonalityTypePromptQueryHelper;
 import makeus.cmc.malmo.application.port.out.chat.LoadChatRoomMetadataPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessage;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
@@ -33,7 +33,7 @@ public class ChatPromptBuilder {
 
     private final ChatRoomQueryHelper chatRoomQueryHelper;
     private final MemberChatRoomMetadataQueryHelper memberChatRoomMetadataQueryHelper;
-    private final LoveTypeMbtiPromptQueryHelper loveTypeMbtiPromptQueryHelper;
+    private final LoveTypePersonalityTypePromptQueryHelper loveTypePersonalityTypePromptQueryHelper;
 
     public List<Map<String, String>> createForProcessUserMessage(Member member, ChatRoom chatRoom, String userMessage) {
         List<Map<String, String>> messages = new ArrayList<>();
@@ -90,11 +90,11 @@ public class ChatPromptBuilder {
         String relationshipStatus = member.getRelationshipStatus() != null ? member.getRelationshipStatus().name() : "알 수 없음";
         metadataBuilder.append("- 사용자 연애 상태: ").append(relationshipStatus).append("\n");
 
-        String mbti = member.getMbti() != null ? member.getMbti() : "알 수 없음";
-        metadataBuilder.append("- 사용자 MBTI: ").append(mbti).append("\n");
+        String personalityType = member.getPersonalityType() != null ? member.getPersonalityType() : "알 수 없음";
+        metadataBuilder.append("- 사용자 MBTI: ").append(personalityType).append("\n");
 
-        String partnerMbti = member.getPartnerMbti() != null ? member.getPartnerMbti() : "알 수 없음";
-        metadataBuilder.append("- 상대방 MBTI: ").append(partnerMbti).append("\n");
+        String otherPersonalityType = member.getOtherPersonalityType() != null ? member.getOtherPersonalityType() : "알 수 없음";
+        metadataBuilder.append("- 상대방 MBTI: ").append(otherPersonalityType).append("\n");
 
 //        String dDayState = memberDomainService.getMemberDDayState(member.getStartLoveDate());
 //        metadataBuilder.append("- 연애 기간: ").append(dDayState).append("\n");
@@ -109,7 +109,7 @@ public class ChatPromptBuilder {
                 .append(resolveMemberPrompt(member))
                 .append("\n");
 
-        if (StringUtils.hasText(member.getPartnerMbti())) {
+        if (StringUtils.hasText(member.getOtherPersonalityType())) {
             metadataBuilder.append("- 상대방 성향 프롬프트:\n")
                     .append(resolvePartnerPrompt(member))
                     .append("\n");
@@ -121,22 +121,23 @@ public class ChatPromptBuilder {
     }
 
     private String resolveMemberPrompt(Member member) {
-        if (!StringUtils.hasText(member.getMbti()) || member.getLoveTypeCategory() == null) {
+        if (!StringUtils.hasText(member.getPersonalityType()) || member.getLoveTypeCategory() == null) {
             return UNKNOWN_INFERENCE_PROMPT;
         }
 
-        return loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory(member.getMbti(), member.getLoveTypeCategory())
+        return loveTypePersonalityTypePromptQueryHelper
+                .findByPersonalityTypeAndLoveTypeCategory(member.getPersonalityType(), member.getLoveTypeCategory())
                 .map(prompt -> prompt.getPrompts())
                 .filter(StringUtils::hasText)
                 .orElseGet(() -> {
-                    log.warn("Missing love_type_mbti_prompt row for member. mbti={}, loveType={}",
-                            member.getMbti(), member.getLoveTypeCategory());
+                    log.warn("Missing love_type_personality_type_prompt row for member. personalityType={}, loveType={}",
+                            member.getPersonalityType(), member.getLoveTypeCategory());
                     return UNKNOWN_INFERENCE_PROMPT;
                 });
     }
 
     private String resolvePartnerPrompt(Member member) {
-        if (!StringUtils.hasText(member.getPartnerMbti())) {
+        if (!StringUtils.hasText(member.getOtherPersonalityType())) {
             return UNKNOWN_INFERENCE_PROMPT;
         }
 
@@ -145,12 +146,13 @@ public class ChatPromptBuilder {
         }
 
         LoveTypeCategory partnerLoveTypeCategory = LoveTypeCategory.valueOf(member.getPartnerLoveTypeCategory().name());
-        return loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory(member.getPartnerMbti(), partnerLoveTypeCategory)
+        return loveTypePersonalityTypePromptQueryHelper
+                .findByPersonalityTypeAndLoveTypeCategory(member.getOtherPersonalityType(), partnerLoveTypeCategory)
                 .map(prompt -> prompt.getPrompts())
                 .filter(StringUtils::hasText)
                 .orElseGet(() -> {
-                    log.warn("Missing love_type_mbti_prompt row for partner. memberId={}, partnerMbti={}, partnerLoveType={}",
-                            member.getId(), member.getPartnerMbti(), partnerLoveTypeCategory);
+                    log.warn("Missing love_type_personality_type_prompt row for partner. memberId={}, otherPersonalityType={}, partnerLoveType={}",
+                            member.getId(), member.getOtherPersonalityType(), partnerLoveTypeCategory);
                     return UNKNOWN_INFERENCE_PROMPT;
                 });
     }

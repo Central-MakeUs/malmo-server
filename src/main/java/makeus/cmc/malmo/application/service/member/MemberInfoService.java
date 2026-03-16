@@ -32,8 +32,8 @@ public class MemberInfoService implements GetMemberUseCase, GetPartnerUseCase {
                 .nickname(member.getNickname())
                 .email(member.getEmail())
                 .relationshipStatus(member.getRelationshipStatus())
-                .mbti(member.getMbti())
-                .partnerMbti(member.getPartnerMbti())
+                .personalityType(member.getPersonalityType())
+                .otherPersonalityType(member.getOtherPersonalityType())
                 .partnerLoveTypeCategory(member.getPartnerLoveTypeCategory())
                 .build();
     }
@@ -44,7 +44,7 @@ public class MemberInfoService implements GetMemberUseCase, GetPartnerUseCase {
         MemberQueryHelper.PartnerMemberDto partner = memberQueryHelper.getPartnerInfoOrThrow(MemberId.of(command.getUserId()));
 
         return PartnerMemberResponseDto.builder()
-                .mbti(partner.getMbti())
+                .personalityType(partner.getPersonalityType())
                 .loveTypeCategory(partner.getLoveTypeCategory())
                 .description(partner.getDescription())
                 .build();

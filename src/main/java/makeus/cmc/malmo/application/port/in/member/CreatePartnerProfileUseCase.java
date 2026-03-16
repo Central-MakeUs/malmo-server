@@ -12,14 +12,14 @@ public interface CreatePartnerProfileUseCase {
     @Builder
     class CreatePartnerProfileCommand {
         private Long memberId;
-        private String mbti;
+        private String personalityType;
         private PartnerLoveTypeCategory loveTypeCategory;
     }
 
     @Data
     @Builder
     class PartnerProfileResponseDto {
-        private String mbti;
+        private String personalityType;
         private PartnerLoveTypeCategory loveTypeCategory;
         private String description;
     }

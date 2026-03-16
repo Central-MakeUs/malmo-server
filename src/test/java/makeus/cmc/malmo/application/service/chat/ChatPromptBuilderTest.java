@@ -2,10 +2,10 @@ package makeus.cmc.malmo.application.service.chat;
 
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataQueryHelper;
-import makeus.cmc.malmo.application.helper.love_type.LoveTypeMbtiPromptQueryHelper;
+import makeus.cmc.malmo.application.helper.love_type.LoveTypePersonalityTypePromptQueryHelper;
 import makeus.cmc.malmo.application.port.out.chat.LoadChatRoomMetadataPort;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
-import makeus.cmc.malmo.domain.model.love_type.LoveTypeMbtiPrompt;
+import makeus.cmc.malmo.domain.model.love_type.LoveTypePersonalityTypePrompt;
 import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
@@ -44,7 +44,7 @@ class ChatPromptBuilderTest {
     private MemberChatRoomMetadataQueryHelper memberChatRoomMetadataQueryHelper;
 
     @Mock
-    private LoveTypeMbtiPromptQueryHelper loveTypeMbtiPromptQueryHelper;
+    private LoveTypePersonalityTypePromptQueryHelper loveTypePersonalityTypePromptQueryHelper;
 
     @InjectMocks
     private ChatPromptBuilder chatPromptBuilder;
@@ -57,10 +57,10 @@ class ChatPromptBuilderTest {
         ChatRoom chatRoom = createChatRoom(1L);
 
         stubCommon(chatRoom, LoveTypeCategory.STABLE_TYPE, PartnerLoveTypeCategory.ANXIETY_TYPE);
-        when(loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory("ISTJ", LoveTypeCategory.STABLE_TYPE))
-                .thenReturn(Optional.of(LoveTypeMbtiPrompt.from("ISTJ", LoveTypeCategory.STABLE_TYPE, "ISTJ 안정형 프롬프트")));
-        when(loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory("ENFP", LoveTypeCategory.ANXIETY_TYPE))
-                .thenReturn(Optional.of(LoveTypeMbtiPrompt.from("ENFP", LoveTypeCategory.ANXIETY_TYPE, "ENFP 불안형 프롬프트")));
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory("ISTJ", LoveTypeCategory.STABLE_TYPE))
+                .thenReturn(Optional.of(LoveTypePersonalityTypePrompt.from("ISTJ", LoveTypeCategory.STABLE_TYPE, "ISTJ 안정형 프롬프트")));
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory("ENFP", LoveTypeCategory.ANXIETY_TYPE))
+                .thenReturn(Optional.of(LoveTypePersonalityTypePrompt.from("ENFP", LoveTypeCategory.ANXIETY_TYPE, "ENFP 불안형 프롬프트")));
 
         // when
         List<Map<String, String>> messages = chatPromptBuilder.createForProcessUserMessage(member, chatRoom, "사용자 메시지");
@@ -100,8 +100,8 @@ class ChatPromptBuilderTest {
         ChatRoom chatRoom = createChatRoom(3L);
 
         stubCommon(chatRoom, LoveTypeCategory.STABLE_TYPE, null);
-        when(loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory("ISTJ", LoveTypeCategory.STABLE_TYPE))
-                .thenReturn(Optional.of(LoveTypeMbtiPrompt.from("ISTJ", LoveTypeCategory.STABLE_TYPE, "ISTJ 안정형 프롬프트")));
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory("ISTJ", LoveTypeCategory.STABLE_TYPE))
+                .thenReturn(Optional.of(LoveTypePersonalityTypePrompt.from("ISTJ", LoveTypeCategory.STABLE_TYPE, "ISTJ 안정형 프롬프트")));
 
         // when
         List<Map<String, String>> messages = chatPromptBuilder.createForProcessUserMessage(member, chatRoom, "사용자 메시지");
@@ -120,7 +120,7 @@ class ChatPromptBuilderTest {
         ChatRoom chatRoom = createChatRoom(4L);
 
         stubCommon(chatRoom, LoveTypeCategory.STABLE_TYPE, PartnerLoveTypeCategory.ANXIETY_TYPE);
-        when(loveTypeMbtiPromptQueryHelper.findByMbtiAndLoveTypeCategory(any(), any()))
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory(any(), any()))
                 .thenReturn(Optional.empty());
 
         // when
@@ -141,9 +141,9 @@ class ChatPromptBuilderTest {
     }
 
     private Member createMember(
-            String mbti,
+            String personalityType,
             LoveTypeCategory loveTypeCategory,
-            String partnerMbti,
+            String otherPersonalityType,
             PartnerLoveTypeCategory partnerLoveTypeCategory
     ) {
         LocalDateTime now = LocalDateTime.now();
@@ -167,8 +167,8 @@ class ChatPromptBuilderTest {
                 null,
                 null,
                 RelationshipStatus.IN_RELATIONSHIP,
-                mbti,
-                partnerMbti,
+                personalityType,
+                otherPersonalityType,
                 partnerLoveTypeCategory,
                 now,
                 now,

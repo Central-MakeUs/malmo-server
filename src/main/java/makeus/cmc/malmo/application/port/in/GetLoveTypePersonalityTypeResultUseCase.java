@@ -6,21 +6,21 @@ import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 
 import java.util.List;
 
-public interface GetLoveTypeMbtiResultUseCase {
+public interface GetLoveTypePersonalityTypeResultUseCase {
 
-    LoveTypeMbtiResultResponse getResult(GetLoveTypeMbtiResultCommand command);
+    LoveTypePersonalityTypeResultResponse getResult(GetLoveTypePersonalityTypeResultCommand command);
 
     @Data
     @Builder
-    class GetLoveTypeMbtiResultCommand {
-        private String mbti;
+    class GetLoveTypePersonalityTypeResultCommand {
+        private String personalityType;
         private LoveTypeCategory loveTypeCategory;
     }
 
     @Data
     @Builder
-    class LoveTypeMbtiResultResponse {
-        private String mbti;
+    class LoveTypePersonalityTypeResultResponse {
+        private String personalityType;
         private LoveTypeCategory loveTypeCategory;
         private String summary;
         private List<String> keywords;
@@ -29,8 +29,8 @@ public interface GetLoveTypeMbtiResultUseCase {
         private List<TitleDescriptionItem> patterns;
         private List<TitleDescriptionItem> loveTypeFeatures;
         private List<String> datingGuides;
-        private List<MbtiDescriptionItem> bestMatches;
-        private List<MbtiDescriptionItem> worstMatches;
+        private List<PersonalityTypeDescriptionItem> bestMatches;
+        private List<PersonalityTypeDescriptionItem> worstMatches;
     }
 
     @Data
@@ -42,8 +42,8 @@ public interface GetLoveTypeMbtiResultUseCase {
 
     @Data
     @Builder
-    class MbtiDescriptionItem {
-        private String mbti;
+    class PersonalityTypeDescriptionItem {
+        private String personalityType;
         private String description;
     }
 }

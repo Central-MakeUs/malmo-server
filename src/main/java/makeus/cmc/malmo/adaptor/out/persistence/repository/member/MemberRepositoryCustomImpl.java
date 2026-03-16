@@ -34,8 +34,8 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
                         memberEntity.nickname,
                         memberEntity.email,
                         memberEntity.relationshipStatus,
-                        memberEntity.mbti,
-                        memberEntity.partnerMbti,
+                        memberEntity.personalityType,
+                        memberEntity.otherPersonalityType,
                         memberEntity.partnerLoveTypeCategory
                 ))
                 .from(memberEntity)
@@ -52,12 +52,12 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
     public Optional<MemberPersistenceAdapter.PartnerMemberRepositoryDto> findPartnerMember(Long memberId) {
         MemberPersistenceAdapter.PartnerMemberRepositoryDto dto = queryFactory
                 .select(Projections.constructor(MemberPersistenceAdapter.PartnerMemberRepositoryDto.class,
-                        memberEntity.partnerMbti,
+                        memberEntity.otherPersonalityType,
                         memberEntity.partnerLoveTypeCategory
                 ))
                 .from(memberEntity)
                 .where(memberEntity.id.eq(memberId)
-                        .and(memberEntity.partnerMbti.isNotNull()))
+                        .and(memberEntity.otherPersonalityType.isNotNull()))
                 .fetchOne();
 
         return Optional.ofNullable(dto);

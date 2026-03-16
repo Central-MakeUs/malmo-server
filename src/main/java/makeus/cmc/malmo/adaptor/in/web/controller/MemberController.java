@@ -108,7 +108,7 @@ public class MemberController {
                 .memberId(Long.valueOf(user.getUsername()))
                 .nickname(requestDto.getNickname())
                 .relationshipStatus(requestDto.getRelationshipStatus())
-                .mbti(normalizeMbti(requestDto.getMbti()))
+                .personalityType(normalizePersonalityType(requestDto.getPersonalityType()))
                 .loveTypeCategory(requestDto.getLoveTypeCategory())
                 .build();
         return BaseResponse.success(updateMemberUseCase.updateMember(command));
@@ -133,7 +133,7 @@ public class MemberController {
         CreatePartnerProfileUseCase.CreatePartnerProfileCommand command =
                 CreatePartnerProfileUseCase.CreatePartnerProfileCommand.builder()
                         .memberId(Long.valueOf(user.getUsername()))
-                        .mbti(normalizeMbti(requestDto.getMbti()))
+                        .personalityType(normalizePersonalityType(requestDto.getPersonalityType()))
                         .loveTypeCategory(requestDto.getLoveTypeCategory())
                         .build();
 
@@ -159,8 +159,8 @@ public class MemberController {
         UpdatePartnerProfileUseCase.UpdatePartnerProfileCommand command =
                 UpdatePartnerProfileUseCase.UpdatePartnerProfileCommand.builder()
                         .memberId(Long.valueOf(user.getUsername()))
-                        .mbti(normalizeMbti(requestDto.getMbti()))
-                        .mbtiProvided(requestDto.isMbtiProvided())
+                        .personalityType(normalizePersonalityType(requestDto.getPersonalityType()))
+                        .personalityTypeProvided(requestDto.isPersonalityTypeProvided())
                         .loveTypeCategory(requestDto.getLoveTypeCategory())
                         .loveTypeCategoryProvided(requestDto.isLoveTypeCategoryProvided())
                         .build();
@@ -316,7 +316,7 @@ public class MemberController {
         private RelationshipStatus relationshipStatus;
 
         @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
-        private String mbti;
+        private String personalityType;
 
         private LoveTypeCategory loveTypeCategory;
     }
@@ -325,24 +325,24 @@ public class MemberController {
     public static class CreatePartnerProfileRequestDto {
         @NotBlank(message = "상대 MBTI는 필수 입력값입니다.")
         @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
-        private String mbti;
+        private String personalityType;
 
         private PartnerLoveTypeCategory loveTypeCategory;
     }
 
     public static class UpdatePartnerProfileRequestDto {
         @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
-        private String mbti;
-        private boolean mbtiProvided;
+        private String personalityType;
+        private boolean personalityTypeProvided;
         private PartnerLoveTypeCategory loveTypeCategory;
         private boolean loveTypeCategoryProvided;
 
-        public String getMbti() {
-            return mbti;
+        public String getPersonalityType() {
+            return personalityType;
         }
 
-        public boolean isMbtiProvided() {
-            return mbtiProvided;
+        public boolean isPersonalityTypeProvided() {
+            return personalityTypeProvided;
         }
 
         public PartnerLoveTypeCategory getLoveTypeCategory() {
@@ -353,9 +353,9 @@ public class MemberController {
             return loveTypeCategoryProvided;
         }
 
-        public void setMbti(String mbti) {
-            this.mbti = mbti;
-            this.mbtiProvided = true;
+        public void setPersonalityType(String personalityType) {
+            this.personalityType = personalityType;
+            this.personalityTypeProvided = true;
         }
 
         public void setLoveTypeCategory(PartnerLoveTypeCategory loveTypeCategory) {
@@ -401,8 +401,8 @@ public class MemberController {
         private Integer score;
     }
 
-    private static String normalizeMbti(String mbti) {
-        return mbti == null ? null : mbti.toUpperCase();
+    private static String normalizePersonalityType(String personalityType) {
+        return personalityType == null ? null : personalityType.toUpperCase();
     }
 
 }

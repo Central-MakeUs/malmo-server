@@ -105,8 +105,8 @@ public class MemberPersistenceAdapter implements
         private String nickname;
         private String email;
         private RelationshipStatus relationshipStatus;
-        private String mbti;
-        private String partnerMbti;
+        private String personalityType;
+        private String otherPersonalityType;
         private PartnerLoveTypeCategory partnerLoveTypeCategory;
 
         public MemberQueryHelper.MemberInfoDto toDto(int totalChatRoomCount, int totalCoupleQuestionCount) {
@@ -122,8 +122,8 @@ public class MemberPersistenceAdapter implements
                     .totalChatRoomCount(totalChatRoomCount)
                     .totalCoupleQuestionCount(totalCoupleQuestionCount)
                     .relationshipStatus(relationshipStatus)
-                    .mbti(mbti)
-                    .partnerMbti(partnerMbti)
+                    .personalityType(personalityType)
+                    .otherPersonalityType(otherPersonalityType)
                     .partnerLoveTypeCategory(partnerLoveTypeCategory)
                     .build();
         }
@@ -132,12 +132,12 @@ public class MemberPersistenceAdapter implements
     @Data
     @AllArgsConstructor
     public static class PartnerMemberRepositoryDto {
-        private String mbti;
+        private String personalityType;
         private PartnerLoveTypeCategory loveTypeCategory;
 
         public MemberQueryHelper.PartnerMemberDto toDto() {
             return MemberQueryHelper.PartnerMemberDto.builder()
-                    .mbti(mbti)
+                    .personalityType(personalityType)
                     .loveTypeCategory(loveTypeCategory)
                     .description(loveTypeCategory == null ? null : loveTypeCategory.getDescription())
                     .build();

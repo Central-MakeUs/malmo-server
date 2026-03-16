@@ -182,10 +182,10 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.NO_SUCH_PARTNER_PROFILE);
     }
 
-    @ExceptionHandler({LoveTypeMbtiFeatureNotFoundException.class})
-    public ResponseEntity<ErrorResponse> handleLoveTypeMbtiFeatureNotFoundException(LoveTypeMbtiFeatureNotFoundException e) {
-        log.warn("[GlobalExceptionHandler: handleLoveTypeMbtiFeatureNotFoundException 호출] {}", e.getMessage());
-        return ErrorResponse.of(ErrorCode.NO_SUCH_LOVE_TYPE_MBTI_RESULT);
+    @ExceptionHandler({LoveTypePersonalityTypeFeatureNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleLoveTypePersonalityTypeFeatureNotFoundException(LoveTypePersonalityTypeFeatureNotFoundException e) {
+        log.warn("[GlobalExceptionHandler: handleLoveTypePersonalityTypeFeatureNotFoundException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT);
     }
 
 

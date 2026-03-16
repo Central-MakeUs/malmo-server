@@ -1,4 +1,4 @@
-# 채팅 프롬프트 예시 - MBTI + 애착유형 메타데이터 주입
+# 채팅 프롬프트 예시 - personalityType + 애착유형 메타데이터 주입
 
 ## 목적
 
@@ -15,11 +15,11 @@
 
 가정:
 
-- 사용자 MBTI: `ISTJ`
+- 사용자 personalityType: `ISTJ`
 - 사용자 애착유형: `STABLE_TYPE`
-- 상대방 MBTI: `ENFP`
+- 상대방 personalityType: `ENFP`
 - 상대방 애착유형: `ANXIETY_TYPE`
-- 두 조합 모두 `love_type_mbti_prompt` 테이블에 row 존재
+- 두 조합 모두 `love_type_personality_type_prompt` 테이블에 row 존재
 
 실제로 모델에 들어가는 첫 system 메시지 예시:
 
@@ -52,9 +52,9 @@ ENFP 불안형
 
 가정:
 
-- 사용자 MBTI: `ISTJ`
+- 사용자 personalityType: `ISTJ`
 - 사용자 애착유형: `STABLE_TYPE`
-- 상대방 MBTI: `ENFP`
+- 상대방 personalityType: `ENFP`
 - 상대방 애착유형: `UNKNOWN`
 
 ```text
@@ -78,7 +78,7 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 핵심:
 
-- `partnerMbti`가 있으므로 상대방 성향 프롬프트 항목은 생성됩니다.
+- `otherPersonalityType`가 있으므로 상대방 성향 프롬프트 항목은 생성됩니다.
 - `partnerLoveTypeCategory == UNKNOWN` 이므로 DB 조회 없이 폴백 문구가 들어갑니다.
 
 ---
@@ -87,9 +87,9 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 가정:
 
-- 사용자 MBTI: `INFP`
+- 사용자 personalityType: `INFP`
 - 사용자 애착유형: `CONFUSION_TYPE`
-- `love_type_mbti_prompt`에 `(INFP, CONFUSION_TYPE)` row 없음
+- `love_type_personality_type_prompt`에 `(INFP, CONFUSION_TYPE)` row 없음
 
 ```text
 [사용자 메타데이터] 

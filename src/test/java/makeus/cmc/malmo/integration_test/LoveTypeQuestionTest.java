@@ -3,7 +3,7 @@ package makeus.cmc.malmo.integration_test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
-import makeus.cmc.malmo.adaptor.out.persistence.entity.LoveTypeMbtiFeatureEntity;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.LoveTypePersonalityTypeFeatureEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.TempLoveTypeEntity;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.integration_test.dto_factory.LoveTypeQuestionRequestDtoFactory;
@@ -252,13 +252,13 @@ public class LoveTypeQuestionTest {
 
     @Nested
     @DisplayName("MBTI + 애착 유형 상세 결과 조회 테스트")
-    class GetLoveTypeMbtiResultTest {
+    class GetLoveTypePersonalityTypeResultTest {
         @Test
         @DisplayName("MBTI와 애착 유형 상세 결과 조회 성공 - 소문자 쿼리와 빈 항목 제외")
-        void mbti와_애착유형_상세_결과_조회_성공() throws Exception {
+        void personalityType과_애착유형_상세_결과_조회_성공() throws Exception {
             // given
-            em.persist(LoveTypeMbtiFeatureEntity.builder()
-                    .mbti("ENFP")
+            em.persist(LoveTypePersonalityTypeFeatureEntity.builder()
+                    .personalityType("ENFP")
                     .loveTypeCategory(LoveTypeCategory.STABLE_TYPE)
                     .summary("풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형")
                     .keyword1("열정적")
@@ -291,13 +291,13 @@ public class LoveTypeQuestionTest {
                     .datingGuide1("감정을 정리해 표현해요")
                     .datingGuide2("")
                     .datingGuide3(null)
-                    .bestMbti1("infj")
+                    .bestPersonalityType1("infj")
                     .bestDesc1("속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")
-                    .bestMbti2("")
+                    .bestPersonalityType2("")
                     .bestDesc2("")
-                    .worstMbti1("istp")
+                    .worstPersonalityType1("istp")
                     .worstDesc1("자유로운 감정선과 솔직한 피드백이 부딪히는 궁합")
-                    .worstMbti2(null)
+                    .worstPersonalityType2(null)
                     .worstDesc2(null)
                     .build());
             em.flush();
@@ -305,11 +305,11 @@ public class LoveTypeQuestionTest {
 
             // when & then
             mockMvc.perform(get("/love-types/result")
-                            .param("mbti", "enfp")
+                            .param("personalityType", "enfp")
                             .param("lovetype", "stable_type")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("data.mbti").value("ENFP"))
+                    .andExpect(jsonPath("data.personalityType").value("ENFP"))
                     .andExpect(jsonPath("data.loveTypeCategory").value(LoveTypeCategory.STABLE_TYPE.name()))
                     .andExpect(jsonPath("data.summary").value("풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형"))
                     .andExpect(jsonPath("data.keywords.length()").value(2))
@@ -322,16 +322,16 @@ public class LoveTypeQuestionTest {
                     .andExpect(jsonPath("data.loveTypeFeatures.length()").value(1))
                     .andExpect(jsonPath("data.datingGuides.length()").value(1))
                     .andExpect(jsonPath("data.bestMatches.length()").value(1))
-                    .andExpect(jsonPath("data.bestMatches[0].mbti").value("INFJ"))
+                    .andExpect(jsonPath("data.bestMatches[0].personalityType").value("INFJ"))
                     .andExpect(jsonPath("data.worstMatches.length()").value(1))
-                    .andExpect(jsonPath("data.worstMatches[0].mbti").value("ISTP"));
+                    .andExpect(jsonPath("data.worstMatches[0].personalityType").value("ISTP"));
         }
 
         @Test
         @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - MBTI 형식 오류")
-        void mbti와_애착유형_상세_결과_조회_실패_mbti형식오류() throws Exception {
+        void personalityType과_애착유형_상세_결과_조회_실패_personalityType형식오류() throws Exception {
             mockMvc.perform(get("/love-types/result")
-                            .param("mbti", "ENF")
+                            .param("personalityType", "ENF")
                             .param("lovetype", "STABLE_TYPE")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
@@ -341,9 +341,9 @@ public class LoveTypeQuestionTest {
 
         @Test
         @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - 애착 유형 값 오류")
-        void mbti와_애착유형_상세_결과_조회_실패_애착유형값오류() throws Exception {
+        void personalityType과_애착유형_상세_결과_조회_실패_애착유형값오류() throws Exception {
             mockMvc.perform(get("/love-types/result")
-                            .param("mbti", "ENFP")
+                            .param("personalityType", "ENFP")
                             .param("lovetype", "WRONG_TYPE")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
@@ -353,14 +353,14 @@ public class LoveTypeQuestionTest {
 
         @Test
         @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - 매칭되는 결과 없음")
-        void mbti와_애착유형_상세_결과_조회_실패_결과없음() throws Exception {
+        void personalityType과_애착유형_상세_결과_조회_실패_결과없음() throws Exception {
             mockMvc.perform(get("/love-types/result")
-                            .param("mbti", "ENFP")
+                            .param("personalityType", "ENFP")
                             .param("lovetype", "STABLE_TYPE")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("message").value(NO_SUCH_LOVE_TYPE_MBTI_RESULT.getMessage()))
-                    .andExpect(jsonPath("code").value(NO_SUCH_LOVE_TYPE_MBTI_RESULT.getCode()));
+                    .andExpect(jsonPath("message").value(NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT.getMessage()))
+                    .andExpect(jsonPath("code").value(NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT.getCode()));
         }
     }
 }

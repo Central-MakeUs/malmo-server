@@ -1,8 +1,8 @@
-# 채팅 프롬프트 변경 사항 - MBTI + 애착유형 조합 프롬프트 주입
+# 채팅 프롬프트 변경 사항 - personalityType + 애착유형 조합 프롬프트 주입
 
 ## 개요
 
-채팅 시스템 메시지의 `[사용자 메타데이터]` 블록에 사용자와 상대방의 `MBTI + 애착유형` 조합별 프롬프트를 함께 주입합니다.
+채팅 시스템 메시지의 `[사용자 메타데이터]` 블록에 사용자와 상대방의 `personalityType + 애착유형` 조합별 프롬프트를 함께 주입합니다.
 
 이 변경의 목적은 다음과 같습니다.
 
@@ -16,28 +16,28 @@
 
 ### 신규 테이블
 
-`love_type_mbti_prompt`
+`love_type_personality_type_prompt`
 
 | column | type | description |
 | --- | --- | --- |
-| `mbti` | `VARCHAR(4)` | MBTI 4자리 문자열 |
+| `personality_type` | `VARCHAR(4)` | MBTI 4자리 문자열 |
 | `lovetype` | `VARCHAR(255)` | `LoveTypeCategory` enum 문자열 |
 | `prompts` | `TEXT` | 채팅 메타데이터에 삽입할 프롬프트 전문 |
 
 ### 키 규칙
 
-- `(mbti, lovetype)` 복합 PK
+- `(personality_type, lovetype)` 복합 PK
 - 애플리케이션은 MBTI를 대문자로 정규화해 조회합니다.
 - `UNKNOWN` row는 저장하지 않습니다.
 
 ### DDL
 
 ```sql
-CREATE TABLE love_type_mbti_prompt (
-    mbti VARCHAR(4) NOT NULL,
+CREATE TABLE love_type_personality_type_prompt (
+    personality_type VARCHAR(4) NOT NULL,
     lovetype VARCHAR(255) NOT NULL,
     prompts TEXT,
-    PRIMARY KEY (mbti, lovetype)
+    PRIMARY KEY (personality_type, lovetype)
 );
 ```
 
@@ -61,7 +61,7 @@ CREATE TABLE love_type_mbti_prompt (
 
 ### 사용자 본인
 
-- `member.mbti`와 `member.loveTypeCategory`가 모두 있으면 `love_type_mbti_prompt`를 조회합니다.
+- `member.personalityType`와 `member.loveTypeCategory`가 모두 있으면 `love_type_personality_type_prompt`를 조회합니다.
 - 조합 row가 존재하면 `prompts` 컬럼 값을 그대로 삽입합니다.
 - 둘 중 하나라도 없거나 조합 row가 없으면 아래 폴백 문구를 삽입합니다.
 
@@ -71,9 +71,9 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 ### 상대방
 
-- `partnerMbti`가 있는 경우에만 `- 상대방 성향 프롬프트:` 항목을 추가합니다.
+- `otherPersonalityType`가 있는 경우에만 `- 상대방 성향 프롬프트:` 항목을 추가합니다.
 - `partnerLoveTypeCategory`가 `UNKNOWN` 또는 `null`이면 DB 조회 없이 바로 폴백 문구를 삽입합니다.
-- `partnerMbti`와 확정된 `partnerLoveTypeCategory`가 모두 있으면 `(partnerMbti, partnerLoveTypeCategory)` 조합으로 조회합니다.
+- `otherPersonalityType`와 확정된 `partnerLoveTypeCategory`가 모두 있으면 `(otherPersonalityType, partnerLoveTypeCategory)` 조합으로 조회합니다.
 - 조합 row가 없으면 채팅은 실패시키지 않고 동일한 폴백 문구를 삽입합니다.
 
 ---
@@ -89,9 +89,9 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 아래 경우에는 모두 동일한 폴백 문구를 사용합니다.
 
-- 사용자 MBTI 없음
+- 사용자 personalityType 없음
 - 사용자 애착유형 없음
-- 상대방 MBTI 없음
+- 상대방 personalityType 없음
 - 상대방 애착유형이 `UNKNOWN`
 - 상대방 애착유형이 `null`
 - 조합 row 없음
@@ -110,9 +110,9 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 다만 아래 프로필 데이터가 채팅 프롬프트 생성에 직접 활용됩니다.
 
-- `GET /members`의 `mbti`
+- `GET /members`의 `personalityType`
 - `GET /members`의 `loveTypeCategory`
-- `GET /members`의 `partnerMbti`
+- `GET /members`의 `otherPersonalityType`
 - `GET /members`의 `partnerLoveTypeCategory`
 
 ---
@@ -132,6 +132,6 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 관련 테스트:
 
 - `src/test/java/makeus/cmc/malmo/application/service/chat/ChatPromptBuilderTest.java`
-- `src/test/java/makeus/cmc/malmo/integration_test/LoveTypeMbtiPromptPersistenceAdapterTest.java`
+- `src/test/java/makeus/cmc/malmo/integration_test/LoveTypePersonalityTypePromptPersistenceAdapterTest.java`
 
-실제 시스템 메시지 예시는 `docs/CHAT-PROMPT-MBTI-LOVETYPE-EXAMPLE.md`를 참고합니다.
+실제 시스템 메시지 예시는 `docs/CHAT-PROMPT-PERSONALITY-TYPE-LOVETYPE-EXAMPLE.md`를 참고합니다.

@@ -75,9 +75,11 @@ public class MemberEntity extends BaseTimeEntity {
     @Enumerated(value = EnumType.STRING)
     private RelationshipStatus relationshipStatus;
 
-    private String mbti;
+    @Column(name = "personality_type")
+    private String personalityType;
 
-    private String partnerMbti;
+    @Column(name = "other_personality_type")
+    private String otherPersonalityType;
 
     @Enumerated(value = EnumType.STRING)
     private PartnerLoveTypeCategory partnerLoveTypeCategory;

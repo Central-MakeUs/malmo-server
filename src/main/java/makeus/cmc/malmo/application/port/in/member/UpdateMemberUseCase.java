@@ -15,7 +15,7 @@ public interface UpdateMemberUseCase {
         private Long memberId;
         private String nickname;
         private RelationshipStatus relationshipStatus;
-        private String mbti;
+        private String personalityType;
         private LoveTypeCategory loveTypeCategory;
     }
 
@@ -24,7 +24,7 @@ public interface UpdateMemberUseCase {
     class UpdateMemberResponseDto {
         private String nickname;
         private RelationshipStatus relationshipStatus;
-        private String mbti;
+        private String personalityType;
         private LoveTypeCategory loveTypeCategory;
     }
 }

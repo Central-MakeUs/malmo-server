@@ -12,8 +12,8 @@ public interface UpdatePartnerProfileUseCase {
     @Builder
     class UpdatePartnerProfileCommand {
         private Long memberId;
-        private String mbti;
-        private boolean mbtiProvided;
+        private String personalityType;
+        private boolean personalityTypeProvided;
         private PartnerLoveTypeCategory loveTypeCategory;
         private boolean loveTypeCategoryProvided;
     }

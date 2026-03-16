@@ -61,7 +61,7 @@ public class MemberCommandService implements
         member.updateMemberProfile(
                 command.getNickname(),
                 command.getRelationshipStatus(),
-                command.getMbti(),
+                command.getPersonalityType(),
                 command.getLoveTypeCategory()
         );
 
@@ -70,7 +70,7 @@ public class MemberCommandService implements
         return UpdateMemberResponseDto.builder()
                 .nickname(savedMember.getNickname())
                 .relationshipStatus(savedMember.getRelationshipStatus())
-                .mbti(savedMember.getMbti())
+                .personalityType(savedMember.getPersonalityType())
                 .loveTypeCategory(savedMember.getLoveTypeCategory())
                 .build();
     }
@@ -85,7 +85,7 @@ public class MemberCommandService implements
         }
 
         PartnerLoveTypeCategory partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
-        member.createPartnerProfile(command.getMbti(), partnerLoveTypeCategory);
+        member.createPartnerProfile(command.getPersonalityType(), partnerLoveTypeCategory);
         Member savedMember = memberCommandHelper.saveMember(member);
 
         return toPartnerProfileResponse(savedMember);
@@ -100,13 +100,13 @@ public class MemberCommandService implements
             throw new PartnerProfileNotFoundException("등록된 상대 프로필이 없습니다.");
         }
 
-        String partnerMbti = command.isMbtiProvided() ? command.getMbti() : null;
+        String otherPersonalityType = command.isPersonalityTypeProvided() ? command.getPersonalityType() : null;
         PartnerLoveTypeCategory partnerLoveTypeCategory = null;
         if (command.isLoveTypeCategoryProvided()) {
             partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
         }
 
-        member.updatePartnerProfile(partnerMbti, partnerLoveTypeCategory);
+        member.updatePartnerProfile(otherPersonalityType, partnerLoveTypeCategory);
         Member savedMember = memberCommandHelper.saveMember(member);
 
         return toPartnerProfileResponse(savedMember);
@@ -181,7 +181,7 @@ public class MemberCommandService implements
 
     private PartnerProfileResponseDto toPartnerProfileResponse(Member savedMember) {
         return PartnerProfileResponseDto.builder()
-                .mbti(savedMember.getPartnerMbti())
+                .personalityType(savedMember.getOtherPersonalityType())
                 .loveTypeCategory(savedMember.getPartnerLoveTypeCategory())
                 .description(savedMember.getPartnerLoveTypeCategory() == null
                         ? null

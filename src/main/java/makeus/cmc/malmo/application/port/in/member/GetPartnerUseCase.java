@@ -17,7 +17,7 @@ public interface GetPartnerUseCase {
     @Data
     @Builder
     class PartnerMemberResponseDto {
-        private String mbti;
+        private String personalityType;
         private PartnerLoveTypeCategory loveTypeCategory;
         private String description;
     }

@@ -38,8 +38,8 @@ public interface GetMemberUseCase {
         private String email;
 
         private RelationshipStatus relationshipStatus;
-        private String mbti;
-        private String partnerMbti;
+        private String personalityType;
+        private String otherPersonalityType;
         private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 }

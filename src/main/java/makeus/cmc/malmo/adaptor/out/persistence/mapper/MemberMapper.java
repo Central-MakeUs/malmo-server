@@ -34,8 +34,8 @@ public class MemberMapper {
                 entity.getOauthToken(),
                 entity.getCoupleEntityId() != null ? CoupleId.of(entity.getCoupleEntityId().getValue()) : null,
                 entity.getRelationshipStatus(),
-                entity.getMbti(),
-                entity.getPartnerMbti(),
+                entity.getPersonalityType(),
+                entity.getOtherPersonalityType(),
                 entity.getPartnerLoveTypeCategory(),
                 entity.getCreatedAt(),
                 entity.getModifiedAt(),
@@ -66,8 +66,8 @@ public class MemberMapper {
                 .oauthToken(domain.getOauthToken())
                 .coupleEntityId(domain.getCoupleId() != null ? CoupleEntityId.of(domain.getCoupleId().getValue()) : null)
                 .relationshipStatus(domain.getRelationshipStatus())
-                .mbti(domain.getMbti())
-                .partnerMbti(domain.getPartnerMbti())
+                .personalityType(domain.getPersonalityType())
+                .otherPersonalityType(domain.getOtherPersonalityType())
                 .partnerLoveTypeCategory(domain.getPartnerLoveTypeCategory())
                 .createdAt(domain.getCreatedAt())
                 .modifiedAt(domain.getModifiedAt())

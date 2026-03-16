@@ -1,19 +1,19 @@
 package makeus.cmc.malmo.adaptor.out.persistence.mapper;
 
-import makeus.cmc.malmo.adaptor.out.persistence.entity.LoveTypeMbtiFeatureEntity;
-import makeus.cmc.malmo.domain.model.love_type.LoveTypeMbtiFeature;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.LoveTypePersonalityTypeFeatureEntity;
+import makeus.cmc.malmo.domain.model.love_type.LoveTypePersonalityTypeFeature;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoveTypeMbtiFeatureMapper {
+public class LoveTypePersonalityTypeFeatureMapper {
 
-    public LoveTypeMbtiFeature toDomain(LoveTypeMbtiFeatureEntity entity) {
+    public LoveTypePersonalityTypeFeature toDomain(LoveTypePersonalityTypeFeatureEntity entity) {
         if (entity == null) {
             return null;
         }
 
-        return LoveTypeMbtiFeature.from(
-                entity.getMbti(),
+        return LoveTypePersonalityTypeFeature.from(
+                entity.getPersonalityType(),
                 entity.getLoveTypeCategory(),
                 entity.getSummary(),
                 entity.getKeyword1(),
@@ -46,13 +46,13 @@ public class LoveTypeMbtiFeatureMapper {
                 entity.getDatingGuide1(),
                 entity.getDatingGuide2(),
                 entity.getDatingGuide3(),
-                entity.getBestMbti1(),
+                entity.getBestPersonalityType1(),
                 entity.getBestDesc1(),
-                entity.getBestMbti2(),
+                entity.getBestPersonalityType2(),
                 entity.getBestDesc2(),
-                entity.getWorstMbti1(),
+                entity.getWorstPersonalityType1(),
                 entity.getWorstDesc1(),
-                entity.getWorstMbti2(),
+                entity.getWorstPersonalityType2(),
                 entity.getWorstDesc2()
         );
     }

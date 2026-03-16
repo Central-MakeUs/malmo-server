@@ -46,8 +46,8 @@ public class Member {
     private CoupleId coupleId;
 
     private RelationshipStatus relationshipStatus;
-    private String mbti;
-    private String partnerMbti;
+    private String personalityType;
+    private String otherPersonalityType;
     private PartnerLoveTypeCategory partnerLoveTypeCategory;
 
     // BaseTimeEntity fields
@@ -89,8 +89,8 @@ public class Member {
             String oauthToken,
             CoupleId coupleId,
             RelationshipStatus relationshipStatus,
-            String mbti,
-            String partnerMbti,
+            String personalityType,
+            String otherPersonalityType,
             PartnerLoveTypeCategory partnerLoveTypeCategory,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt,
@@ -116,8 +116,8 @@ public class Member {
                 .oauthToken(oauthToken)
                 .coupleId(coupleId)
                 .relationshipStatus(relationshipStatus)
-                .mbti(normalizeMbti(mbti))
-                .partnerMbti(normalizeMbti(partnerMbti))
+                .personalityType(normalizePersonalityType(personalityType))
+                .otherPersonalityType(normalizePersonalityType(otherPersonalityType))
                 .partnerLoveTypeCategory(partnerLoveTypeCategory)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
@@ -143,15 +143,15 @@ public class Member {
         this.memberState = MemberState.ALIVE;
     }
 
-    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String mbti, LoveTypeCategory loveTypeCategory) {
+    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String personalityType, LoveTypeCategory loveTypeCategory) {
         if (nickname != null) {
             this.nickname = nickname;
         }
         if (relationshipStatus != null) {
             this.relationshipStatus = relationshipStatus;
         }
-        if (mbti != null) {
-            this.mbti = normalizeMbti(mbti);
+        if (personalityType != null) {
+            this.personalityType = normalizePersonalityType(personalityType);
         }
         if (loveTypeCategory != null) {
             this.loveTypeCategory = loveTypeCategory;
@@ -159,17 +159,17 @@ public class Member {
     }
 
     public boolean hasPartnerProfile() {
-        return this.partnerMbti != null;
+        return this.otherPersonalityType != null;
     }
 
-    public void createPartnerProfile(String partnerMbti, PartnerLoveTypeCategory partnerLoveTypeCategory) {
-        this.partnerMbti = normalizeMbti(partnerMbti);
+    public void createPartnerProfile(String otherPersonalityType, PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
         this.partnerLoveTypeCategory = partnerLoveTypeCategory;
     }
 
-    public void updatePartnerProfile(String partnerMbti, PartnerLoveTypeCategory partnerLoveTypeCategory) {
-        if (partnerMbti != null) {
-            this.partnerMbti = normalizeMbti(partnerMbti);
+    public void updatePartnerProfile(String otherPersonalityType, PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        if (otherPersonalityType != null) {
+            this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
         }
         if (partnerLoveTypeCategory != null) {
             this.partnerLoveTypeCategory = partnerLoveTypeCategory;
@@ -234,7 +234,7 @@ public class Member {
         this.coupleId = null;
     }
 
-    private static String normalizeMbti(String mbti) {
-        return mbti == null ? null : mbti.toUpperCase();
+    private static String normalizePersonalityType(String personalityType) {
+        return personalityType == null ? null : personalityType.toUpperCase();
     }
 }

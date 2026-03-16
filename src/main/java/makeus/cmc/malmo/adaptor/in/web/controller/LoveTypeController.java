@@ -19,7 +19,7 @@ import makeus.cmc.malmo.adaptor.in.web.docs.SwaggerResponses;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseListResponse;
 import makeus.cmc.malmo.adaptor.in.web.dto.BaseResponse;
 import makeus.cmc.malmo.application.port.in.CalculateQuestionResultUseCase;
-import makeus.cmc.malmo.application.port.in.GetLoveTypeMbtiResultUseCase;
+import makeus.cmc.malmo.application.port.in.GetLoveTypePersonalityTypeResultUseCase;
 import makeus.cmc.malmo.application.port.in.GetLoveTypeQuestionResultUseCase;
 import makeus.cmc.malmo.application.port.in.GetLoveTypeQuestionsUseCase;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
@@ -41,7 +41,7 @@ public class LoveTypeController {
     private final GetLoveTypeQuestionsUseCase getLoveTypeQuestionsUseCase;
     private final CalculateQuestionResultUseCase calculateQuestionResultUseCase;
     private final GetLoveTypeQuestionResultUseCase getLoveTypeQuestionResultUseCase;
-    private final GetLoveTypeMbtiResultUseCase getLoveTypeMbtiResultUseCase;
+    private final GetLoveTypePersonalityTypeResultUseCase getLoveTypePersonalityTypeResultUseCase;
 
     @Operation(
             summary = "애착 유형 검사 질문 조회",
@@ -139,7 +139,7 @@ public class LoveTypeController {
     @ApiResponse(
             responseCode = "200",
             description = "애착 유형 상세 결과 조회 성공",
-            content = @Content(schema = @Schema(implementation = SwaggerResponses.LoveTypeMbtiResultSuccessResponse.class))
+            content = @Content(schema = @Schema(implementation = SwaggerResponses.LoveTypePersonalityTypeResultSuccessResponse.class))
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -154,10 +154,10 @@ public class LoveTypeController {
             )
     })
     @GetMapping("/result")
-    public BaseResponse<GetLoveTypeMbtiResultUseCase.LoveTypeMbtiResultResponse> getLoveTypeMbtiResult(
-            @RequestParam
+    public BaseResponse<GetLoveTypePersonalityTypeResultUseCase.LoveTypePersonalityTypeResultResponse> getLoveTypePersonalityTypeResult(
+            @RequestParam("personalityType")
             @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
-            String mbti,
+            String personalityType,
             @RequestParam("lovetype")
             @Pattern(
                     regexp = "(?i)^(STABLE_TYPE|ANXIETY_TYPE|AVOIDANCE_TYPE|CONFUSION_TYPE)$",
@@ -165,12 +165,13 @@ public class LoveTypeController {
             )
             String loveType
     ) {
-        GetLoveTypeMbtiResultUseCase.GetLoveTypeMbtiResultCommand command = GetLoveTypeMbtiResultUseCase.GetLoveTypeMbtiResultCommand.builder()
-                .mbti(normalizeMbti(mbti))
+        GetLoveTypePersonalityTypeResultUseCase.GetLoveTypePersonalityTypeResultCommand command =
+                GetLoveTypePersonalityTypeResultUseCase.GetLoveTypePersonalityTypeResultCommand.builder()
+                .personalityType(normalizePersonalityType(personalityType))
                 .loveTypeCategory(normalizeLoveTypeCategory(loveType))
                 .build();
 
-        return BaseResponse.success(getLoveTypeMbtiResultUseCase.getResult(command));
+        return BaseResponse.success(getLoveTypePersonalityTypeResultUseCase.getResult(command));
     }
 
     @Data
@@ -188,8 +189,8 @@ public class LoveTypeController {
         private Integer score;
     }
 
-    private static String normalizeMbti(String mbti) {
-        return mbti == null ? null : mbti.toUpperCase(Locale.ROOT);
+    private static String normalizePersonalityType(String personalityType) {
+        return personalityType == null ? null : personalityType.toUpperCase(Locale.ROOT);
     }
 
     private static LoveTypeCategory normalizeLoveTypeCategory(String loveType) {

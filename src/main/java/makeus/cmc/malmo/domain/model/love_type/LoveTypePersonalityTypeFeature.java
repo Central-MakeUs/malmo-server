@@ -7,8 +7,8 @@ import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
-public class LoveTypeMbtiFeature {
-    private String mbti;
+public class LoveTypePersonalityTypeFeature {
+    private String personalityType;
     private LoveTypeCategory loveTypeCategory;
     private String summary;
     private String keyword1;
@@ -41,17 +41,17 @@ public class LoveTypeMbtiFeature {
     private String datingGuide1;
     private String datingGuide2;
     private String datingGuide3;
-    private String bestMbti1;
+    private String bestPersonalityType1;
     private String bestDesc1;
-    private String bestMbti2;
+    private String bestPersonalityType2;
     private String bestDesc2;
-    private String worstMbti1;
+    private String worstPersonalityType1;
     private String worstDesc1;
-    private String worstMbti2;
+    private String worstPersonalityType2;
     private String worstDesc2;
 
-    public static LoveTypeMbtiFeature from(
-            String mbti,
+    public static LoveTypePersonalityTypeFeature from(
+            String personalityType,
             LoveTypeCategory loveTypeCategory,
             String summary,
             String keyword1,
@@ -84,17 +84,17 @@ public class LoveTypeMbtiFeature {
             String datingGuide1,
             String datingGuide2,
             String datingGuide3,
-            String bestMbti1,
+            String bestPersonalityType1,
             String bestDesc1,
-            String bestMbti2,
+            String bestPersonalityType2,
             String bestDesc2,
-            String worstMbti1,
+            String worstPersonalityType1,
             String worstDesc1,
-            String worstMbti2,
+            String worstPersonalityType2,
             String worstDesc2
     ) {
-        return LoveTypeMbtiFeature.builder()
-                .mbti(normalizeMbti(mbti))
+        return LoveTypePersonalityTypeFeature.builder()
+                .personalityType(normalizePersonalityType(personalityType))
                 .loveTypeCategory(loveTypeCategory)
                 .summary(summary)
                 .keyword1(keyword1)
@@ -127,18 +127,18 @@ public class LoveTypeMbtiFeature {
                 .datingGuide1(datingGuide1)
                 .datingGuide2(datingGuide2)
                 .datingGuide3(datingGuide3)
-                .bestMbti1(normalizeMbti(bestMbti1))
+                .bestPersonalityType1(normalizePersonalityType(bestPersonalityType1))
                 .bestDesc1(bestDesc1)
-                .bestMbti2(normalizeMbti(bestMbti2))
+                .bestPersonalityType2(normalizePersonalityType(bestPersonalityType2))
                 .bestDesc2(bestDesc2)
-                .worstMbti1(normalizeMbti(worstMbti1))
+                .worstPersonalityType1(normalizePersonalityType(worstPersonalityType1))
                 .worstDesc1(worstDesc1)
-                .worstMbti2(normalizeMbti(worstMbti2))
+                .worstPersonalityType2(normalizePersonalityType(worstPersonalityType2))
                 .worstDesc2(worstDesc2)
                 .build();
     }
 
-    private static String normalizeMbti(String mbti) {
-        return mbti == null ? null : mbti.toUpperCase();
+    private static String normalizePersonalityType(String personalityType) {
+        return personalityType == null ? null : personalityType.toUpperCase();
     }
 }

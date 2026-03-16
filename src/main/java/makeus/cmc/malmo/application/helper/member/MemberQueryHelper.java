@@ -104,15 +104,15 @@ public class MemberQueryHelper {
         private int totalCoupleQuestionCount;
 
         private RelationshipStatus relationshipStatus;
-        private String mbti;
-        private String partnerMbti;
+        private String personalityType;
+        private String otherPersonalityType;
         private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 
     @Data
     @Builder
     public static class PartnerMemberDto {
-        private String mbti;
+        private String personalityType;
         private PartnerLoveTypeCategory loveTypeCategory;
         private String description;
     }

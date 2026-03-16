@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import makeus.cmc.malmo.adaptor.out.persistence.entity.value.LoveTypeMbtiFeatureEntityId;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.value.LoveTypePersonalityTypeFeatureEntityId;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 
 @Getter
@@ -20,13 +20,13 @@ import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@IdClass(LoveTypeMbtiFeatureEntityId.class)
-@Table(name = "love_type_mbti_feature")
-public class LoveTypeMbtiFeatureEntity {
+@IdClass(LoveTypePersonalityTypeFeatureEntityId.class)
+@Table(name = "love_type_personality_type_feature")
+public class LoveTypePersonalityTypeFeatureEntity {
 
     @Id
-    @Column(name = "mbti")
-    private String mbti;
+    @Column(name = "personality_type")
+    private String personalityType;
 
     @Id
     @Column(name = "lovetype")
@@ -126,26 +126,26 @@ public class LoveTypeMbtiFeatureEntity {
     @Column(name = "dating_guide3")
     private String datingGuide3;
 
-    @Column(name = "best_mbti1")
-    private String bestMbti1;
+    @Column(name = "best_personality_type1")
+    private String bestPersonalityType1;
 
     @Column(name = "best_desc1")
     private String bestDesc1;
 
-    @Column(name = "best_mbti2")
-    private String bestMbti2;
+    @Column(name = "best_personality_type2")
+    private String bestPersonalityType2;
 
     @Column(name = "best_desc2")
     private String bestDesc2;
 
-    @Column(name = "worst_mbti1")
-    private String worstMbti1;
+    @Column(name = "worst_personality_type1")
+    private String worstPersonalityType1;
 
     @Column(name = "worst_desc1")
     private String worstDesc1;
 
-    @Column(name = "worst_mbti2")
-    private String worstMbti2;
+    @Column(name = "worst_personality_type2")
+    private String worstPersonalityType2;
 
     @Column(name = "worst_desc2")
     private String worstDesc2;

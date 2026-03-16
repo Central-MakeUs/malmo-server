@@ -91,8 +91,8 @@ class AppleNotificationServiceTest {
                 oauthToken,
                 null,
                 null, // relationshipStatus
-                null, // mbti
-                null, // partnerMbti
+                null, // personalityType
+                null, // otherPersonalityType
                 null, // partnerLoveTypeCategory
                 null,
                 null,

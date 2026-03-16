@@ -145,7 +145,7 @@ public class SwaggerResponses {
 
     @Getter
     @Schema(description = "MBTI + 애착유형 상세 결과 조회 성공 응답")
-    public static class LoveTypeMbtiResultSuccessResponse extends BaseSwaggerResponse<LoveTypeMbtiResultData> {
+    public static class LoveTypePersonalityTypeResultSuccessResponse extends BaseSwaggerResponse<LoveTypePersonalityTypeResultData> {
     }
 
     @Getter
@@ -289,10 +289,10 @@ public class SwaggerResponses {
         private RelationshipStatus relationshipStatus;
 
         @Schema(description = "내 MBTI", example = "INTJ")
-        private String mbti;
+        private String personalityType;
 
         @Schema(description = "상대방 MBTI", example = "ENFP")
-        private String partnerMbti;
+        private String otherPersonalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
         private PartnerLoveTypeCategory partnerLoveTypeCategory;
@@ -303,7 +303,7 @@ public class SwaggerResponses {
     @Schema(description = "[Deprecated] 상대 프로필 조회 응답 데이터")
     public static class PartnerMemberData {
         @Schema(description = "상대방 MBTI", example = "ENFP")
-        private String mbti;
+        private String personalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
         private PartnerLoveTypeCategory loveTypeCategory;
@@ -316,7 +316,7 @@ public class SwaggerResponses {
     @Schema(description = "상대 프로필 응답 데이터")
     public static class PartnerProfileData {
         @Schema(description = "상대방 MBTI", example = "ENFP")
-        private String mbti;
+        private String personalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
         private PartnerLoveTypeCategory loveTypeCategory;
@@ -335,7 +335,7 @@ public class SwaggerResponses {
         private RelationshipStatus relationshipStatus;
 
         @Schema(description = "내 MBTI", example = "INTJ")
-        private String mbti;
+        private String personalityType;
 
         @Schema(description = "내 애착 유형", example = "STABLE_TYPE")
         private LoveTypeCategory loveTypeCategory;
@@ -418,9 +418,9 @@ public class SwaggerResponses {
 
     @Getter
     @Schema(description = "MBTI + 애착유형 상세 결과 응답 데이터")
-    public static class LoveTypeMbtiResultData {
-        @Schema(description = "MBTI", example = "ENFP")
-        private String mbti;
+    public static class LoveTypePersonalityTypeResultData {
+        @Schema(description = "personalityType", example = "ENFP")
+        private String personalityType;
 
         @Schema(description = "애착 유형", example = "STABLE_TYPE")
         private LoveTypeCategory loveTypeCategory;
@@ -447,10 +447,10 @@ public class SwaggerResponses {
         private List<String> datingGuides;
 
         @Schema(description = "잘 맞는 MBTI 목록")
-        private List<LoveTypeMbtiBlockData> bestMatches;
+        private List<LoveTypePersonalityTypeBlockData> bestMatches;
 
         @Schema(description = "부딪히기 쉬운 MBTI 목록")
-        private List<LoveTypeMbtiBlockData> worstMatches;
+        private List<LoveTypePersonalityTypeBlockData> worstMatches;
     }
 
     @Getter
@@ -465,9 +465,9 @@ public class SwaggerResponses {
 
     @Getter
     @Schema(description = "MBTI + 설명 블록")
-    public static class LoveTypeMbtiBlockData {
-        @Schema(description = "MBTI", example = "INFJ")
-        private String mbti;
+    public static class LoveTypePersonalityTypeBlockData {
+        @Schema(description = "personalityType", example = "INFJ")
+        private String personalityType;
 
         @Schema(description = "설명", example = "속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")
         private String description;

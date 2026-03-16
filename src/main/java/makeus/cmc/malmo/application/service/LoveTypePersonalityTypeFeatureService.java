@@ -1,10 +1,10 @@
 package makeus.cmc.malmo.application.service;
 
 import lombok.RequiredArgsConstructor;
-import makeus.cmc.malmo.application.exception.LoveTypeMbtiFeatureNotFoundException;
-import makeus.cmc.malmo.application.port.in.GetLoveTypeMbtiResultUseCase;
-import makeus.cmc.malmo.application.port.out.LoadLoveTypeMbtiFeaturePort;
-import makeus.cmc.malmo.domain.model.love_type.LoveTypeMbtiFeature;
+import makeus.cmc.malmo.application.exception.LoveTypePersonalityTypeFeatureNotFoundException;
+import makeus.cmc.malmo.application.port.in.GetLoveTypePersonalityTypeResultUseCase;
+import makeus.cmc.malmo.application.port.out.LoadLoveTypePersonalityTypeFeaturePort;
+import makeus.cmc.malmo.domain.model.love_type.LoveTypePersonalityTypeFeature;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -13,18 +13,18 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
-public class LoveTypeMbtiFeatureService implements GetLoveTypeMbtiResultUseCase {
+public class LoveTypePersonalityTypeFeatureService implements GetLoveTypePersonalityTypeResultUseCase {
 
-    private final LoadLoveTypeMbtiFeaturePort loadLoveTypeMbtiFeaturePort;
+    private final LoadLoveTypePersonalityTypeFeaturePort loadLoveTypePersonalityTypeFeaturePort;
 
     @Override
-    public LoveTypeMbtiResultResponse getResult(GetLoveTypeMbtiResultCommand command) {
-        LoveTypeMbtiFeature feature = loadLoveTypeMbtiFeaturePort
-                .loadByMbtiAndLoveTypeCategory(command.getMbti(), command.getLoveTypeCategory())
-                .orElseThrow(LoveTypeMbtiFeatureNotFoundException::new);
+    public LoveTypePersonalityTypeResultResponse getResult(GetLoveTypePersonalityTypeResultCommand command) {
+        LoveTypePersonalityTypeFeature feature = loadLoveTypePersonalityTypeFeaturePort
+                .loadByPersonalityTypeAndLoveTypeCategory(command.getPersonalityType(), command.getLoveTypeCategory())
+                .orElseThrow(LoveTypePersonalityTypeFeatureNotFoundException::new);
 
-        return LoveTypeMbtiResultResponse.builder()
-                .mbti(feature.getMbti())
+        return LoveTypePersonalityTypeResultResponse.builder()
+                .personalityType(feature.getPersonalityType())
                 .loveTypeCategory(feature.getLoveTypeCategory())
                 .summary(feature.getSummary())
                 .keywords(buildStringList(feature.getKeyword1(), feature.getKeyword2(), feature.getKeyword3()))
@@ -51,13 +51,13 @@ public class LoveTypeMbtiFeatureService implements GetLoveTypeMbtiResultUseCase 
                         feature.getDatingGuide2(),
                         feature.getDatingGuide3()
                 ))
-                .bestMatches(buildMbtiDescriptionItems(
-                        feature.getBestMbti1(), feature.getBestDesc1(),
-                        feature.getBestMbti2(), feature.getBestDesc2()
+                .bestMatches(buildPersonalityTypeDescriptionItems(
+                        feature.getBestPersonalityType1(), feature.getBestDesc1(),
+                        feature.getBestPersonalityType2(), feature.getBestDesc2()
                 ))
-                .worstMatches(buildMbtiDescriptionItems(
-                        feature.getWorstMbti1(), feature.getWorstDesc1(),
-                        feature.getWorstMbti2(), feature.getWorstDesc2()
+                .worstMatches(buildPersonalityTypeDescriptionItems(
+                        feature.getWorstPersonalityType1(), feature.getWorstDesc1(),
+                        feature.getWorstPersonalityType2(), feature.getWorstDesc2()
                 ))
                 .build();
     }
@@ -78,13 +78,13 @@ public class LoveTypeMbtiFeatureService implements GetLoveTypeMbtiResultUseCase 
                 .toList();
     }
 
-    private List<MbtiDescriptionItem> buildMbtiDescriptionItems(String... values) {
+    private List<PersonalityTypeDescriptionItem> buildPersonalityTypeDescriptionItems(String... values) {
         return Stream.iterate(0, index -> index < values.length, index -> index + 2)
-                .map(index -> MbtiDescriptionItem.builder()
-                        .mbti(normalizeBlank(values[index]))
+                .map(index -> PersonalityTypeDescriptionItem.builder()
+                        .personalityType(normalizeBlank(values[index]))
                         .description(normalizeBlank(values[index + 1]))
                         .build())
-                .filter(item -> StringUtils.hasText(item.getMbti()) || StringUtils.hasText(item.getDescription()))
+                .filter(item -> StringUtils.hasText(item.getPersonalityType()) || StringUtils.hasText(item.getDescription()))
                 .toList();
     }
 
