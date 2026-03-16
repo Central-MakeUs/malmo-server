@@ -144,6 +144,11 @@ public class SwaggerResponses {
     }
 
     @Getter
+    @Schema(description = "MBTI + 애착유형 상세 결과 조회 성공 응답")
+    public static class LoveTypeMbtiResultSuccessResponse extends BaseSwaggerResponse<LoveTypeMbtiResultData> {
+    }
+
+    @Getter
     @Schema(description = "애착유형 등록 성공 응답")
     public static class RegisterLoveTypeSuccessResponse extends BaseSwaggerResponse<Void> {
     }
@@ -409,6 +414,63 @@ public class SwaggerResponses {
 
         @Schema(description = "불안 비율", example = "0.2")
         private float anxietyRate;
+    }
+
+    @Getter
+    @Schema(description = "MBTI + 애착유형 상세 결과 응답 데이터")
+    public static class LoveTypeMbtiResultData {
+        @Schema(description = "MBTI", example = "ENFP")
+        private String mbti;
+
+        @Schema(description = "애착 유형", example = "STABLE_TYPE")
+        private LoveTypeCategory loveTypeCategory;
+
+        @Schema(description = "요약", example = "풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형")
+        private String summary;
+
+        @Schema(description = "키워드 목록")
+        private List<String> keywords;
+
+        @Schema(description = "강점 목록")
+        private List<LoveTypeTextBlockData> strengths;
+
+        @Schema(description = "약점 목록")
+        private List<LoveTypeTextBlockData> weaknesses;
+
+        @Schema(description = "관계 패턴 목록")
+        private List<LoveTypeTextBlockData> patterns;
+
+        @Schema(description = "애착유형 특징 목록")
+        private List<LoveTypeTextBlockData> loveTypeFeatures;
+
+        @Schema(description = "연애 가이드 목록")
+        private List<String> datingGuides;
+
+        @Schema(description = "잘 맞는 MBTI 목록")
+        private List<LoveTypeMbtiBlockData> bestMatches;
+
+        @Schema(description = "부딪히기 쉬운 MBTI 목록")
+        private List<LoveTypeMbtiBlockData> worstMatches;
+    }
+
+    @Getter
+    @Schema(description = "제목 + 설명 텍스트 블록")
+    public static class LoveTypeTextBlockData {
+        @Schema(description = "제목", example = "Ne")
+        private String title;
+
+        @Schema(description = "설명", example = "흩어진 정보 속에서 하나의 핵심 맥락과 미래를 읽어내요")
+        private String description;
+    }
+
+    @Getter
+    @Schema(description = "MBTI + 설명 블록")
+    public static class LoveTypeMbtiBlockData {
+        @Schema(description = "MBTI", example = "INFJ")
+        private String mbti;
+
+        @Schema(description = "설명", example = "속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")
+        private String description;
     }
 
     @Getter

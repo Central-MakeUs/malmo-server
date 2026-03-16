@@ -3,6 +3,7 @@ package makeus.cmc.malmo.integration_test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
+import makeus.cmc.malmo.adaptor.out.persistence.entity.LoveTypeMbtiFeatureEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.TempLoveTypeEntity;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.integration_test.dto_factory.LoveTypeQuestionRequestDtoFactory;
@@ -247,5 +248,119 @@ public class LoveTypeQuestionTest {
                     .andExpect(jsonPath("code").value(NO_SUCH_TEMP_LOVE_TYPE.getCode()));
         }
 
+    }
+
+    @Nested
+    @DisplayName("MBTI + 애착 유형 상세 결과 조회 테스트")
+    class GetLoveTypeMbtiResultTest {
+        @Test
+        @DisplayName("MBTI와 애착 유형 상세 결과 조회 성공 - 소문자 쿼리와 빈 항목 제외")
+        void mbti와_애착유형_상세_결과_조회_성공() throws Exception {
+            // given
+            em.persist(LoveTypeMbtiFeatureEntity.builder()
+                    .mbti("ENFP")
+                    .loveTypeCategory(LoveTypeCategory.STABLE_TYPE)
+                    .summary("풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형")
+                    .keyword1("열정적")
+                    .keyword2("자유로움")
+                    .keyword3("")
+                    .strength1("Ne")
+                    .strengthDesc1("흩어진 정보 속에서 하나의 핵심 맥락과 미래를 읽어내요")
+                    .strength2("")
+                    .strengthDesc2("")
+                    .strength3(null)
+                    .strengthDesc3(null)
+                    .weakness("Si")
+                    .weaknessDesc("반복되는 루틴에 답답함을 느껴요")
+                    .patternTitle1("나다운 기준을 지켜요")
+                    .pattern1("여러 가능성 속에서 무엇이 나에게 의미 있는지 먼저 생각해요")
+                    .patternTitle2("")
+                    .pattern2("")
+                    .patternTitle3(null)
+                    .pattern3(null)
+                    .patternTitle4(null)
+                    .pattern4(null)
+                    .loveTypeFeatureTitle1("미래의 가능성을 자주 상상해요")
+                    .loveTypeFeature1("연인과 함께할 미래의 가능성을 상상하며 창의적인 질문으로 관계를 만들어요")
+                    .loveTypeFeatureTitle2("")
+                    .loveTypeFeature2("")
+                    .loveTypeFeatureTitle3(null)
+                    .loveTypeFeature3(null)
+                    .loveTypeFeatureTitle4(null)
+                    .loveTypeFeature4(null)
+                    .datingGuide1("감정을 정리해 표현해요")
+                    .datingGuide2("")
+                    .datingGuide3(null)
+                    .bestMbti1("infj")
+                    .bestDesc1("속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")
+                    .bestMbti2("")
+                    .bestDesc2("")
+                    .worstMbti1("istp")
+                    .worstDesc1("자유로운 감정선과 솔직한 피드백이 부딪히는 궁합")
+                    .worstMbti2(null)
+                    .worstDesc2(null)
+                    .build());
+            em.flush();
+            em.clear();
+
+            // when & then
+            mockMvc.perform(get("/love-types/result")
+                            .param("mbti", "enfp")
+                            .param("lovetype", "stable_type")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("data.mbti").value("ENFP"))
+                    .andExpect(jsonPath("data.loveTypeCategory").value(LoveTypeCategory.STABLE_TYPE.name()))
+                    .andExpect(jsonPath("data.summary").value("풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형"))
+                    .andExpect(jsonPath("data.keywords.length()").value(2))
+                    .andExpect(jsonPath("data.keywords[0]").value("열정적"))
+                    .andExpect(jsonPath("data.strengths.length()").value(1))
+                    .andExpect(jsonPath("data.strengths[0].title").value("Ne"))
+                    .andExpect(jsonPath("data.weaknesses.length()").value(1))
+                    .andExpect(jsonPath("data.weaknesses[0].title").value("Si"))
+                    .andExpect(jsonPath("data.patterns.length()").value(1))
+                    .andExpect(jsonPath("data.loveTypeFeatures.length()").value(1))
+                    .andExpect(jsonPath("data.datingGuides.length()").value(1))
+                    .andExpect(jsonPath("data.bestMatches.length()").value(1))
+                    .andExpect(jsonPath("data.bestMatches[0].mbti").value("INFJ"))
+                    .andExpect(jsonPath("data.worstMatches.length()").value(1))
+                    .andExpect(jsonPath("data.worstMatches[0].mbti").value("ISTP"));
+        }
+
+        @Test
+        @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - MBTI 형식 오류")
+        void mbti와_애착유형_상세_결과_조회_실패_mbti형식오류() throws Exception {
+            mockMvc.perform(get("/love-types/result")
+                            .param("mbti", "ENF")
+                            .param("lovetype", "STABLE_TYPE")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(BAD_REQUEST.getMessage()))
+                    .andExpect(jsonPath("code").value(BAD_REQUEST.getCode()));
+        }
+
+        @Test
+        @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - 애착 유형 값 오류")
+        void mbti와_애착유형_상세_결과_조회_실패_애착유형값오류() throws Exception {
+            mockMvc.perform(get("/love-types/result")
+                            .param("mbti", "ENFP")
+                            .param("lovetype", "WRONG_TYPE")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(BAD_REQUEST.getMessage()))
+                    .andExpect(jsonPath("code").value(BAD_REQUEST.getCode()));
+        }
+
+        @Test
+        @DisplayName("MBTI와 애착 유형 상세 결과 조회 실패 - 매칭되는 결과 없음")
+        void mbti와_애착유형_상세_결과_조회_실패_결과없음() throws Exception {
+            mockMvc.perform(get("/love-types/result")
+                            .param("mbti", "ENFP")
+                            .param("lovetype", "STABLE_TYPE")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(NO_SUCH_LOVE_TYPE_MBTI_RESULT.getMessage()))
+                    .andExpect(jsonPath("code").value(NO_SUCH_LOVE_TYPE_MBTI_RESULT.getCode()));
+        }
     }
 }
