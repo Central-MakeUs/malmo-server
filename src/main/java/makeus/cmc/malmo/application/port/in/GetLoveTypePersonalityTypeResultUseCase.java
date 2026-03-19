@@ -28,7 +28,7 @@ public interface GetLoveTypePersonalityTypeResultUseCase {
         private List<TitleDescriptionItem> weaknesses;
         private List<TitleDescriptionItem> patterns;
         private List<TitleDescriptionItem> loveTypeFeatures;
-        private List<String> datingGuides;
+        private List<TitleDescriptionItem> datingGuides;
         private List<PersonalityTypeDescriptionItem> bestMatches;
         private List<PersonalityTypeDescriptionItem> worstMatches;
     }

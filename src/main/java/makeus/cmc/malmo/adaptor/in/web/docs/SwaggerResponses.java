@@ -444,7 +444,7 @@ public class SwaggerResponses {
         private List<LoveTypeTextBlockData> loveTypeFeatures;
 
         @Schema(description = "연애 가이드 목록")
-        private List<String> datingGuides;
+        private List<LoveTypeTextBlockData> datingGuides;
 
         @Schema(description = "잘 맞는 MBTI 목록")
         private List<LoveTypePersonalityTypeBlockData> bestMatches;

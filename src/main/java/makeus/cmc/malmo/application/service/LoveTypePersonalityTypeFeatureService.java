@@ -46,7 +46,7 @@ public class LoveTypePersonalityTypeFeatureService implements GetLoveTypePersona
                         feature.getLoveTypeFeatureTitle3(), feature.getLoveTypeFeature3(),
                         feature.getLoveTypeFeatureTitle4(), feature.getLoveTypeFeature4()
                 ))
-                .datingGuides(buildStringList(
+                .datingGuides(buildDatingGuideItems(
                         feature.getDatingGuide1(),
                         feature.getDatingGuide2(),
                         feature.getDatingGuide3()
@@ -65,6 +65,19 @@ public class LoveTypePersonalityTypeFeatureService implements GetLoveTypePersona
     private List<String> buildStringList(String... values) {
         return Stream.of(values)
                 .filter(StringUtils::hasText)
+                .toList();
+    }
+
+    private List<TitleDescriptionItem> buildDatingGuideItems(String... values) {
+        return Stream.of(values)
+                .filter(StringUtils::hasText)
+                .map(value -> {
+                    String[] parts = value.split(":", 2);
+                    return TitleDescriptionItem.builder()
+                            .title(parts[0].trim())
+                            .description(parts.length > 1 ? parts[1].trim() : null)
+                            .build();
+                })
                 .toList();
     }
 

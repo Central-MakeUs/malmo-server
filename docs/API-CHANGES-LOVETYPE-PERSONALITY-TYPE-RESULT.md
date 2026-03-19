@@ -32,7 +32,7 @@ GET /love-types/result?personalityType=enfp&lovetype=stable_type
   weaknesses: Array<{ title: string | null, description: string | null }>,
   patterns: Array<{ title: string | null, description: string | null }>,
   loveTypeFeatures: Array<{ title: string | null, description: string | null }>,
-  datingGuides: string[],
+  datingGuides: Array<{ title: string, description: string | null }>,
   bestMatches: Array<{ personalityType: string | null, description: string | null }>,
   worstMatches: Array<{ personalityType: string | null, description: string | null }>
 }
