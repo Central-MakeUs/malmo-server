@@ -13,8 +13,6 @@ public interface UpdatePartnerProfileUseCase {
     class UpdatePartnerProfileCommand {
         private Long memberId;
         private String personalityType;
-        private boolean personalityTypeProvided;
         private PartnerLoveTypeCategory loveTypeCategory;
-        private boolean loveTypeCategoryProvided;
     }
 }

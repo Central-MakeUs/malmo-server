@@ -160,9 +160,7 @@ public class MemberController {
                 UpdatePartnerProfileUseCase.UpdatePartnerProfileCommand.builder()
                         .memberId(Long.valueOf(user.getUsername()))
                         .personalityType(normalizePersonalityType(requestDto.getPersonalityType()))
-                        .personalityTypeProvided(requestDto.isPersonalityTypeProvided())
                         .loveTypeCategory(requestDto.getLoveTypeCategory())
-                        .loveTypeCategoryProvided(requestDto.isLoveTypeCategoryProvided())
                         .build();
 
         return BaseResponse.success(updatePartnerProfileUseCase.updatePartnerProfile(command));
@@ -330,38 +328,11 @@ public class MemberController {
         private PartnerLoveTypeCategory loveTypeCategory;
     }
 
+    @Data
     public static class UpdatePartnerProfileRequestDto {
         @Pattern(regexp = "^[a-zA-Z]{4}$", message = "MBTI는 영문 4자리여야 합니다.")
         private String personalityType;
-        private boolean personalityTypeProvided;
         private PartnerLoveTypeCategory loveTypeCategory;
-        private boolean loveTypeCategoryProvided;
-
-        public String getPersonalityType() {
-            return personalityType;
-        }
-
-        public boolean isPersonalityTypeProvided() {
-            return personalityTypeProvided;
-        }
-
-        public PartnerLoveTypeCategory getLoveTypeCategory() {
-            return loveTypeCategory;
-        }
-
-        public boolean isLoveTypeCategoryProvided() {
-            return loveTypeCategoryProvided;
-        }
-
-        public void setPersonalityType(String personalityType) {
-            this.personalityType = personalityType;
-            this.personalityTypeProvided = true;
-        }
-
-        public void setLoveTypeCategory(PartnerLoveTypeCategory loveTypeCategory) {
-            this.loveTypeCategory = loveTypeCategory;
-            this.loveTypeCategoryProvided = true;
-        }
     }
 
     @Data

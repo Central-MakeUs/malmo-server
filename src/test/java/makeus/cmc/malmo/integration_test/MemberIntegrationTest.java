@@ -1027,7 +1027,7 @@ public class MemberIntegrationTest {
 
         @Test
         @DisplayName("상대 프로필 수정 성공")
-        void 디데이_변경_후_파트너_정보_조회_시_isStartLoveDateUpdated_확인() throws Exception {
+        void 상대_프로필_수정_성공() throws Exception {
             // given
             mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
@@ -1039,9 +1039,10 @@ public class MemberIntegrationTest {
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                    {"loveTypeCategory":null}
+                                    {"personalityType":"intj","loveTypeCategory":null}
                                     """))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
                     .andExpect(jsonPath("$.data.loveTypeCategory").value("UNKNOWN"))
                     .andExpect(jsonPath("$.data.description").value("모르겠어요"));
 
@@ -1060,7 +1061,7 @@ public class MemberIntegrationTest {
             );
 
             PartnerResponseDto partnerDto = responseDto.data;
-            Assertions.assertThat(partnerDto.personalityType).isEqualTo("ENFP");
+            Assertions.assertThat(partnerDto.personalityType).isEqualTo("INTJ");
             Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo("UNKNOWN");
             Assertions.assertThat(partnerDto.description).isEqualTo("모르겠어요");
         }

@@ -18,11 +18,14 @@
 ```
 ---
 ### `PATCH /members/partners` — 상대방 프로필 수정
+두 필드를 항상 함께 전송해야 하며, 전달된 값으로 기존 값을 덮어씁니다.
+
 **Request**
 ```ts
 {
-  personalityType?: string,
-  loveTypeCategory?: 'STABLE_TYPE' | 'ANXIETY_TYPE' | 'AVOIDANCE_TYPE' | 'CONFUSION_TYPE' | null
+  personalityType: string,   // 영문 4자리 (예: "INTJ")
+  loveTypeCategory: 'STABLE_TYPE' | 'ANXIETY_TYPE' | 'AVOIDANCE_TYPE' | 'CONFUSION_TYPE' | null
+  // null = "모르겠어요" 선택
 }
 ```
 **Response**
