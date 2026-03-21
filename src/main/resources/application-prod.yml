@@ -63,7 +63,32 @@ swagger:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}
+    key: ${OPENAI_API_KEY:}
+    model: gpt-5.4-mini
+    base-url: https://api.openai.com/v1
+    status-url: https://status.openai.com/api/v2/status.json
+    reasoning-effort:
+      default: medium
+      scenarios:
+        structured-chat: low
+        free-conversation: low
+        validation: none
+        summary: none
+        auxiliary-extraction: none
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:}
+    model: gemini-3-flash-preview
+    base-url: https://generativelanguage.googleapis.com/v1beta/openai
+    reasoning-effort:
+      default: high
+      scenarios:
+        structured-chat: medium
+        free-conversation: low
+        validation: low
+        summary: low
+        auxiliary-extraction: low
 
 security:
   server:

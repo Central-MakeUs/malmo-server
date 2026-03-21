@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import makeus.cmc.malmo.application.port.out.chat.LlmReasoningScenario;
 import makeus.cmc.malmo.application.port.out.chat.RequestChatApiPort;
 import makeus.cmc.malmo.application.port.in.chat.SufficiencyCheckResult;
 import makeus.cmc.malmo.domain.model.chat.DetailedPrompt;
@@ -27,6 +28,7 @@ public class ChatProcessor {
     private final ObjectMapper objectMapper;
 
     public Mono<Void> streamChat(List<Map<String, String>> messages,
+                                 LlmReasoningScenario scenario,
                                  Prompt systemPrompt,
                                  Prompt prompt,
                                  DetailedPrompt detailedPrompt,
@@ -40,7 +42,7 @@ public class ChatProcessor {
 
         log.info("Starting streamChat with messages: {}", messages);
 
-        return requestChatApiPort.requestStreamResponse(messages, onChunk) // onChunk 콜백만 넘김
+        return requestChatApiPort.requestStreamResponse(messages, scenario, onChunk)
                 .flatMap(fullAnswer -> {
                     // 스트림이 성공적으로 완료되고 전체 응답(fullAnswer)이 오면 onComplete 로직 실행
                     onComplete.accept(fullAnswer);
@@ -60,7 +62,7 @@ public class ChatProcessor {
         messages.add(createMessageMap(SenderType.SYSTEM, prompt.getContent()));
         messages.add(createMessageMap(SenderType.SYSTEM, "[현재 단계 지시] " + summaryPrompt.getContent()));
 
-        return requestChatApiPort.requestResponse(messages);
+        return requestChatApiPort.requestResponse(messages, LlmReasoningScenario.SUMMARY);
     }
 
 
@@ -73,7 +75,7 @@ public class ChatProcessor {
                 createMessageMap(SenderType.USER, "[답변] " + memberAnswer)
         );
 
-        return requestChatApiPort.requestResponse(messages);
+        return requestChatApiPort.requestResponse(messages, LlmReasoningScenario.AUXILIARY_EXTRACTION);
     }
 
     public CompletableFuture<SufficiencyCheckResult> requestSufficiencyCheck(List<Map<String, String>> messages,
@@ -82,7 +84,7 @@ public class ChatProcessor {
 
         log.info("Requesting sufficiency check with messages: {}", messages);
 
-        return requestChatApiPort.requestJsonResponse(messages)
+        return requestChatApiPort.requestJsonResponse(messages, LlmReasoningScenario.VALIDATION)
                 .thenApply(jsonResponse -> {
                     try {
                         log.info("Received sufficiency check JSON: {}", jsonResponse);
@@ -97,7 +99,7 @@ public class ChatProcessor {
     public CompletableFuture<String> requestDetailedSummary(List<Map<String, String>> messages,
                                                            DetailedPrompt summaryPrompt) {
         messages.add(createMessageMap(SenderType.SYSTEM, summaryPrompt.getContent()));
-        return requestChatApiPort.requestResponse(messages);
+        return requestChatApiPort.requestResponse(messages, LlmReasoningScenario.SUMMARY);
     }
 
     /**
@@ -109,7 +111,7 @@ public class ChatProcessor {
     public CompletableFuture<String> requestConversationSummary(List<Map<String, String>> messages,
                                                                  Prompt summaryPrompt) {
         messages.add(createMessageMap(SenderType.SYSTEM, summaryPrompt.getContent()));
-        return requestChatApiPort.requestResponse(messages);
+        return requestChatApiPort.requestResponse(messages, LlmReasoningScenario.SUMMARY);
     }
 
     /**
@@ -123,7 +125,7 @@ public class ChatProcessor {
         List<Map<String, String>> promptMessages = new ArrayList<>(messages);
         promptMessages.add(createMessageMap(SenderType.SYSTEM, titlePrompt.getContent()));
         
-        return requestChatApiPort.requestResponse(promptMessages)
+        return requestChatApiPort.requestResponse(promptMessages, LlmReasoningScenario.AUXILIARY_EXTRACTION)
                 .thenApply(title -> {
                     // 제목 길이 제한 (최대 50자)
                     String trimmedTitle = title.trim();

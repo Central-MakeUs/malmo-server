@@ -8,9 +8,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public interface RequestChatApiPort {
-    Mono<String> requestStreamResponse(List<Map<String, String>> messages, Consumer<String> onData);
+    Mono<String> requestStreamResponse(List<Map<String, String>> messages,
+                                       LlmReasoningScenario scenario,
+                                       Consumer<String> onData);
 
-    CompletableFuture<String> requestResponse(List<Map<String, String>> messages);
+    CompletableFuture<String> requestResponse(List<Map<String, String>> messages,
+                                              LlmReasoningScenario scenario);
 
-    CompletableFuture<String> requestJsonResponse(List<Map<String, String>> messages);
+    CompletableFuture<String> requestJsonResponse(List<Map<String, String>> messages,
+                                                  LlmReasoningScenario scenario);
 }

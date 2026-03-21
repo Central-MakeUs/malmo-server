@@ -3,15 +3,19 @@ package makeus.cmc.malmo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import makeus.cmc.malmo.config.properties.GeminiApiProperties;
+import makeus.cmc.malmo.config.properties.OpenAiApiProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static makeus.cmc.malmo.util.GlobalConstants.OPENAI_CHAT_URL;
-
-
 @Configuration
+@EnableConfigurationProperties({
+        OpenAiApiProperties.class,
+        GeminiApiProperties.class
+})
 public class MainConfiguration {
 
     @Bean
@@ -23,9 +27,16 @@ public class MainConfiguration {
     }
 
     @Bean
-    public WebClient webClient() {
+    public WebClient openAiWebClient(OpenAiApiProperties openAiApiProperties) {
         return WebClient.builder()
-                .baseUrl(OPENAI_CHAT_URL)
+                .baseUrl(openAiApiProperties.getBaseUrl())
+                .build();
+    }
+
+    @Bean
+    public WebClient geminiWebClient(GeminiApiProperties geminiApiProperties) {
+        return WebClient.builder()
+                .baseUrl(geminiApiProperties.getBaseUrl())
                 .build();
     }
 
