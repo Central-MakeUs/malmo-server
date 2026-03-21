@@ -291,7 +291,7 @@ public class SwaggerResponses {
         @Schema(description = "내 MBTI", example = "INTJ")
         private String personalityType;
 
-        @Schema(description = "상대방 MBTI", example = "ENFP")
+        @Schema(description = "상대방 MBTI", example = "INTJ")
         private String otherPersonalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
@@ -302,7 +302,7 @@ public class SwaggerResponses {
     @Deprecated
     @Schema(description = "[Deprecated] 상대 프로필 조회 응답 데이터")
     public static class PartnerMemberData {
-        @Schema(description = "상대방 MBTI", example = "ENFP")
+        @Schema(description = "상대방 MBTI", example = "INTJ")
         private String personalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
@@ -315,7 +315,7 @@ public class SwaggerResponses {
     @Getter
     @Schema(description = "상대 프로필 응답 데이터")
     public static class PartnerProfileData {
-        @Schema(description = "상대방 MBTI", example = "ENFP")
+        @Schema(description = "상대방 MBTI", example = "INTJ")
         private String personalityType;
 
         @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
@@ -419,7 +419,7 @@ public class SwaggerResponses {
     @Getter
     @Schema(description = "MBTI + 애착유형 상세 결과 응답 데이터")
     public static class LoveTypePersonalityTypeResultData {
-        @Schema(description = "personalityType", example = "ENFP")
+        @Schema(description = "personalityType", example = "INTJ")
         private String personalityType;
 
         @Schema(description = "애착 유형", example = "STABLE_TYPE")
@@ -466,7 +466,7 @@ public class SwaggerResponses {
     @Getter
     @Schema(description = "MBTI + 설명 블록")
     public static class LoveTypePersonalityTypeBlockData {
-        @Schema(description = "personalityType", example = "INFJ")
+        @Schema(description = "personalityType", example = "INTJ")
         private String personalityType;
 
         @Schema(description = "설명", example = "속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")

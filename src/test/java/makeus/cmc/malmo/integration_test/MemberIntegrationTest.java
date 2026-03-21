@@ -1067,6 +1067,54 @@ public class MemberIntegrationTest {
         }
 
         @Test
+        @DisplayName("상대 프로필 수정 성공 - personalityType만 전달 시 loveTypeCategory 유지")
+        void 상대_프로필_수정_성공_personalityType만_업데이트() throws Exception {
+            // given - personalityType + loveTypeCategory 모두 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"enfp","loveTypeCategory":"CONFUSION_TYPE"}
+                                    """))
+                    .andExpect(status().isOk());
+
+            // when - personalityType만 수정 (loveTypeCategory 미포함)
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"intj"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("CONFUSION_TYPE"));
+        }
+
+        @Test
+        @DisplayName("상대 프로필 수정 성공 - loveTypeCategory만 전달 시 personalityType 유지")
+        void 상대_프로필_수정_성공_loveTypeCategory만_업데이트() throws Exception {
+            // given - personalityType + loveTypeCategory 모두 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"enfp","loveTypeCategory":"CONFUSION_TYPE"}
+                                    """))
+                    .andExpect(status().isOk());
+
+            // when - loveTypeCategory만 수정 (personalityType 미포함)
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"loveTypeCategory":"STABLE_TYPE"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("ENFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
+        }
+
+        @Test
         @DisplayName("상대 프로필 조회 실패 - 미등록 상태")
         void 파트너_멤버_정보_조회_실패_커플이_아닌_경우() throws Exception {
             // when & then

@@ -168,8 +168,12 @@ public class Member {
     }
 
     public void updatePartnerProfile(String otherPersonalityType, PartnerLoveTypeCategory partnerLoveTypeCategory) {
-        this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
-        this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+        if (otherPersonalityType != null) {
+            this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
+        }
+        if (partnerLoveTypeCategory != null) {
+            this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+        }
     }
 
     public void updateLoveType(LoveTypeCategory loveTypeCategory, float avoidanceRate, float anxietyRate) {

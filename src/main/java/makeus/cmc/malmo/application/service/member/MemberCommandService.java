@@ -100,9 +100,7 @@ public class MemberCommandService implements
             throw new PartnerProfileNotFoundException("등록된 상대 프로필이 없습니다.");
         }
 
-        PartnerLoveTypeCategory partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
-
-        member.updatePartnerProfile(command.getPersonalityType(), partnerLoveTypeCategory);
+        member.updatePartnerProfile(command.getPersonalityType(), command.getLoveTypeCategory());
         Member savedMember = memberCommandHelper.saveMember(member);
 
         return toPartnerProfileResponse(savedMember);

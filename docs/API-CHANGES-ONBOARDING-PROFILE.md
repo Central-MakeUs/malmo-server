@@ -95,7 +95,7 @@
   "loveDay": 365,
   "relationshipStatus": "IN_RELATIONSHIP",
   "personalityType": "INTJ",
-  "otherPersonalityType": "ENFP"
+  "otherPersonalityType": "INTJ"
 }
 ```
 
@@ -124,7 +124,7 @@
 {
   "nickname": "새닉네임",
   "relationshipStatus": "SEEING_SOMEONE",
-  "personalityType": "ENFP",
+  "personalityType": "INTJ",
   "otherPersonalityType": "INTJ"
 }
 ```
@@ -150,9 +150,42 @@
 {
   "nickname": "새닉네임",
   "relationshipStatus": "SEEING_SOMEONE",
-  "personalityType": "ENFP",
+  "personalityType": "INTJ",
   "otherPersonalityType": "INTJ"
 }
+```
+
+---
+
+### 4. PATCH /members/partners (상대 프로필 수정)
+
+**변경 전:** `personalityType`, `loveTypeCategory` 모두 필수
+
+**변경 후:** 두 필드 모두 선택 사항 — 전달된 필드만 업데이트 (부분 업데이트 지원)
+
+**Request:**
+```json
+{
+  "personalityType": "INTJ",
+  "loveTypeCategory": "STABLE_TYPE"
+}
+```
+
+| 필드 | 타입 | 필수 여부 | 설명 |
+|------|------|-----------|------|
+| `personalityType` | String | 선택 | 상대방 MBTI (영문 4자리, 대소문자 무관) |
+| `loveTypeCategory` | Enum | 선택 | 상대방 애착 유형 |
+
+> **Note:** 필드를 생략하거나 `null`로 전달하면 해당 필드는 기존 값을 유지합니다.
+
+**예시 - personalityType만 수정:**
+```json
+{ "personalityType": "INTJ" }
+```
+
+**예시 - loveTypeCategory만 수정:**
+```json
+{ "loveTypeCategory": "ANXIETY_TYPE" }
 ```
 
 ---
