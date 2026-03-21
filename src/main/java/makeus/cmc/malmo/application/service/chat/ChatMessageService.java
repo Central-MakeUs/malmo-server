@@ -11,6 +11,7 @@ import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataComma
 import makeus.cmc.malmo.application.helper.member.MemberMemoryCommandHelper;
 import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.helper.question.CoupleQuestionQueryHelper;
+import makeus.cmc.malmo.application.port.out.chat.LlmReasoningScenario;
 import makeus.cmc.malmo.application.port.in.chat.ProcessMessageUseCase;
 import makeus.cmc.malmo.application.port.in.chat.SufficiencyCheckResult;
 import makeus.cmc.malmo.domain.model.chat.ChatMessage;
@@ -177,7 +178,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         DetailedPrompt detailedPrompt = detailedPromptQueryHelper.getGuidelinePromptWithFallback(
                 command.getPromptLevel(), command.getDetailedLevel());
         
-        return chatProcessor.streamChat(messages, systemPrompt, prompt, detailedPrompt,
+        return chatProcessor.streamChat(messages, LlmReasoningScenario.FREE_CONVERSATION, systemPrompt, prompt, detailedPrompt,
                 chunk -> chatSseSender.sendResponseChunk(MemberId.of(member.getId()), chunk),
                 fullAnswer -> saveAiMessage(MemberId.of(member.getId()), ChatRoomId.of(chatRoom.getId()),
                         command.getPromptLevel(), command.getDetailedLevel(), fullAnswer),
@@ -212,7 +213,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         DetailedPrompt detailedPrompt = detailedPromptQueryHelper.getGuidelinePromptWithFallback(
                         command.getPromptLevel(), command.getDetailedLevel());
         
-        return chatProcessor.streamChat(messages, systemPrompt, prompt, detailedPrompt,
+        return chatProcessor.streamChat(messages, LlmReasoningScenario.STRUCTURED_CHAT, systemPrompt, prompt, detailedPrompt,
                 chunk -> chatSseSender.sendResponseChunk(MemberId.of(member.getId()), chunk),
                 fullAnswer -> saveAiMessage(MemberId.of(member.getId()), ChatRoomId.of(chatRoom.getId()),
                         command.getPromptLevel(), command.getDetailedLevel(), fullAnswer),
@@ -250,7 +251,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         DetailedPrompt nextDetailedPrompt = detailedPromptQueryHelper.getGuidelinePromptWithFallback(
                 command.getPromptLevel(), command.getDetailedLevel() + 1);
         
-        return chatProcessor.streamChat(messages, systemPrompt, prompt, nextDetailedPrompt,
+        return chatProcessor.streamChat(messages, LlmReasoningScenario.STRUCTURED_CHAT, systemPrompt, prompt, nextDetailedPrompt,
                 chunk -> chatSseSender.sendResponseChunk(memberId, chunk),
                 fullAnswer -> saveAiMessage(memberId, ChatRoomId.of(chatRoom.getId()), 
                         command.getPromptLevel(), command.getDetailedLevel() + 1, fullAnswer),
@@ -272,7 +273,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
         // DetailedPrompt도 fallback 로직 적용
         DetailedPrompt nextDetailedPrompt = detailedPromptQueryHelper.getGuidelinePromptWithFallback(nextLevel, 1);
         
-        return chatProcessor.streamChat(messages, systemPrompt, nextPrompt, nextDetailedPrompt,
+        return chatProcessor.streamChat(messages, LlmReasoningScenario.STRUCTURED_CHAT, systemPrompt, nextPrompt, nextDetailedPrompt,
                 chunk -> chatSseSender.sendResponseChunk(MemberId.of(member.getId()), chunk),
                 fullAnswer -> saveAiMessage(MemberId.of(member.getId()), ChatRoomId.of(chatRoom.getId()),
                         nextLevel, 1, fullAnswer),

@@ -7,7 +7,7 @@ import makeus.cmc.malmo.adaptor.out.PendingMessageDto;
 import makeus.cmc.malmo.application.port.in.MarkOutboxUseCase;
 import makeus.cmc.malmo.application.port.in.PublishStreamMessageUseCase;
 import makeus.cmc.malmo.application.port.in.RetryPublishingUseCase;
-import makeus.cmc.malmo.application.port.out.CheckOpenAIHealth;
+import makeus.cmc.malmo.application.port.out.CheckLlmHealth;
 import makeus.cmc.malmo.application.port.out.LoadOutboxPort;
 import makeus.cmc.malmo.application.port.out.SaveOutboxPort;
 import makeus.cmc.malmo.application.port.out.chat.LoadPendingMessagePort;
@@ -36,7 +36,7 @@ public class OutboxService implements PublishStreamMessageUseCase, RetryPublishi
     private final LoadPendingMessagePort loadPendingMessagePort;
     private final LoadOutboxPort loadOutboxPort;
     private final SaveOutboxPort saveOutboxPort;
-    private final CheckOpenAIHealth checkOpenAIHealth;
+    private final CheckLlmHealth checkLlmHealth;
 
     @Override
     @Transactional
@@ -114,7 +114,7 @@ public class OutboxService implements PublishStreamMessageUseCase, RetryPublishi
     @Override
     @Transactional
     public void retryFailedMessages() {
-        boolean isUp = checkOpenAIHealth.checkHealth();
+        boolean isUp = checkLlmHealth.checkHealth();
         if (!isUp) return;
 
         List<Outbox> failedOutboxList = loadOutboxPort.findByState(OutboxState.FAILED);
