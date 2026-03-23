@@ -69,7 +69,7 @@
   "nickname": "닉네임",
   "email": "user@example.com",
   "provider": "KAKAO",
-  "loveTypeCategory": "SECURE",
+  "loveTypeCategory": "STABLE_TYPE",
   "anxietyRate": 0.3,
   "avoidanceRate": 0.2,
   "inviteCode": "ABC123",
@@ -86,7 +86,7 @@
   "nickname": "닉네임",
   "email": "user@example.com",
   "provider": "KAKAO",
-  "loveTypeCategory": "SECURE",
+  "loveTypeCategory": "STABLE_TYPE",
   "anxietyRate": 0.3,
   "avoidanceRate": 0.2,
   "inviteCode": "ABC123",
@@ -175,7 +175,7 @@
 ```json
 {
   "personalityType": "INTJ",
-  "loveTypeCategory": "SECURE"
+  "loveTypeCategory": "STABLE_TYPE"
 }
 ```
 
@@ -197,7 +197,7 @@
 
 **예시 - loveTypeCategory만 수정 (MBTI만 등록한 후 애착유형 추가 시 사용):**
 ```json
-{ "loveTypeCategory": "SECURE" }
+{ "loveTypeCategory": "STABLE_TYPE" }
 ```
 
 ---

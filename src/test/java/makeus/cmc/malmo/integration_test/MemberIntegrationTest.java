@@ -1629,7 +1629,7 @@ public class MemberIntegrationTest {
             // given
             Map<String, Object> requestDto = Map.of(
                     "personalityType", "INFP",
-                    "loveTypeCategory", "SECURE"
+                    "loveTypeCategory", "STABLE_TYPE"
             );
 
             // when & then
@@ -1640,14 +1640,14 @@ public class MemberIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.personalityType").value("INFP"))
-                    .andExpect(jsonPath("$.data.loveTypeCategory").value("SECURE"));
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
 
             em.flush();
             em.clear();
 
             MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
             assertThat(savedMember.getOtherPersonalityType()).isEqualTo("INFP");
-            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.SECURE);
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.STABLE_TYPE);
         }
 
         @Test
@@ -1678,7 +1678,7 @@ public class MemberIntegrationTest {
         @DisplayName("MBTI 없이 loveTypeCategory만 전송하면 400 오류가 발생한다")
         void createPartnerProfile_missingMbti_returns400() throws Exception {
             // given
-            Map<String, Object> requestDto = Map.of("loveTypeCategory", "SECURE");
+            Map<String, Object> requestDto = Map.of("loveTypeCategory", "STABLE_TYPE");
 
             // when & then
             mockMvc.perform(post("/members/partners")
@@ -1702,17 +1702,17 @@ public class MemberIntegrationTest {
             mockMvc.perform(patch("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("loveTypeCategory", "SECURE"))))
+                            .content(objectMapper.writeValueAsString(Map.of("loveTypeCategory", "STABLE_TYPE"))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.personalityType").value("INFP"))
-                    .andExpect(jsonPath("$.data.loveTypeCategory").value("SECURE"));
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
 
             em.flush();
             em.clear();
 
             MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
             assertThat(savedMember.getOtherPersonalityType()).isEqualTo("INFP");
-            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.SECURE);
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.STABLE_TYPE);
         }
 
         @Test
@@ -1724,7 +1724,7 @@ public class MemberIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of(
                                     "personalityType", "INFP",
-                                    "loveTypeCategory", "SECURE"
+                                    "loveTypeCategory", "STABLE_TYPE"
                             ))))
                     .andExpect(status().isOk());
 
@@ -1735,7 +1735,7 @@ public class MemberIntegrationTest {
                             .content(objectMapper.writeValueAsString(Map.of("personalityType", "INTJ"))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
-                    .andExpect(jsonPath("$.data.loveTypeCategory").value("SECURE"));
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
         }
     }
 
