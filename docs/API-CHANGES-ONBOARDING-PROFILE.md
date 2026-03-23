@@ -157,19 +157,31 @@
 
 ---
 
-### 4. PATCH /members/partners (상대 프로필 수정)
+### 4. POST /members/partners (상대 프로필 최초 등록)
 
-**변경 전:** `personalityType`, `loveTypeCategory` 모두 필수
+| 필드 | 타입 | 필수 여부 | 설명 |
+|------|------|-----------|------|
+| `personalityType` | String | **필수** | 상대방 MBTI (영문 4자리, 대소문자 무관) |
+| `loveTypeCategory` | Enum | 선택 | 상대방 애착 유형 |
 
-**변경 후:** 두 필드 모두 선택 사항 — 전달된 필드만 업데이트 (부분 업데이트 지원)
+> **Note:** `loveTypeCategory`를 생략하면 `null`로 저장됩니다. `UNKNOWN`은 사용자가 명시적으로 선택한 경우에만 설정됩니다.
 
-**Request:**
+**예시 - MBTI만 등록 (loveTypeCategory는 나중에 PATCH로 설정 가능):**
+```json
+{ "personalityType": "INTJ" }
+```
+
+**예시 - 두 필드 모두 등록:**
 ```json
 {
   "personalityType": "INTJ",
-  "loveTypeCategory": "STABLE_TYPE"
+  "loveTypeCategory": "SECURE"
 }
 ```
+
+---
+
+### 5. PATCH /members/partners (상대 프로필 수정)
 
 | 필드 | 타입 | 필수 여부 | 설명 |
 |------|------|-----------|------|
@@ -183,9 +195,9 @@
 { "personalityType": "INTJ" }
 ```
 
-**예시 - loveTypeCategory만 수정:**
+**예시 - loveTypeCategory만 수정 (MBTI만 등록한 후 애착유형 추가 시 사용):**
 ```json
-{ "loveTypeCategory": "ANXIETY_TYPE" }
+{ "loveTypeCategory": "SECURE" }
 ```
 
 ---

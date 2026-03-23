@@ -84,8 +84,7 @@ public class MemberCommandService implements
             throw new PartnerProfileAlreadyExistsException("이미 상대 프로필이 등록되어 있습니다.");
         }
 
-        PartnerLoveTypeCategory partnerLoveTypeCategory = resolvePartnerLoveTypeCategory(command.getLoveTypeCategory());
-        member.createPartnerProfile(command.getPersonalityType(), partnerLoveTypeCategory);
+        member.createPartnerProfile(command.getPersonalityType(), command.getLoveTypeCategory());
         Member savedMember = memberCommandHelper.saveMember(member);
 
         return toPartnerProfileResponse(savedMember);
@@ -183,7 +182,4 @@ public class MemberCommandService implements
                 .build();
     }
 
-    private PartnerLoveTypeCategory resolvePartnerLoveTypeCategory(PartnerLoveTypeCategory loveTypeCategory) {
-        return loveTypeCategory == null ? PartnerLoveTypeCategory.UNKNOWN : loveTypeCategory;
-    }
 }
