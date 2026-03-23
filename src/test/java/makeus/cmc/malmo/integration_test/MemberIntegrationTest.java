@@ -1035,6 +1035,7 @@ public class MemberIntegrationTest {
                             .content(objectMapper.writeValueAsString(Map.of("personalityType", "enfp"))))
                     .andExpect(status().isOk());
 
+            // loveTypeCategory를 null로 전달하면 기존 값(null) 유지
             mockMvc.perform(patch("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1043,8 +1044,8 @@ public class MemberIntegrationTest {
                                     """))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
-                    .andExpect(jsonPath("$.data.loveTypeCategory").value("UNKNOWN"))
-                    .andExpect(jsonPath("$.data.description").value("모르겠어요"));
+                    .andExpect(jsonPath("$.data.loveTypeCategory").doesNotExist())
+                    .andExpect(jsonPath("$.data.description").doesNotExist());
 
             // when
             MvcResult mvcResult = mockMvc.perform(get("/members/partner")
@@ -1062,8 +1063,8 @@ public class MemberIntegrationTest {
 
             PartnerResponseDto partnerDto = responseDto.data;
             Assertions.assertThat(partnerDto.personalityType).isEqualTo("INTJ");
-            Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo("UNKNOWN");
-            Assertions.assertThat(partnerDto.description).isEqualTo("모르겠어요");
+            Assertions.assertThat(partnerDto.loveTypeCategory).isNull();
+            Assertions.assertThat(partnerDto.description).isNull();
         }
 
         @Test
