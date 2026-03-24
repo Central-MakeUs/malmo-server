@@ -6,6 +6,7 @@ import makeus.cmc.malmo.application.port.out.chat.LlmReasoningScenario;
 import makeus.cmc.malmo.application.port.out.chat.RequestChatApiPort;
 import makeus.cmc.malmo.domain.model.chat.DetailedPrompt;
 import makeus.cmc.malmo.domain.model.chat.Prompt;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -115,5 +117,47 @@ class ChatProcessorTest {
 
         assertThat(result).isEqualTo("title");
         verify(requestChatApiPort).requestResponse(anyList(), eq(LlmReasoningScenario.AUXILIARY_EXTRACTION));
+    }
+
+    @Test
+    void requestPartnerLoveTypeCategoryInference_usesAuxiliaryExtractionScenario() {
+        when(requestChatApiPort.requestJsonResponse(anyList(), eq(LlmReasoningScenario.AUXILIARY_EXTRACTION)))
+                .thenReturn(CompletableFuture.completedFuture("""
+                        {"partnerLoveTypeCategory":"AVOIDANCE_TYPE"}
+                        """));
+
+        PartnerLoveTypeCategory result = chatProcessor.requestPartnerLoveTypeCategoryInference(
+                new ArrayList<>(),
+                "prompt"
+        ).join();
+
+        assertThat(result).isEqualTo(PartnerLoveTypeCategory.AVOIDANCE_TYPE);
+        verify(requestChatApiPort).requestJsonResponse(anyList(), eq(LlmReasoningScenario.AUXILIARY_EXTRACTION));
+    }
+
+    @Test
+    void requestPartnerLoveTypeCategoryInference_rejectsUnknown() {
+        when(requestChatApiPort.requestJsonResponse(anyList(), eq(LlmReasoningScenario.AUXILIARY_EXTRACTION)))
+                .thenReturn(CompletableFuture.completedFuture("""
+                        {"partnerLoveTypeCategory":"UNKNOWN"}
+                        """));
+
+        assertThatThrownBy(() -> chatProcessor.requestPartnerLoveTypeCategoryInference(
+                new ArrayList<>(),
+                "prompt"
+        ).join()).hasRootCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void requestPartnerLoveTypeCategoryInference_rejectsInvalidValue() {
+        when(requestChatApiPort.requestJsonResponse(anyList(), eq(LlmReasoningScenario.AUXILIARY_EXTRACTION)))
+                .thenReturn(CompletableFuture.completedFuture("""
+                        {"partnerLoveTypeCategory":"NOT_A_TYPE"}
+                        """));
+
+        assertThatThrownBy(() -> chatProcessor.requestPartnerLoveTypeCategoryInference(
+                new ArrayList<>(),
+                "prompt"
+        ).join()).hasRootCauseInstanceOf(IllegalArgumentException.class);
     }
 }

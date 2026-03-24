@@ -1,6 +1,7 @@
 package makeus.cmc.malmo.application.service.chat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import makeus.cmc.malmo.application.port.out.chat.RequestChatApiPort;
 import makeus.cmc.malmo.application.port.in.chat.SufficiencyCheckResult;
 import makeus.cmc.malmo.domain.model.chat.DetailedPrompt;
 import makeus.cmc.malmo.domain.model.chat.Prompt;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -76,6 +78,32 @@ public class ChatProcessor {
         );
 
         return requestChatApiPort.requestResponse(messages, LlmReasoningScenario.AUXILIARY_EXTRACTION);
+    }
+
+    public CompletableFuture<PartnerLoveTypeCategory> requestPartnerLoveTypeCategoryInference(
+            List<Map<String, String>> messages,
+            String inferencePrompt
+    ) {
+        messages.add(createMessageMap(SenderType.SYSTEM, inferencePrompt));
+
+        return requestChatApiPort.requestJsonResponse(messages, LlmReasoningScenario.AUXILIARY_EXTRACTION)
+                .thenApply(jsonResponse -> {
+                    try {
+                        JsonNode node = objectMapper.readTree(jsonResponse);
+                        String rawValue = node.path("partnerLoveTypeCategory").asText(null);
+                        if (rawValue == null || rawValue.isBlank()) {
+                            throw new IllegalArgumentException("partnerLoveTypeCategory is required");
+                        }
+                        PartnerLoveTypeCategory partnerLoveTypeCategory = PartnerLoveTypeCategory.valueOf(rawValue);
+                        if (partnerLoveTypeCategory == PartnerLoveTypeCategory.UNKNOWN) {
+                            throw new IllegalArgumentException("UNKNOWN is not allowed for inferred partner love type");
+                        }
+                        return partnerLoveTypeCategory;
+                    } catch (JsonProcessingException e) {
+                        log.error("Failed to parse partner love type inference JSON: {}", jsonResponse, e);
+                        throw new RuntimeException("Failed to parse partner love type inference JSON", e);
+                    }
+                });
     }
 
     public CompletableFuture<SufficiencyCheckResult> requestSufficiencyCheck(List<Map<String, String>> messages,
