@@ -164,7 +164,7 @@
 | `personalityType` | String | **필수** | 상대방 MBTI (영문 4자리, 대소문자 무관) |
 | `loveTypeCategory` | Enum | 선택 | 상대방 애착 유형 |
 
-> **Note:** `loveTypeCategory`를 생략하면 `null`로 저장됩니다. `UNKNOWN`은 사용자가 명시적으로 선택한 경우에만 설정됩니다.
+> **Note:** `loveTypeCategory`를 생략하면 `null`로 저장됩니다. `UNKNOWN`은 사용자가 명시적으로 선택한 경우에 설정됩니다. 다만 이후 채팅에서 1단계 완료 후 2단계 첫 분석 메시지 직후 내부 추론을 통해 확정값으로 갱신될 수 있습니다.
 
 **예시 - MBTI만 등록 (loveTypeCategory는 나중에 PATCH로 설정 가능):**
 ```json

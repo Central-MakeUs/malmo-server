@@ -73,6 +73,7 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 
 - `otherPersonalityType`가 있는 경우에만 `- 상대방 성향 프롬프트:` 항목을 추가합니다.
 - `partnerLoveTypeCategory`가 `UNKNOWN` 또는 `null`이면 DB 조회 없이 바로 폴백 문구를 삽입합니다.
+- 다만 1단계 완료 후 생성되는 **2단계 첫 분석 메시지 직후** 내부 추론이 성공하면, 이후부터는 저장된 확정값으로 조회됩니다.
 - `otherPersonalityType`와 확정된 `partnerLoveTypeCategory`가 모두 있으면 `(otherPersonalityType, partnerLoveTypeCategory)` 조합으로 조회합니다.
 - 조합 row가 없으면 채팅은 실패시키지 않고 동일한 폴백 문구를 삽입합니다.
 
@@ -114,6 +115,9 @@ UNKNOWN, 사용자와의 대화로부터 유추할 것
 - `GET /members`의 `loveTypeCategory`
 - `GET /members`의 `otherPersonalityType`
 - `GET /members`의 `partnerLoveTypeCategory`
+
+추가로, 사용자가 상대방 애착유형을 입력하지 않았더라도 1단계 완료 후 2단계 첫 분석 메시지 직후 내부 추론 결과가 `partnerLoveTypeCategory`에 저장될 수 있습니다.
+관련 상세 내용은 `docs/API-CHANGES-PARTNER-LOVETYPE-INFERENCE-PERSISTENCE.md`를 참고합니다.
 
 ---
 
