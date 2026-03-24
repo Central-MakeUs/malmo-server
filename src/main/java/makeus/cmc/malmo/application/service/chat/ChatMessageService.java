@@ -8,6 +8,7 @@ import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.PromptQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.DetailedPromptQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataCommandHelper;
+import makeus.cmc.malmo.application.helper.member.MemberCommandHelper;
 import makeus.cmc.malmo.application.helper.member.MemberMemoryCommandHelper;
 import makeus.cmc.malmo.application.helper.member.MemberQueryHelper;
 import makeus.cmc.malmo.application.helper.question.CoupleQuestionQueryHelper;
@@ -30,7 +31,9 @@ import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.CoupleId;
 import makeus.cmc.malmo.domain.value.id.CoupleQuestionId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.util.ChatMessageSplitter;
+import makeus.cmc.malmo.util.GlobalConstants;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -60,6 +63,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
 
     private final CoupleQuestionQueryHelper coupleQuestionQueryHelper;
 
+    private final MemberCommandHelper memberCommandHelper;
     private final MemberMemoryCommandHelper memberMemoryCommandHelper;
 
     private final makeus.cmc.malmo.application.helper.outbox.OutboxHelper outboxHelper;
@@ -105,16 +109,7 @@ public class ChatMessageService implements ProcessMessageUseCase {
             }
 
             // 마지막 충분성 조건인 경우
-            // 1단계 종료 시 제목 생성 요청
-            if (command.getPromptLevel() == 1) {
-                requestTitleGenerationAsync(chatRoom);
-            }
-
-            // 다음 단계 오프닝 생성 성공 후 단계 전이
-            return requestNextStageOpening(member, chatRoom, command)
-                    .thenRun(() ->
-                        chatRoomCommandHelper.upgradeChatRoomLevel(chatRoom.getId(), command.getPromptLevel() + 1, 1)
-                    );
+            return handleCompletedStage(member, chatRoom, command);
         });
     }
 
@@ -279,6 +274,61 @@ public class ChatMessageService implements ProcessMessageUseCase {
                         nextLevel, 1, fullAnswer),
                 errorMessage -> chatSseSender.sendError(MemberId.of(member.getId()), errorMessage)
         ).toFuture();
+    }
+
+    private CompletableFuture<Void> handleCompletedStage(
+            Member member,
+            ChatRoom chatRoom,
+            ProcessMessageCommand command
+    ) {
+        if (command.getPromptLevel() == 1) {
+            requestTitleGenerationAsync(chatRoom);
+        }
+
+        return requestNextStageOpening(member, chatRoom, command)
+                .thenCompose(ignored -> inferAndPersistPartnerLoveTypeIfNeeded(member, chatRoom, command))
+                .thenRun(() ->
+                        chatRoomCommandHelper.upgradeChatRoomLevel(chatRoom.getId(), command.getPromptLevel() + 1, 1)
+                );
+    }
+
+    private CompletableFuture<Void> inferAndPersistPartnerLoveTypeIfNeeded(
+            Member member,
+            ChatRoom chatRoom,
+            ProcessMessageCommand command
+    ) {
+        if (!shouldInferPartnerLoveType(member, command)) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        List<Map<String, String>> messages = chatPromptBuilder.createForPartnerLoveTypeInference(
+                member, chatRoom, command.getPromptLevel() + 1);
+
+        return chatProcessor.requestPartnerLoveTypeCategoryInference(
+                        messages,
+                        GlobalConstants.PARTNER_LOVE_TYPE_INFERENCE_PROMPT
+                )
+                .thenAccept(inferredType -> persistPartnerLoveTypeIfStillUnknown(command.getMemberId(), inferredType))
+                .exceptionally(throwable -> {
+                    log.warn("Failed to infer partner love type for memberId={}, chatRoomId={}",
+                            command.getMemberId(), chatRoom.getId(), throwable);
+                    return null;
+                });
+    }
+
+    private boolean shouldInferPartnerLoveType(Member member, ProcessMessageCommand command) {
+        return command.getPromptLevel() == 1
+                && (member.getPartnerLoveTypeCategory() == null
+                || member.getPartnerLoveTypeCategory() == PartnerLoveTypeCategory.UNKNOWN);
+    }
+
+    private void persistPartnerLoveTypeIfStillUnknown(Long memberId, PartnerLoveTypeCategory inferredType) {
+        Member refreshedMember = memberQueryHelper.getMemberByIdOrThrow(MemberId.of(memberId));
+        boolean updated = refreshedMember.updatePartnerLoveTypeCategoryIfUnknown(inferredType);
+        if (!updated) {
+            return;
+        }
+        memberCommandHelper.saveMember(refreshedMember);
     }
 
     /**

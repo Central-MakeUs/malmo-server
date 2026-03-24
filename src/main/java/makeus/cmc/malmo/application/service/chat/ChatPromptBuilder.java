@@ -234,6 +234,27 @@ public class ChatPromptBuilder {
         return messages;
     }
 
+    public List<Map<String, String>> createForPartnerLoveTypeInference(Member member, ChatRoom chatRoom, int targetLevel) {
+        List<Map<String, String>> messages = new ArrayList<>();
+        ChatRoomId chatRoomId = ChatRoomId.of(chatRoom.getId());
+
+        String metaDataContent = getMetaDataContent(member);
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
+
+        List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(chatRoomId);
+        if (!metadataList.isEmpty()) {
+            String metadataContent = getMemberChatRoomMetadataContent(metadataList);
+            messages.add(createMessageMap(SenderType.SYSTEM, metadataContent));
+        }
+
+        List<ChatMessage> stageMessages = chatRoomQueryHelper.getChatRoomLevelMessages(chatRoomId, targetLevel);
+        for (ChatMessage chatMessage : stageMessages) {
+            messages.add(createMessageMap(chatMessage.getSenderType(), chatMessage.getContent()));
+        }
+
+        return messages;
+    }
+
     private String getMemberChatRoomMetadataContent(List<MemberChatRoomMetadata> metadataList) {
         if (metadataList == null || metadataList.isEmpty()) {
             return "";

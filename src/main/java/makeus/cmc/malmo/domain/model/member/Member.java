@@ -176,6 +176,17 @@ public class Member {
         }
     }
 
+    public boolean updatePartnerLoveTypeCategoryIfUnknown(PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        if (partnerLoveTypeCategory == null) {
+            return false;
+        }
+        if (this.partnerLoveTypeCategory != null && this.partnerLoveTypeCategory != PartnerLoveTypeCategory.UNKNOWN) {
+            return false;
+        }
+        this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+        return true;
+    }
+
     public void updateLoveType(LoveTypeCategory loveTypeCategory, float avoidanceRate, float anxietyRate) {
         this.loveTypeCategory = loveTypeCategory;
         this.avoidanceRate = avoidanceRate;
