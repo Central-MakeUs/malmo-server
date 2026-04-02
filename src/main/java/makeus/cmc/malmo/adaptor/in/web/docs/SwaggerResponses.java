@@ -114,6 +114,21 @@ public class SwaggerResponses {
     }
 
     @Getter
+    @Schema(description = "주간 분석 리포트 목록 조회 성공 응답")
+    public static class WeeklyAnalysisReportListSuccessResponse extends BaseSwaggerResponse<BaseListSwaggerResponse<WeeklyAnalysisReportListItemData>> {
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 상세 조회 성공 응답")
+    public static class WeeklyAnalysisReportDetailSuccessResponse extends BaseSwaggerResponse<WeeklyAnalysisReportDetailData> {
+    }
+
+    @Getter
+    @Schema(description = "관리자 주간 분석 리포트 수동 트리거 성공 응답")
+    public static class AdminWeeklyAnalysisReportTriggerSuccessResponse extends BaseSwaggerResponse<AdminWeeklyAnalysisReportTriggerData> {
+    }
+
+    @Getter
     @Deprecated
     @Schema(description = "[Deprecated] 멤버 초대 코드 성공 응답")
     public static class GetInviteCodeSuccessResponse extends BaseSwaggerResponse<InviteCodeResponseData> {
@@ -310,6 +325,191 @@ public class SwaggerResponses {
 
         @Schema(description = "애착 유형 설명", example = "모르겠어요")
         private String description;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 목록 아이템 데이터")
+    public static class WeeklyAnalysisReportListItemData {
+        @Schema(description = "리포트 주 시작일", example = "2026-03-23")
+        private LocalDate weekStartDate;
+
+        @Schema(description = "리포트 주 종료일", example = "2026-03-29")
+        private LocalDate weekEndDate;
+
+        @Schema(description = "리포트 상태", example = "PUBLISHED")
+        private String status;
+
+        @Schema(description = "리포트 생성 시각", example = "2026-03-30T00:02:14")
+        private LocalDateTime generatedAt;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 상세 데이터")
+    public static class WeeklyAnalysisReportDetailData {
+        @Schema(description = "리포트 주 시작일", example = "2026-03-23")
+        private LocalDate weekStartDate;
+
+        @Schema(description = "리포트 주 종료일", example = "2026-03-29")
+        private LocalDate weekEndDate;
+
+        @Schema(description = "리포트 상태", example = "PUBLISHED")
+        private String status;
+
+        @Schema(description = "리포트 생성 시각", example = "2026-03-30T00:02:14")
+        private LocalDateTime generatedAt;
+
+        @Schema(description = "리포트 스키마 버전", example = "v1")
+        private String schemaVersion;
+
+        @Schema(description = "리포트 기간 정보")
+        private WeeklyAnalysisReportPeriodData period;
+
+        @Schema(description = "이번 주 요약")
+        private WeeklyAnalysisReportOverviewData overview;
+
+        @Schema(description = "주요 상담 주제")
+        private List<WeeklyAnalysisReportTopTopicData> topTopics;
+
+        @Schema(description = "시간대별 기분 흐름")
+        private WeeklyAnalysisReportMoodByTimeData moodByTime;
+
+        @Schema(description = "갈등 지표")
+        private WeeklyAnalysisReportConflictData conflict;
+
+        @Schema(description = "행동 패턴 분석")
+        private WeeklyAnalysisReportBehaviorPatternData behaviorPattern;
+
+        @Schema(description = "바로 실천할 수 있는 솔루션")
+        private WeeklyAnalysisReportSolutionData solution;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 기간 정보")
+    public static class WeeklyAnalysisReportPeriodData {
+        @Schema(description = "리포트 주 시작일", example = "2026-03-23")
+        private LocalDate weekStartDate;
+
+        @Schema(description = "리포트 주 종료일", example = "2026-03-29")
+        private LocalDate weekEndDate;
+
+        @Schema(description = "기준 타임존", example = "Asia/Seoul")
+        private String timezone;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 요약")
+    public static class WeeklyAnalysisReportOverviewData {
+        @Schema(description = "요약 제목", example = "이번 주, 연락 공백이 감정의 불안을 키웠어요")
+        private String title;
+
+        @Schema(description = "요약 본문", example = "이번 주 상담에서는 연락 텀과 감정 확인 욕구가 반복적으로 나타났어요.")
+        private String summary;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 주요 주제")
+    public static class WeeklyAnalysisReportTopTopicData {
+        @Schema(description = "주제 키워드", example = "연락")
+        private String keyword;
+
+        @Schema(description = "주제 순위", example = "1")
+        private int rank;
+
+        @Schema(description = "주제 비중", example = "0.44")
+        private double weight;
+
+        @Schema(description = "주제 설명", example = "상대의 반응 속도와 연락 패턴이 가장 큰 고민 주제로 나타났어요.")
+        private String description;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 시간대별 기분")
+    public static class WeeklyAnalysisReportMoodByTimeData {
+        @Schema(description = "가장 두드러진 시간대", example = "LATE_NIGHT")
+        private String dominantPeriod;
+
+        @Schema(description = "시간대 비율")
+        private WeeklyAnalysisReportMoodRatiosData ratios;
+
+        @Schema(description = "설명", example = "주로 늦은 밤 시간대에 고민이 커지는 흐름이 보여요.")
+        private String description;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 시간대 비율")
+    public static class WeeklyAnalysisReportMoodRatiosData {
+        @Schema(description = "오전 비율", example = "0.10")
+        private double morning;
+
+        @Schema(description = "오후 비율", example = "0.18")
+        private double afternoon;
+
+        @Schema(description = "저녁 비율", example = "0.29")
+        private double evening;
+
+        @Schema(description = "심야 비율", example = "0.43")
+        private double lateNight;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 갈등 정보")
+    public static class WeeklyAnalysisReportConflictData {
+        @Schema(description = "갈등 점수", example = "72")
+        private int score;
+
+        @Schema(description = "갈등 설명", example = "관계의 긴장은 반복되고 있지만, 해결을 시도하려는 흐름도 함께 보여요.")
+        private String description;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 행동 패턴")
+    public static class WeeklyAnalysisReportBehaviorPatternData {
+        @Schema(description = "한 줄 요약", example = "상대의 반응이 늦어질 때 불안을 빠르게 확신으로 연결하는 패턴이 보여요.")
+        private String oneLineSummary;
+
+        @Schema(description = "촉발 상황", example = "상대의 연락이 예상보다 늦어질 때")
+        private String triggerSituation;
+
+        @Schema(description = "내면 믿음", example = "답이 늦으면 마음이 식은 것일 수 있다는 믿음")
+        private String belief;
+
+        @Schema(description = "반응 유형", example = "확인을 서두르거나 감정을 앞당겨 표현함")
+        private String responseType;
+    }
+
+    @Getter
+    @Schema(description = "주간 분석 리포트 솔루션")
+    public static class WeeklyAnalysisReportSolutionData {
+        @Schema(description = "솔루션 제목", example = "바로 할 수 있는 연애 솔루션")
+        private String title;
+
+        @Schema(description = "솔루션 내용", example = "연락이 늦을 때 바로 의미를 확정하지 않고 30분만 해석을 미루어 보세요.")
+        private String content;
+    }
+
+    @Getter
+    @Schema(description = "관리자 주간 분석 리포트 수동 트리거 응답 데이터")
+    public static class AdminWeeklyAnalysisReportTriggerData {
+        @Schema(description = "대상 주 시작일", example = "2026-03-23")
+        private LocalDate weekStartDate;
+
+        @Schema(description = "대상 주 종료일", example = "2026-03-29")
+        private LocalDate weekEndDate;
+
+        @Schema(description = "후보 회원 수", example = "10")
+        private int candidateMemberCount;
+
+        @Schema(description = "새로 예약된 리포트 수", example = "7")
+        private int reservedCount;
+
+        @Schema(description = "FAILED 상태에서 재발행된 리포트 수", example = "1")
+        private int republishedFailedCount;
+
+        @Schema(description = "기존 리포트가 있어 건너뛴 수", example = "1")
+        private int skippedExistingCount;
+
+        @Schema(description = "자격 미달로 건너뛴 수", example = "1")
+        private int skippedIneligibleCount;
     }
 
     @Getter

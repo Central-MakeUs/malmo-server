@@ -8,6 +8,7 @@ import makeus.cmc.malmo.domain.value.state.NotificationState;
 import makeus.cmc.malmo.domain.value.type.NotificationType;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -38,5 +39,20 @@ public class MemberNotificationCommandHelper {
 
     public MemberNotification createAndSaveCoupleConnectedNotification(MemberId memberId) {
         return createAndSavePendingNotification(memberId, NotificationType.COUPLE_CONNECTED, null);
+    }
+
+    public MemberNotification createAndSaveWeeklyAnalysisReportPublishedNotification(
+            MemberId memberId,
+            LocalDate weekStartDate,
+            LocalDate weekEndDate
+    ) {
+        return createAndSavePendingNotification(
+                memberId,
+                NotificationType.WEEKLY_ANALYSIS_REPORT_PUBLISHED,
+                Map.of(
+                        "weekStartDate", weekStartDate.toString(),
+                        "weekEndDate", weekEndDate.toString()
+                )
+        );
     }
 }

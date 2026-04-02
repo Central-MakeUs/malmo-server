@@ -188,7 +188,17 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT);
     }
 
+    @ExceptionHandler({WeeklyAnalysisReportNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleWeeklyAnalysisReportNotFoundException(WeeklyAnalysisReportNotFoundException e) {
+        log.warn("[GlobalExceptionHandler: handleWeeklyAnalysisReportNotFoundException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.NO_SUCH_WEEKLY_ANALYSIS_REPORT);
+    }
 
+    @ExceptionHandler({InvalidWeeklyAnalysisWeekException.class})
+    public ResponseEntity<ErrorResponse> handleInvalidWeeklyAnalysisWeekException(InvalidWeeklyAnalysisWeekException e) {
+        log.warn("[GlobalExceptionHandler: handleInvalidWeeklyAnalysisWeekException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.BAD_REQUEST);
+    }
 
     /**
      *  ---------- 공통 예외 처리 핸들러 ----------

@@ -22,6 +22,7 @@ public class Prompt extends BaseTimeEntity {
     private boolean isForGuideline;
     private boolean isForAnswerMetadata;
     private boolean isForTitleGeneration;
+    private boolean isForWeeklyReport;
 
     // BaseTimeEntity fields
     private LocalDateTime createdAt;
@@ -29,10 +30,10 @@ public class Prompt extends BaseTimeEntity {
     private LocalDateTime deletedAt;
 
     public static Prompt from(Long id, int level, String content,
-                             boolean isForSystem, boolean isForSummary, boolean isForCompletedResponse,
-                             boolean isForTotalSummary, boolean isForGuideline, boolean isForAnswerMetadata,
-                             boolean isForTitleGeneration,
-                             LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
+                              boolean isForSystem, boolean isForSummary, boolean isForCompletedResponse,
+                              boolean isForTotalSummary, boolean isForGuideline, boolean isForAnswerMetadata,
+                              boolean isForTitleGeneration, boolean isForWeeklyReport,
+                              LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
         return Prompt.builder()
                 .id(id)
                 .level(level)
@@ -44,9 +45,20 @@ public class Prompt extends BaseTimeEntity {
                 .isForGuideline(isForGuideline)
                 .isForAnswerMetadata(isForAnswerMetadata)
                 .isForTitleGeneration(isForTitleGeneration)
+                .isForWeeklyReport(isForWeeklyReport)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
                 .deletedAt(deletedAt)
                 .build();
+    }
+
+    public static Prompt from(Long id, int level, String content,
+                              boolean isForSystem, boolean isForSummary, boolean isForCompletedResponse,
+                              boolean isForTotalSummary, boolean isForGuideline, boolean isForAnswerMetadata,
+                              boolean isForTitleGeneration,
+                              LocalDateTime createdAt, LocalDateTime modifiedAt, LocalDateTime deletedAt) {
+        return from(id, level, content, isForSystem, isForSummary, isForCompletedResponse,
+                isForTotalSummary, isForGuideline, isForAnswerMetadata, isForTitleGeneration,
+                false, createdAt, modifiedAt, deletedAt);
     }
 }
