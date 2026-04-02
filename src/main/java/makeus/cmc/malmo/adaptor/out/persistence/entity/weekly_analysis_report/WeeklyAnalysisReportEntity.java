@@ -1,7 +1,11 @@
 package makeus.cmc.malmo.adaptor.out.persistence.entity.weekly_analysis_report;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.BaseTimeEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
 import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReportContent;
@@ -13,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
         name = "weekly_analysis_report",
@@ -72,6 +78,7 @@ public class WeeklyAnalysisReportEntity extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "weekly_analysis_report_id")
     )
     @OrderBy("rank ASC")
+    @Builder.Default
     private List<TopTopicEmbeddable> topTopics = new ArrayList<>();
 
     @Embedded
@@ -114,63 +121,6 @@ public class WeeklyAnalysisReportEntity extends BaseTimeEntity {
     @Column(name = "failed_reason", length = 255)
     private String failedReason;
 
-    protected WeeklyAnalysisReportEntity() {
-    }
-
-    private WeeklyAnalysisReportEntity(
-            Long id,
-            MemberEntityId memberId,
-            LocalDate weekStartDate,
-            LocalDate weekEndDate,
-            WeeklyAnalysisReportStatus status,
-            int sourceChatRoomCount,
-            int eligibleChatRoomCount,
-            int sourceUserMessageCount,
-            WeeklyAnalysisReportContent content,
-            LocalDateTime generatedAt,
-            String failedReason
-    ) {
-        this.id = id;
-        this.memberId = memberId;
-        this.weekStartDate = weekStartDate;
-        this.weekEndDate = weekEndDate;
-        this.status = status;
-        this.sourceChatRoomCount = sourceChatRoomCount;
-        this.eligibleChatRoomCount = eligibleChatRoomCount;
-        this.sourceUserMessageCount = sourceUserMessageCount;
-        applyContent(content);
-        this.generatedAt = generatedAt;
-        this.failedReason = failedReason;
-    }
-
-    public static WeeklyAnalysisReportEntity of(
-            Long id,
-            MemberEntityId memberId,
-            LocalDate weekStartDate,
-            LocalDate weekEndDate,
-            WeeklyAnalysisReportStatus status,
-            int sourceChatRoomCount,
-            int eligibleChatRoomCount,
-            int sourceUserMessageCount,
-            WeeklyAnalysisReportContent content,
-            LocalDateTime generatedAt,
-            String failedReason
-    ) {
-        return new WeeklyAnalysisReportEntity(
-                id,
-                memberId,
-                weekStartDate,
-                weekEndDate,
-                status,
-                sourceChatRoomCount,
-                eligibleChatRoomCount,
-                sourceUserMessageCount,
-                content,
-                generatedAt,
-                failedReason
-        );
-    }
-
     public WeeklyAnalysisReportContent toContent() {
         if (schemaVersion == null) {
             return null;
@@ -186,31 +136,6 @@ public class WeeklyAnalysisReportEntity extends BaseTimeEntity {
                 behaviorPattern.toDomain(),
                 solution.toDomain()
         );
-    }
-
-    private void applyContent(WeeklyAnalysisReportContent content) {
-        if (content == null) {
-            this.schemaVersion = null;
-            this.timezone = null;
-            this.overview = null;
-            this.topTopics = new ArrayList<>();
-            this.moodByTime = null;
-            this.conflict = null;
-            this.behaviorPattern = null;
-            this.solution = null;
-            return;
-        }
-
-        this.schemaVersion = content.schemaVersion();
-        this.timezone = content.period().timezone();
-        this.overview = OverviewEmbeddable.from(content.overview());
-        this.topTopics = content.topTopics().stream()
-                .map(TopTopicEmbeddable::from)
-                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-        this.moodByTime = MoodByTimeEmbeddable.from(content.moodByTime());
-        this.conflict = ConflictEmbeddable.from(content.conflict());
-        this.behaviorPattern = BehaviorPatternEmbeddable.from(content.behaviorPattern());
-        this.solution = SolutionEmbeddable.from(content.solution());
     }
 
     @Embeddable

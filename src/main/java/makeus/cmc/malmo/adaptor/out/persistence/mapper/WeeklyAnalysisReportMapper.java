@@ -3,8 +3,11 @@ package makeus.cmc.malmo.adaptor.out.persistence.mapper;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.weekly_analysis_report.WeeklyAnalysisReportEntity;
 import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReport;
+import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReportContent;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 
 @Component
 public class WeeklyAnalysisReportMapper {
@@ -37,18 +40,34 @@ public class WeeklyAnalysisReportMapper {
             return null;
         }
 
-        return WeeklyAnalysisReportEntity.of(
-                domain.getId(),
-                domain.getMemberId() == null ? null : MemberEntityId.of(domain.getMemberId().getValue()),
-                domain.getWeekStartDate(),
-                domain.getWeekEndDate(),
-                domain.getStatus(),
-                domain.getSourceChatRoomCount(),
-                domain.getEligibleChatRoomCount(),
-                domain.getSourceUserMessageCount(),
-                domain.getContent(),
-                domain.getGeneratedAt(),
-                domain.getFailedReason()
-        );
+        WeeklyAnalysisReportContent content = domain.getContent();
+
+        return WeeklyAnalysisReportEntity.builder()
+                .id(domain.getId())
+                .memberId(domain.getMemberId() == null ? null : MemberEntityId.of(domain.getMemberId().getValue()))
+                .weekStartDate(domain.getWeekStartDate())
+                .weekEndDate(domain.getWeekEndDate())
+                .status(domain.getStatus())
+                .sourceChatRoomCount(domain.getSourceChatRoomCount())
+                .eligibleChatRoomCount(domain.getEligibleChatRoomCount())
+                .sourceUserMessageCount(domain.getSourceUserMessageCount())
+                .schemaVersion(content == null ? null : content.schemaVersion())
+                .timezone(content == null ? null : content.period().timezone())
+                .overview(content == null ? null : WeeklyAnalysisReportEntity.OverviewEmbeddable.from(content.overview()))
+                .topTopics(content == null
+                        ? new ArrayList<>()
+                        : content.topTopics().stream()
+                                .map(WeeklyAnalysisReportEntity.TopTopicEmbeddable::from)
+                                .collect(java.util.stream.Collectors.toCollection(ArrayList::new)))
+                .moodByTime(content == null ? null : WeeklyAnalysisReportEntity.MoodByTimeEmbeddable.from(content.moodByTime()))
+                .conflict(content == null ? null : WeeklyAnalysisReportEntity.ConflictEmbeddable.from(content.conflict()))
+                .behaviorPattern(content == null ? null : WeeklyAnalysisReportEntity.BehaviorPatternEmbeddable.from(content.behaviorPattern()))
+                .solution(content == null ? null : WeeklyAnalysisReportEntity.SolutionEmbeddable.from(content.solution()))
+                .generatedAt(domain.getGeneratedAt())
+                .failedReason(domain.getFailedReason())
+                .createdAt(domain.getCreatedAt())
+                .modifiedAt(domain.getModifiedAt())
+                .deletedAt(domain.getDeletedAt())
+                .build();
     }
 }

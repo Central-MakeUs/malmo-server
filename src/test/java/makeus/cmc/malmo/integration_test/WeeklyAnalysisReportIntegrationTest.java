@@ -8,8 +8,12 @@ import makeus.cmc.malmo.adaptor.out.persistence.entity.value.InviteCodeEntityVal
 import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.weekly_analysis_report.WeeklyAnalysisReportEntity;
 import makeus.cmc.malmo.application.helper.weekly_analysis_report.WeeklyAnalysisWeekCalculator;
+import makeus.cmc.malmo.application.port.out.weekly_analysis_report.LoadWeeklyAnalysisReportPort;
 import makeus.cmc.malmo.application.port.out.member.GenerateTokenPort;
+import makeus.cmc.malmo.application.port.out.weekly_analysis_report.SaveWeeklyAnalysisReportPort;
+import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReport;
 import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReportContent;
+import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.state.WeeklyAnalysisReportStatus;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
@@ -24,6 +28,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,6 +48,12 @@ class WeeklyAnalysisReportIntegrationTest {
 
     @Autowired
     private GenerateTokenPort generateTokenPort;
+
+    @Autowired
+    private LoadWeeklyAnalysisReportPort loadWeeklyAnalysisReportPort;
+
+    @Autowired
+    private SaveWeeklyAnalysisReportPort saveWeeklyAnalysisReportPort;
 
     private String accessToken;
     private String adminAccessToken;
@@ -177,20 +189,55 @@ class WeeklyAnalysisReportIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("기존 리포트를 FAILED로 저장해도 createdAt이 유지된다")
+    void saveExistingWeeklyReport_preservesCreatedAtOnFailureUpdate() {
+        LocalDate weekStartDate = LocalDate.of(2026, 3, 23);
+        LocalDate weekEndDate = LocalDate.of(2026, 3, 29);
+        persistWeeklyReport(weekStartDate, weekEndDate, WeeklyAnalysisReportStatus.GENERATING);
+
+        WeeklyAnalysisReport report = loadWeeklyAnalysisReportPort.loadByMemberIdAndWeekStartDate(
+                MemberId.of(member.getId()),
+                weekStartDate
+        ).orElseThrow();
+
+        assertThat(report.getCreatedAt()).isNotNull();
+
+        report.markFailed("llm timeout");
+        WeeklyAnalysisReport savedReport = saveWeeklyAnalysisReportPort.saveAndFlushWeeklyAnalysisReport(report);
+        em.clear();
+
+        WeeklyAnalysisReportEntity persistedEntity = em.find(WeeklyAnalysisReportEntity.class, savedReport.getId());
+        assertThat(savedReport.getCreatedAt()).isEqualTo(report.getCreatedAt());
+        assertThat(savedReport.getStatus()).isEqualTo(WeeklyAnalysisReportStatus.FAILED);
+        assertThat(persistedEntity.getCreatedAt()).isEqualTo(report.getCreatedAt());
+        assertThat(persistedEntity.getStatus()).isEqualTo(WeeklyAnalysisReportStatus.FAILED);
+        assertThat(persistedEntity.getFailedReason()).isEqualTo("llm timeout");
+    }
+
     private void persistWeeklyReport(LocalDate weekStartDate, LocalDate weekEndDate, WeeklyAnalysisReportStatus status) {
-        WeeklyAnalysisReportEntity report = WeeklyAnalysisReportEntity.of(
-                null,
-                MemberEntityId.of(member.getId()),
-                weekStartDate,
-                weekEndDate,
-                status,
-                1,
-                1,
-                3,
-                sampleContent(weekStartDate, weekEndDate),
-                java.time.LocalDateTime.now(),
-                null
-        );
+        WeeklyAnalysisReportContent content = sampleContent(weekStartDate, weekEndDate);
+
+        WeeklyAnalysisReportEntity report = WeeklyAnalysisReportEntity.builder()
+                .memberId(MemberEntityId.of(member.getId()))
+                .weekStartDate(weekStartDate)
+                .weekEndDate(weekEndDate)
+                .status(status)
+                .sourceChatRoomCount(1)
+                .eligibleChatRoomCount(1)
+                .sourceUserMessageCount(3)
+                .schemaVersion(content.schemaVersion())
+                .timezone(content.period().timezone())
+                .overview(WeeklyAnalysisReportEntity.OverviewEmbeddable.from(content.overview()))
+                .topTopics(new java.util.ArrayList<>(content.topTopics().stream()
+                        .map(WeeklyAnalysisReportEntity.TopTopicEmbeddable::from)
+                        .toList()))
+                .moodByTime(WeeklyAnalysisReportEntity.MoodByTimeEmbeddable.from(content.moodByTime()))
+                .conflict(WeeklyAnalysisReportEntity.ConflictEmbeddable.from(content.conflict()))
+                .behaviorPattern(WeeklyAnalysisReportEntity.BehaviorPatternEmbeddable.from(content.behaviorPattern()))
+                .solution(WeeklyAnalysisReportEntity.SolutionEmbeddable.from(content.solution()))
+                .generatedAt(java.time.LocalDateTime.now())
+                .build();
         em.persist(report);
         em.flush();
     }
