@@ -101,6 +101,23 @@ public class MemberNotificationIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.list.length()").value(2));
         }
+
+        @Test
+        @DisplayName("주간 리포트 발행 알림도 동일한 형식으로 조회된다.")
+        void getMemberPendingNotification_includesWeeklyReportNotification() throws Exception {
+            createAndSaveWeeklyNotification(
+                    LocalDate.of(2026, 3, 23),
+                    LocalDate.of(2026, 3, 29)
+            );
+
+            mockMvc.perform(get("/members/notifications/pending")
+                            .header("Authorization", "Bearer " + accessToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.list.length()").value(1))
+                    .andExpect(jsonPath("$.data.list[0].type").value("WEEKLY_ANALYSIS_REPORT_PUBLISHED"))
+                    .andExpect(jsonPath("$.data.list[0].payload.weekStartDate").value("2026-03-23"))
+                    .andExpect(jsonPath("$.data.list[0].payload.weekEndDate").value("2026-03-29"));
+        }
     }
 
     @Nested
@@ -131,6 +148,37 @@ public class MemberNotificationIntegrationTest {
             MemberNotificationEntity result2 = em.find(MemberNotificationEntity.class, notification2.getId());
             assertThat(result1.getState()).isEqualTo(NotificationState.READ);
             assertThat(result2.getState()).isEqualTo(NotificationState.READ);
+        }
+
+        @Test
+        @DisplayName("주간 리포트 알림도 개별 읽기 처리할 수 있다.")
+        void processReadNotifications_weeklyReportNotification_success() throws Exception {
+            MemberNotificationEntity weeklyNotification = createAndSaveWeeklyNotification(
+                    LocalDate.of(2026, 3, 23),
+                    LocalDate.of(2026, 3, 29)
+            );
+            MemberNotificationEntity otherNotification = createAndSaveWeeklyNotification(
+                    LocalDate.of(2026, 3, 30),
+                    LocalDate.of(2026, 4, 5)
+            );
+
+            NotificationController.ProcessNotificationsRequestDto requestDto = new NotificationController.ProcessNotificationsRequestDto();
+            requestDto.setPendingNotifications(List.of(weeklyNotification.getId()));
+
+            mockMvc.perform(patch("/members/notifications/pending")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isOk());
+
+            em.flush();
+            em.clear();
+
+            MemberNotificationEntity updatedWeeklyNotification = em.find(MemberNotificationEntity.class, weeklyNotification.getId());
+            MemberNotificationEntity untouchedWeeklyNotification = em.find(MemberNotificationEntity.class, otherNotification.getId());
+
+            assertThat(updatedWeeklyNotification.getState()).isEqualTo(NotificationState.READ);
+            assertThat(untouchedWeeklyNotification.getState()).isEqualTo(NotificationState.PENDING);
         }
 
         @Test
@@ -192,6 +240,21 @@ public class MemberNotificationIntegrationTest {
                 .payload(Map.of("message", message))
                 .state(NotificationState.PENDING)
                 .type(NotificationType.COUPLE_DISCONNECTED)
+                .build();
+        em.persist(notification);
+        em.flush();
+        return notification;
+    }
+
+    private MemberNotificationEntity createAndSaveWeeklyNotification(LocalDate weekStartDate, LocalDate weekEndDate) {
+        MemberNotificationEntity notification = MemberNotificationEntity.builder()
+                .memberId(MemberEntityId.of(member.getId()))
+                .payload(Map.of(
+                        "weekStartDate", weekStartDate.toString(),
+                        "weekEndDate", weekEndDate.toString()
+                ))
+                .state(NotificationState.PENDING)
+                .type(NotificationType.WEEKLY_ANALYSIS_REPORT_PUBLISHED)
                 .build();
         em.persist(notification);
         em.flush();

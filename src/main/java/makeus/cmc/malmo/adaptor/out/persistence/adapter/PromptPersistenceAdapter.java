@@ -70,4 +70,10 @@ public class PromptPersistenceAdapter implements LoadPromptPort {
         return promptRepository.findByIsForTitleGenerationTrue()
                 .map(promptMapper::toDomain);
     }
+
+    @Override
+    public Optional<Prompt> loadWeeklyReportPrompt() {
+        return promptRepository.findByIsForWeeklyReportTrue()
+                .map(promptMapper::toDomain);
+    }
 }

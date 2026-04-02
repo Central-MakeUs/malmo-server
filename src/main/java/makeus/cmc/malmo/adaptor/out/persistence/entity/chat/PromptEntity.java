@@ -37,4 +37,6 @@ public class PromptEntity extends BaseTimeEntity {
 
     private boolean isForTitleGeneration;
 
+    private boolean isForWeeklyReport;
+
 }

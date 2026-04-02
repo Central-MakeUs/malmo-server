@@ -11,12 +11,13 @@ VALUES ('지금 연애를 시작하게 된 계기는 무엇인가요?', '지금 
        ('연애 중 가장 고마웠던 순간은 어떤 상황이었나요?', '연애 중 가장 고마웠던 순간은 어떤 상황이었나요?', 4),
        ('연인이 서운한 마음을 표현할 때, 나는 어떤 마음이 드나요?', '연인이 서운한 마음을 표현할 때, 나는 어떤 마음이 드나요?', 5);
 
-INSERT INTO prompt_entity (level, content, is_for_answer_metadata, is_for_completed_response, is_for_guideline, is_for_summary, is_for_system, is_for_total_summary, is_for_title_generation)
+INSERT INTO prompt_entity (level, content, is_for_answer_metadata, is_for_completed_response, is_for_guideline, is_for_summary, is_for_system, is_for_total_summary, is_for_title_generation, is_for_weekly_report)
 VALUES
-    (-3, '요약용 프롬프트', true, false, false, true, false, true, false),
-    (-2, '시스템 프롬프트' , false, false, false, false, true, false, false),
-    (-1, '중간 요약용 프롬프트', true, false, false, true, false, false, false),
-    (0, '다음 대화 내용을 바탕으로 20자 이내의 간결한 제목을 생성해주세요.', false, false, false, false, false, false, true),
-    (1, '1단계 프롬프트', false, false, true, false, false, false, false),
-    (2, '2단계 프롬프트', false, false, true, false, false, false, false),
-    (3, '3단계 프롬프트', false, false, true, false, false, false, false);
+    (-4, '주간 리포트용 프롬프트', false, false, false, false, false, false, false, true),
+    (-3, '요약용 프롬프트', true, false, false, true, false, true, false, false),
+    (-2, '시스템 프롬프트' , false, false, false, false, true, false, false, false),
+    (-1, '중간 요약용 프롬프트', true, false, false, true, false, false, false, false),
+    (0, '다음 대화 내용을 바탕으로 20자 이내의 간결한 제목을 생성해주세요.', false, false, false, false, false, false, true, false),
+    (1, '1단계 프롬프트', false, false, true, false, false, false, false, false),
+    (2, '2단계 프롬프트', false, false, true, false, false, false, false, false),
+    (3, '3단계 프롬프트', false, false, true, false, false, false, false, false);

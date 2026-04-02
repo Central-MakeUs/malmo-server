@@ -27,4 +27,7 @@ public interface DetailedPromptRepository extends JpaRepository<DetailedPromptEn
 
     @Query("SELECT dp FROM DetailedPromptEntity dp WHERE dp.level = :level AND dp.detailedLevel = :detailedLevel AND dp.isForGuideline = true")
     Optional<DetailedPromptEntity> findByLevelAndDetailedLevelAndIsForGuidelineTrue(@Param("level") int level, @Param("detailedLevel") int detailedLevel);
+
+    @Query("SELECT MAX(dp.detailedLevel) FROM DetailedPromptEntity dp WHERE dp.level = :level AND dp.isLastDetailedPrompt = true")
+    Optional<Integer> findLastDetailedLevelByLevel(@Param("level") int level);
 }

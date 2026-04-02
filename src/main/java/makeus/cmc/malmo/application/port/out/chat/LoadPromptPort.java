@@ -23,4 +23,6 @@ public interface LoadPromptPort {
     Optional<Prompt> loadSummaryPromptByLevel(int level);
 
     Optional<Prompt> loadTitleGenerationPrompt();
+
+    Optional<Prompt> loadWeeklyReportPrompt();
 }

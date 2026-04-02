@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 
-@Component
 @RequiredArgsConstructor
+@Component
 public class PromptQueryHelper {
     private final LoadPromptPort loadPromptPort;
 
@@ -65,5 +65,10 @@ public class PromptQueryHelper {
      */
     public Optional<Prompt> getSummaryPromptByLevel(int level) {
         return loadPromptPort.loadSummaryPromptByLevel(level);
+    }
+
+    public Prompt getWeeklyReportPrompt() {
+        return loadPromptPort.loadWeeklyReportPrompt()
+                .orElseThrow(PromptNotFoundException::new);
     }
 }

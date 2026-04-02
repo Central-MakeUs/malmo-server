@@ -42,6 +42,7 @@ public enum ErrorCode {
 
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND, 40400, "요청한 리소스를 찾을 수 없습니다."),
+    NO_SUCH_WEEKLY_ANALYSIS_REPORT(HttpStatus.NOT_FOUND, 40401, "주간 분석 리포트가 존재하지 않습니다."),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, 40500, "허용되지 않은 HTTP 메소드입니다."),

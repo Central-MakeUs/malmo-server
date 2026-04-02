@@ -35,4 +35,7 @@ public interface PromptRepository extends JpaRepository<PromptEntity, Long> {
 
     @Query("SELECT p FROM PromptEntity p WHERE p.isForTitleGeneration = true")
     Optional<PromptEntity> findByIsForTitleGenerationTrue();
+
+    @Query("SELECT p FROM PromptEntity p WHERE p.isForWeeklyReport = true")
+    Optional<PromptEntity> findByIsForWeeklyReportTrue();
 }

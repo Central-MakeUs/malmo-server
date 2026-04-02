@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.adaptor.message.StreamMessageType;
 import makeus.cmc.malmo.application.port.in.MarkOutboxUseCase;
 import makeus.cmc.malmo.application.port.in.chat.ProcessMessageUseCase;
+import makeus.cmc.malmo.application.port.in.weekly_analysis_report.GenerateWeeklyAnalysisReportUseCase;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -32,6 +33,7 @@ public class RedisStreamConsumer {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ProcessMessageUseCase processMessageUseCase;
+    private final GenerateWeeklyAnalysisReportUseCase generateWeeklyAnalysisReportUseCase;
     private final ObjectMapper objectMapper;
 
     private final MarkOutboxUseCase markOutboxUseCase;
@@ -72,6 +74,9 @@ public class RedisStreamConsumer {
                     break;
                 case REQUEST_CONVERSATION_SUMMARY:
                     future = processConversationSummary(payloadNode);
+                    break;
+                case REQUEST_WEEKLY_ANALYSIS_REPORT:
+                    future = processWeeklyAnalysisReport(payloadNode);
                     break;
                 default:
                     log.warn("Unknown message type: {}", type);
@@ -140,14 +145,21 @@ public class RedisStreamConsumer {
         );
     }
 
+    private CompletableFuture<Void> processWeeklyAnalysisReport(JsonNode payloadNode) {
+        return generateWeeklyAnalysisReportUseCase.generateWeeklyAnalysisReport(
+                new GenerateWeeklyAnalysisReportUseCase.GenerateWeeklyAnalysisReportCommand(
+                        payloadNode.get("weeklyAnalysisReportId").asLong()
+                )
+        );
+    }
+
     private void handleFailedMessage(MapRecord<String, String, String> record) {
         try {
             // 현재 retry 횟수 확인
             Object retryCountObj = record.getValue().get("retry");
             int retryCount = retryCountObj != null ? Integer.parseInt(String.valueOf(retryCountObj)) : 0;
 
-            // 최대 재시도 횟수 설정 (예: 3회)
-            int maxRetries = 3;
+            int maxRetries = 2;
 
             if (retryCount < maxRetries) {
                 // retry count 증가
