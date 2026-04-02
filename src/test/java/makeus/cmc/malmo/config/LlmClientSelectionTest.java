@@ -1,5 +1,6 @@
 package makeus.cmc.malmo.config;
 
+import makeus.cmc.malmo.adaptor.out.GeminiApiClient;
 import makeus.cmc.malmo.adaptor.out.OpenAiApiClient;
 import makeus.cmc.malmo.application.port.out.CheckLlmHealth;
 import makeus.cmc.malmo.application.port.out.chat.RequestChatApiPort;
@@ -18,9 +19,15 @@ class LlmClientSelectionTest {
     @Autowired
     private CheckLlmHealth checkLlmHealth;
 
+//    @Test
+//    void primaryLlmClient_isOpenAi() {
+//        assertThat(requestChatApiPort).isInstanceOf(OpenAiApiClient.class);
+//        assertThat(checkLlmHealth).isInstanceOf(OpenAiApiClient.class);
+//    }
+
     @Test
-    void primaryLlmClient_isOpenAi() {
-        assertThat(requestChatApiPort).isInstanceOf(OpenAiApiClient.class);
-        assertThat(checkLlmHealth).isInstanceOf(OpenAiApiClient.class);
+    void primaryLlmClient_isGemini() {
+        assertThat(requestChatApiPort).isInstanceOf(GeminiApiClient.class);
+        assertThat(checkLlmHealth).isInstanceOf(GeminiApiClient.class);
     }
 }

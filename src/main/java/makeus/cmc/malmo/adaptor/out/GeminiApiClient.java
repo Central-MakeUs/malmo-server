@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
-//@Primary
+@Primary
 @Component
 public class GeminiApiClient extends AbstractOpenAiCompatibleApiClient implements CheckLlmHealth {
 
