@@ -215,6 +215,33 @@ class WeeklyAnalysisReportIntegrationTest {
         assertThat(persistedEntity.getFailedReason()).isEqualTo("llm timeout");
     }
 
+    @Test
+    @DisplayName("기존 리포트를 일반 save로 저장해도 createdAt이 유지된다")
+    void saveExistingWeeklyReport_preservesCreatedAtOnFailureUpdateWithoutFlush() {
+        LocalDate weekStartDate = LocalDate.of(2026, 3, 30);
+        LocalDate weekEndDate = LocalDate.of(2026, 4, 5);
+        persistWeeklyReport(weekStartDate, weekEndDate, WeeklyAnalysisReportStatus.GENERATING);
+
+        WeeklyAnalysisReport report = loadWeeklyAnalysisReportPort.loadByMemberIdAndWeekStartDate(
+                MemberId.of(member.getId()),
+                weekStartDate
+        ).orElseThrow();
+
+        assertThat(report.getCreatedAt()).isNotNull();
+
+        report.markFailed("queue timeout");
+        WeeklyAnalysisReport savedReport = saveWeeklyAnalysisReportPort.saveWeeklyAnalysisReport(report);
+        em.flush();
+        em.clear();
+
+        WeeklyAnalysisReportEntity persistedEntity = em.find(WeeklyAnalysisReportEntity.class, savedReport.getId());
+        assertThat(savedReport.getCreatedAt()).isEqualTo(report.getCreatedAt());
+        assertThat(savedReport.getStatus()).isEqualTo(WeeklyAnalysisReportStatus.FAILED);
+        assertThat(persistedEntity.getCreatedAt()).isEqualTo(report.getCreatedAt());
+        assertThat(persistedEntity.getStatus()).isEqualTo(WeeklyAnalysisReportStatus.FAILED);
+        assertThat(persistedEntity.getFailedReason()).isEqualTo("queue timeout");
+    }
+
     private void persistWeeklyReport(LocalDate weekStartDate, LocalDate weekEndDate, WeeklyAnalysisReportStatus status) {
         WeeklyAnalysisReportContent content = sampleContent(weekStartDate, weekEndDate);
 

@@ -66,14 +66,14 @@ public class WeeklyAnalysisReportPersistenceAdapter
 
     @Override
     public WeeklyAnalysisReport saveWeeklyAnalysisReport(WeeklyAnalysisReport weeklyAnalysisReport) {
-        WeeklyAnalysisReportEntity entity = weeklyAnalysisReportMapper.toEntity(weeklyAnalysisReport);
+        WeeklyAnalysisReportEntity entity = getEntityForSave(weeklyAnalysisReport);
         WeeklyAnalysisReportEntity savedEntity = weeklyAnalysisReportRepository.save(entity);
         return weeklyAnalysisReportMapper.toDomain(savedEntity);
     }
 
     @Override
     public WeeklyAnalysisReport saveAndFlushWeeklyAnalysisReport(WeeklyAnalysisReport weeklyAnalysisReport) {
-        WeeklyAnalysisReportEntity entity = weeklyAnalysisReportMapper.toEntity(weeklyAnalysisReport);
+        WeeklyAnalysisReportEntity entity = getEntityForSave(weeklyAnalysisReport);
         WeeklyAnalysisReportEntity savedEntity = weeklyAnalysisReportRepository.saveAndFlush(entity);
         return weeklyAnalysisReportMapper.toDomain(savedEntity);
     }
@@ -85,5 +85,18 @@ public class WeeklyAnalysisReportPersistenceAdapter
                 List.of(WeeklyAnalysisReportStatus.PENDING, WeeklyAnalysisReportStatus.FAILED),
                 WeeklyAnalysisReportStatus.GENERATING
         ) > 0;
+    }
+
+    private WeeklyAnalysisReportEntity getEntityForSave(WeeklyAnalysisReport weeklyAnalysisReport) {
+        if (weeklyAnalysisReport.getId() == null) {
+            return weeklyAnalysisReportMapper.toEntity(weeklyAnalysisReport);
+        }
+
+        return weeklyAnalysisReportRepository.findById(weeklyAnalysisReport.getId())
+                .map(existingEntity -> {
+                    existingEntity.apply(weeklyAnalysisReport);
+                    return existingEntity;
+                })
+                .orElseGet(() -> weeklyAnalysisReportMapper.toEntity(weeklyAnalysisReport));
     }
 }
