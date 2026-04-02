@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.BaseTimeEntity;
 import makeus.cmc.malmo.adaptor.out.persistence.entity.value.MemberEntityId;
-import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReport;
 import makeus.cmc.malmo.domain.model.weekly_analysis_report.WeeklyAnalysisReportContent;
 import makeus.cmc.malmo.domain.value.state.WeeklyAnalysisReportStatus;
 
@@ -121,33 +120,6 @@ public class WeeklyAnalysisReportEntity extends BaseTimeEntity {
 
     @Column(name = "failed_reason", length = 255)
     private String failedReason;
-
-    public void apply(WeeklyAnalysisReport domain) {
-        WeeklyAnalysisReportContent updatedContent = domain.getContent();
-
-        this.memberId = domain.getMemberId() == null ? null : MemberEntityId.of(domain.getMemberId().getValue());
-        this.weekStartDate = domain.getWeekStartDate();
-        this.weekEndDate = domain.getWeekEndDate();
-        this.status = domain.getStatus();
-        this.sourceChatRoomCount = domain.getSourceChatRoomCount();
-        this.eligibleChatRoomCount = domain.getEligibleChatRoomCount();
-        this.sourceUserMessageCount = domain.getSourceUserMessageCount();
-        this.schemaVersion = updatedContent == null ? null : updatedContent.schemaVersion();
-        this.timezone = updatedContent == null ? null : updatedContent.period().timezone();
-        this.overview = updatedContent == null ? null : OverviewEmbeddable.from(updatedContent.overview());
-        this.topTopics.clear();
-        if (updatedContent != null) {
-            this.topTopics.addAll(updatedContent.topTopics().stream()
-                    .map(TopTopicEmbeddable::from)
-                    .collect(java.util.stream.Collectors.toCollection(ArrayList::new)));
-        }
-        this.moodByTime = updatedContent == null ? null : MoodByTimeEmbeddable.from(updatedContent.moodByTime());
-        this.conflict = updatedContent == null ? null : ConflictEmbeddable.from(updatedContent.conflict());
-        this.behaviorPattern = updatedContent == null ? null : BehaviorPatternEmbeddable.from(updatedContent.behaviorPattern());
-        this.solution = updatedContent == null ? null : SolutionEmbeddable.from(updatedContent.solution());
-        this.generatedAt = domain.getGeneratedAt();
-        this.failedReason = domain.getFailedReason();
-    }
 
     public WeeklyAnalysisReportContent toContent() {
         if (schemaVersion == null) {

@@ -1,7 +1,6 @@
 package makeus.cmc.malmo.adaptor.out.persistence.entity;
 
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,7 +20,6 @@ import java.time.LocalDateTime;
 public abstract class BaseTimeEntity {
 
     @CreatedDate
-    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate

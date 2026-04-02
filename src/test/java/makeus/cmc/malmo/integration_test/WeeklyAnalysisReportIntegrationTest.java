@@ -195,6 +195,7 @@ class WeeklyAnalysisReportIntegrationTest {
         LocalDate weekStartDate = LocalDate.of(2026, 3, 23);
         LocalDate weekEndDate = LocalDate.of(2026, 3, 29);
         persistWeeklyReport(weekStartDate, weekEndDate, WeeklyAnalysisReportStatus.GENERATING);
+        em.clear();
 
         WeeklyAnalysisReport report = loadWeeklyAnalysisReportPort.loadByMemberIdAndWeekStartDate(
                 MemberId.of(member.getId()),
@@ -221,6 +222,7 @@ class WeeklyAnalysisReportIntegrationTest {
         LocalDate weekStartDate = LocalDate.of(2026, 3, 30);
         LocalDate weekEndDate = LocalDate.of(2026, 4, 5);
         persistWeeklyReport(weekStartDate, weekEndDate, WeeklyAnalysisReportStatus.GENERATING);
+        em.clear();
 
         WeeklyAnalysisReport report = loadWeeklyAnalysisReportPort.loadByMemberIdAndWeekStartDate(
                 MemberId.of(member.getId()),
