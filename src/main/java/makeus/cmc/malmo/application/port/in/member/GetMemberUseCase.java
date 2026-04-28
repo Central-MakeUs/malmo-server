@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
@@ -39,5 +40,6 @@ public interface GetMemberUseCase {
         private RelationshipStatus relationshipStatus;
         private String personalityType;
         private String otherPersonalityType;
+        private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 }

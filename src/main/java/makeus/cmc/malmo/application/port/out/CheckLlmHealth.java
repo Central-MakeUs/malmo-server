@@ -1,5 +1,5 @@
 package makeus.cmc.malmo.application.port.out;
 
-public interface CheckOpenAIHealth {
+public interface CheckLlmHealth {
     boolean checkHealth();
 }

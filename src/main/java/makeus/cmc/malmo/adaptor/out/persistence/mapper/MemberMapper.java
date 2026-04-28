@@ -36,6 +36,7 @@ public class MemberMapper {
                 entity.getRelationshipStatus(),
                 entity.getPersonalityType(),
                 entity.getOtherPersonalityType(),
+                entity.getPartnerLoveTypeCategory(),
                 entity.getCreatedAt(),
                 entity.getModifiedAt(),
                 entity.getDeletedAt()
@@ -67,6 +68,7 @@ public class MemberMapper {
                 .relationshipStatus(domain.getRelationshipStatus())
                 .personalityType(domain.getPersonalityType())
                 .otherPersonalityType(domain.getOtherPersonalityType())
+                .partnerLoveTypeCategory(domain.getPartnerLoveTypeCategory())
                 .createdAt(domain.getCreatedAt())
                 .modifiedAt(domain.getModifiedAt())
                 .deletedAt(domain.getDeletedAt())

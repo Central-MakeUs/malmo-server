@@ -16,7 +16,7 @@ MZ세대는 연인과의 갈등 원인으로 '의사소통 방식'과 '성향 �
 ### 1. 애착 유형 진단
 
 - ECR 검사 문항 기반 애착 유형 진단
-- 커플 연동으로 서로의 결과 공유 및 AI 상담에 활용
+- 사용자가 직접 입력한 커플/상대 정보 기반으로 결과를 해석하고 AI 상담에 활용
 
 ### 2. AI 갈등 상담
 
@@ -56,6 +56,50 @@ MZ세대는 연인과의 갈등 원인으로 '의사소통 방식'과 '성향 �
 | **CI/CD**         | ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logo=githubactions&logoColor=white) |
 
 
+
+---
+
+## LLM / CI-CD 설정
+
+- 현재 기본 LLM 구현체는 OpenAI client이며, 기본 모델은 `gpt-5.4-mini`입니다.
+- Gemini 구현체도 코드에 유지되며, 필요 시 `@Primary`를 이동해 전환할 수 있습니다.
+- QA/Prod 배포 workflow는 API Key, Base URL, Model 같은 민감/배포 환경별 값만 환경변수로 주입합니다.
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+- `GEMINI_BASE_URL`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `OPENAI_BASE_URL`
+- `OPENAI_STATUS_URL`
+- `reasoning-effort`는 환경변수가 아니라 profile YML에 직접 선언합니다.
+- 권장 YML 예시
+```yml
+openai:
+  api:
+    reasoning-effort:
+      default: medium
+      scenarios:
+        structured-chat: low
+        free-conversation: low
+        validation: none
+        summary: none
+        auxiliary-extraction: none
+
+gemini:
+  api:
+    reasoning-effort:
+      default: high
+      scenarios:
+        structured-chat: medium
+        free-conversation: low
+        validation: low
+        summary: low
+        auxiliary-extraction: low
+```
+- 롤백 절차
+- OpenAI 구현체에 `@Primary`를 옮깁니다.
+- 필요 시 `OPENAI_MODEL`만 조정합니다.
+- 재배포합니다. reasoning effort 조정은 `application-*.yml` 수정으로 처리합니다.
 
 ---
 

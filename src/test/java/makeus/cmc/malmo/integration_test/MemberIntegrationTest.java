@@ -23,7 +23,9 @@ import makeus.cmc.malmo.application.port.out.member.GenerateTokenPort;
 import makeus.cmc.malmo.domain.value.state.*;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
+import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 import makeus.cmc.malmo.domain.value.type.TermsType;
 import makeus.cmc.malmo.integration_test.dto_factory.CoupleRequestDtoFactory;
 import makeus.cmc.malmo.integration_test.dto_factory.LoveTypeQuestionRequestDtoFactory;
@@ -826,16 +828,14 @@ public class MemberIntegrationTest {
             String relationshipStatus;
             String personalityType;
             String otherPersonalityType;
+            String partnerLoveTypeCategory;
         }
 
         @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
         public static class PartnerResponseDto {
-            private MemberState memberState;
-            private LoveTypeCategory loveTypeCategory;
-            private float avoidanceRate;
-            private float anxietyRate;
-            private String nickname;
-            private Boolean isStartLoveDateUpdated;
+            private String personalityType;
+            private String loveTypeCategory;
+            private String description;
         }
 
         void assertMemberInfo(MemberResponseDto memberResponse, MemberEntity member, LocalDate startLoveDate, int coupleQuestionCount, int totalChatRoomCount) {
@@ -857,6 +857,10 @@ public class MemberIntegrationTest {
             Assertions.assertThat(memberResponse.anxietyRate).isEqualTo(member.getAnxietyRate());
             Assertions.assertThat(memberResponse.nickname).isEqualTo(member.getNickname());
             Assertions.assertThat(memberResponse.email).isEqualTo(member.getEmail());
+            Assertions.assertThat(memberResponse.personalityType).isEqualTo(member.getPersonalityType());
+            Assertions.assertThat(memberResponse.otherPersonalityType).isEqualTo(member.getOtherPersonalityType());
+            Assertions.assertThat(memberResponse.partnerLoveTypeCategory)
+                    .isEqualTo(member.getPartnerLoveTypeCategory() == null ? null : member.getPartnerLoveTypeCategory().name());
         }
 
         @Test
@@ -983,18 +987,22 @@ public class MemberIntegrationTest {
         }
 
         @Test
-        @DisplayName("파트너 멤버 정보 조회 성공")
+        @DisplayName("상대 프로필 등록 및 조회 성공")
         void 파트너_멤버_정보_조회_성공() throws Exception {
             // given
-            MemberEntity partner = createAndSavePartner();
+            Map<String, Object> requestDto = Map.of(
+                    "personalityType", "enfp",
+                    "loveTypeCategory", "CONFUSION_TYPE"
+            );
 
-            mockMvc.perform(post("/couples")
+            mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    CoupleRequestDtoFactory.createCoupleLinkRequestDto(partner.getInviteCodeEntityValue().getValue())
-                            )))
-                    .andExpect(status().isOk());
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("ENFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("CONFUSION_TYPE"))
+                    .andExpect(jsonPath("$.data.description").value("혼란형"));
 
             // when
             MvcResult mvcResult = mockMvc.perform(get("/members/partner")
@@ -1010,41 +1018,34 @@ public class MemberIntegrationTest {
                     new TypeReference<>() {}
             );
 
-            // 파트너 멤버 정보가 정상적으로 조회되었는지 검증
+            // 상대 프로필이 정상적으로 조회되는지 검증
             PartnerResponseDto partnerDto = responseDto.data;
-            Assertions.assertThat(partnerDto.memberState).isEqualTo(partner.getMemberState());
-            Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo(partner.getLoveTypeCategory());
-            Assertions.assertThat(partnerDto.avoidanceRate).isEqualTo(partner.getAvoidanceRate());
-            Assertions.assertThat(partnerDto.anxietyRate).isEqualTo(partner.getAnxietyRate());
-            Assertions.assertThat(partnerDto.nickname).isEqualTo(partner.getNickname());
-            // 새로 생성된 커플이므로 isStartLoveDateUpdated는 false여야 함
-            Assertions.assertThat(partnerDto.isStartLoveDateUpdated).isFalse();
+            Assertions.assertThat(partnerDto.personalityType).isEqualTo("ENFP");
+            Assertions.assertThat(partnerDto.loveTypeCategory).isEqualTo("CONFUSION_TYPE");
+            Assertions.assertThat(partnerDto.description).isEqualTo("혼란형");
         }
 
         @Test
-        @DisplayName("디데이 변경 후 파트너 정보 조회 시 isStartLoveDateUpdated가 true인지 확인")
-        void 디데이_변경_후_파트너_정보_조회_시_isStartLoveDateUpdated_확인() throws Exception {
+        @DisplayName("상대 프로필 수정 성공")
+        void 상대_프로필_수정_성공() throws Exception {
             // given
-            MemberEntity partner = createAndSavePartner();
-
-            // 커플 연결
-            mockMvc.perform(post("/couples")
+            mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    CoupleRequestDtoFactory.createCoupleLinkRequestDto(partner.getInviteCodeEntityValue().getValue())
-                            )))
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "enfp"))))
                     .andExpect(status().isOk());
 
-            // 디데이 변경
-            LocalDate newDday = LocalDate.of(2025, 1, 1);
-            mockMvc.perform(patch("/members/start-love-date")
+            // loveTypeCategory를 null로 전달하면 기존 값(null) 유지
+            mockMvc.perform(patch("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    MemberRequestDtoFactory.createUpdateStartLoveDateRequestDto(newDday)
-                            )))
-                    .andExpect(status().isOk());
+                            .content("""
+                                    {"personalityType":"intj","loveTypeCategory":null}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").doesNotExist())
+                    .andExpect(jsonPath("$.data.description").doesNotExist());
 
             // when
             MvcResult mvcResult = mockMvc.perform(get("/members/partner")
@@ -1060,50 +1061,111 @@ public class MemberIntegrationTest {
                     new TypeReference<>() {}
             );
 
-            // 디데이 변경 후 isStartLoveDateUpdated가 true인지 확인
             PartnerResponseDto partnerDto = responseDto.data;
-            Assertions.assertThat(partnerDto.isStartLoveDateUpdated).isTrue();
+            Assertions.assertThat(partnerDto.personalityType).isEqualTo("INTJ");
+            Assertions.assertThat(partnerDto.loveTypeCategory).isNull();
+            Assertions.assertThat(partnerDto.description).isNull();
         }
 
         @Test
-        @DisplayName("파트너 멤버 정보 조회 실패 - 커플이 아닌 경우")
+        @DisplayName("상대 프로필 수정 성공 - personalityType만 전달 시 loveTypeCategory 유지")
+        void 상대_프로필_수정_성공_personalityType만_업데이트() throws Exception {
+            // given - personalityType + loveTypeCategory 모두 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"enfp","loveTypeCategory":"CONFUSION_TYPE"}
+                                    """))
+                    .andExpect(status().isOk());
+
+            // when - personalityType만 수정 (loveTypeCategory 미포함)
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"intj"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("CONFUSION_TYPE"));
+        }
+
+        @Test
+        @DisplayName("상대 프로필 수정 성공 - loveTypeCategory만 전달 시 personalityType 유지")
+        void 상대_프로필_수정_성공_loveTypeCategory만_업데이트() throws Exception {
+            // given - personalityType + loveTypeCategory 모두 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"personalityType":"enfp","loveTypeCategory":"CONFUSION_TYPE"}
+                                    """))
+                    .andExpect(status().isOk());
+
+            // when - loveTypeCategory만 수정 (personalityType 미포함)
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"loveTypeCategory":"STABLE_TYPE"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("ENFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
+        }
+
+        @Test
+        @DisplayName("상대 프로필 조회 실패 - 미등록 상태")
         void 파트너_멤버_정보_조회_실패_커플이_아닌_경우() throws Exception {
             // when & then
             mockMvc.perform(get("/members/partner")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("message").value(NOT_COUPLE_MEMBER.getMessage()))
-                    .andExpect(jsonPath("code").value(NOT_COUPLE_MEMBER.getCode()));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(NO_SUCH_PARTNER_PROFILE.getMessage()))
+                    .andExpect(jsonPath("code").value(NO_SUCH_PARTNER_PROFILE.getCode()));
         }
 
         @Test
-        @DisplayName("파트너 멤버 정보 조회 실패 - 탈퇴한 멤버인 경우")
+        @DisplayName("상대 프로필 중복 등록 실패")
         void 파트너_멤버_정보_조회_실패_탈퇴한_멤버인_경우() throws Exception {
             // given
-            MemberEntity partner = createAndSavePartner();
-
-            mockMvc.perform(post("/couples")
+            mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    CoupleRequestDtoFactory.createCoupleLinkRequestDto(partner.getInviteCodeEntityValue().getValue())
-                            )))
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "ENFP"))))
                     .andExpect(status().isOk());
 
-            // 탈퇴 처리
-            mockMvc.perform(delete("/members")
+            mockMvc.perform(post("/members/partners")
                             .header("Authorization", "Bearer " + accessToken)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk());
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "INTJ"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("message").value(PARTNER_PROFILE_ALREADY_EXISTS.getMessage()))
+                    .andExpect(jsonPath("code").value(PARTNER_PROFILE_ALREADY_EXISTS.getCode()));
+        }
 
-            // when & then
-            mockMvc.perform(get("/members/partner")
+        @Test
+        @DisplayName("멤버 정보 수정 시 MBTI와 애착 유형 반영")
+        void 멤버_정보_수정_시_MBTI와_애착유형_반영() throws Exception {
+            mockMvc.perform(patch("/members")
                             .header("Authorization", "Bearer " + accessToken)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("message").value(NOT_COUPLE_MEMBER.getMessage()))
-                    .andExpect(jsonPath("code").value(NOT_COUPLE_MEMBER.getCode()));
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"relationshipStatus":"IN_RELATIONSHIP","personalityType":"intj","loveTypeCategory":"STABLE_TYPE"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.relationshipStatus").value(RelationshipStatus.IN_RELATIONSHIP.name()))
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value(LoveTypeCategory.STABLE_TYPE.name()));
+
+            em.flush();
+            em.clear();
+
+            MemberEntity updatedMember = em.find(MemberEntity.class, member.getId());
+            Assertions.assertThat(updatedMember.getPersonalityType()).isEqualTo("INTJ");
+            Assertions.assertThat(updatedMember.getLoveTypeCategory()).isEqualTo(LoveTypeCategory.STABLE_TYPE);
         }
 
         @Test
@@ -1532,6 +1594,150 @@ public class MemberIntegrationTest {
         em.persist(partner);
         em.flush();
         return partner;
+    }
+
+    @Nested
+    @DisplayName("상대 프로필 등록/수정 API 테스트 (POST/PATCH /members/partners)")
+    class PartnerProfileTest {
+
+        @Test
+        @DisplayName("MBTI만 전송하면 loveTypeCategory는 null로 저장된다")
+        void createPartnerProfile_mbtiOnly_loveTypeCategoryIsNull() throws Exception {
+            // given
+            Map<String, Object> requestDto = Map.of("personalityType", "INFP");
+
+            // when & then
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.personalityType").value("INFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").doesNotExist());
+
+            em.flush();
+            em.clear();
+
+            MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
+            assertThat(savedMember.getOtherPersonalityType()).isEqualTo("INFP");
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isNull();
+        }
+
+        @Test
+        @DisplayName("MBTI와 loveTypeCategory 모두 전송하면 두 필드 모두 저장된다")
+        void createPartnerProfile_bothFields_allSaved() throws Exception {
+            // given
+            Map<String, Object> requestDto = Map.of(
+                    "personalityType", "INFP",
+                    "loveTypeCategory", "STABLE_TYPE"
+            );
+
+            // when & then
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.personalityType").value("INFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
+
+            em.flush();
+            em.clear();
+
+            MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
+            assertThat(savedMember.getOtherPersonalityType()).isEqualTo("INFP");
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.STABLE_TYPE);
+        }
+
+        @Test
+        @DisplayName("UNKNOWN을 명시적으로 전송하면 UNKNOWN으로 저장된다")
+        void createPartnerProfile_unknownExplicit_savedAsUnknown() throws Exception {
+            // given
+            Map<String, Object> requestDto = Map.of(
+                    "personalityType", "INFP",
+                    "loveTypeCategory", "UNKNOWN"
+            );
+
+            // when & then
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("UNKNOWN"));
+
+            em.flush();
+            em.clear();
+
+            MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.UNKNOWN);
+        }
+
+        @Test
+        @DisplayName("MBTI 없이 loveTypeCategory만 전송하면 400 오류가 발생한다")
+        void createPartnerProfile_missingMbti_returns400() throws Exception {
+            // given
+            Map<String, Object> requestDto = Map.of("loveTypeCategory", "STABLE_TYPE");
+
+            // when & then
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("MBTI만 등록한 후 PATCH로 loveTypeCategory를 설정할 수 있다")
+        void updatePartnerProfile_addLoveTypeAfterMbtiOnly() throws Exception {
+            // given - MBTI만 먼저 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "INFP"))))
+                    .andExpect(status().isOk());
+
+            // when - loveTypeCategory만 PATCH
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("loveTypeCategory", "STABLE_TYPE"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INFP"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
+
+            em.flush();
+            em.clear();
+
+            MemberEntity savedMember = em.find(MemberEntity.class, member.getId());
+            assertThat(savedMember.getOtherPersonalityType()).isEqualTo("INFP");
+            assertThat(savedMember.getPartnerLoveTypeCategory()).isEqualTo(PartnerLoveTypeCategory.STABLE_TYPE);
+        }
+
+        @Test
+        @DisplayName("PATCH에서 loveTypeCategory를 생략하면 기존 값이 유지된다")
+        void updatePartnerProfile_omitLoveType_preservesExistingValue() throws Exception {
+            // given - MBTI + loveTypeCategory 모두 등록
+            mockMvc.perform(post("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "personalityType", "INFP",
+                                    "loveTypeCategory", "STABLE_TYPE"
+                            ))))
+                    .andExpect(status().isOk());
+
+            // when - personalityType만 PATCH (loveTypeCategory 생략)
+            mockMvc.perform(patch("/members/partners")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("personalityType", "INTJ"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.personalityType").value("INTJ"))
+                    .andExpect(jsonPath("$.data.loveTypeCategory").value("STABLE_TYPE"));
+        }
     }
 
     private CoupleQuestionEntity createAndSaveCoupleQuestion(QuestionEntity questionEntity, Integer coupleId) {

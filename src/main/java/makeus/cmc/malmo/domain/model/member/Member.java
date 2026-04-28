@@ -9,6 +9,7 @@ import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
@@ -47,6 +48,7 @@ public class Member {
     private RelationshipStatus relationshipStatus;
     private String personalityType;
     private String otherPersonalityType;
+    private PartnerLoveTypeCategory partnerLoveTypeCategory;
 
     // BaseTimeEntity fields
     private LocalDateTime createdAt;
@@ -89,6 +91,7 @@ public class Member {
             RelationshipStatus relationshipStatus,
             String personalityType,
             String otherPersonalityType,
+            PartnerLoveTypeCategory partnerLoveTypeCategory,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt,
             LocalDateTime deletedAt
@@ -113,8 +116,9 @@ public class Member {
                 .oauthToken(oauthToken)
                 .coupleId(coupleId)
                 .relationshipStatus(relationshipStatus)
-                .personalityType(personalityType)
-                .otherPersonalityType(otherPersonalityType)
+                .personalityType(normalizePersonalityType(personalityType))
+                .otherPersonalityType(normalizePersonalityType(otherPersonalityType))
+                .partnerLoveTypeCategory(partnerLoveTypeCategory)
                 .createdAt(createdAt)
                 .modifiedAt(modifiedAt)
                 .deletedAt(deletedAt)
@@ -133,24 +137,13 @@ public class Member {
         this.memberState = MemberState.ALIVE;
     }
 
-    /**
-     * V2 회원가입 - startLoveDate 없이 회원가입
-     * 커플 연동 후 별도로 연애 시작일을 설정합니다.
-     */
-    public void signUp(String nickname) {
-        this.nickname = nickname;
-        this.memberState = MemberState.ALIVE;
-    }
-
-    public void signUp(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
+    public void signUp(String nickname, RelationshipStatus relationshipStatus) {
         this.nickname = nickname;
         this.relationshipStatus = relationshipStatus;
-        this.personalityType = personalityType;
-        this.otherPersonalityType = otherPersonalityType;
         this.memberState = MemberState.ALIVE;
     }
 
-    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String personalityType, String otherPersonalityType) {
+    public void updateMemberProfile(String nickname, RelationshipStatus relationshipStatus, String personalityType, LoveTypeCategory loveTypeCategory) {
         if (nickname != null) {
             this.nickname = nickname;
         }
@@ -158,11 +151,40 @@ public class Member {
             this.relationshipStatus = relationshipStatus;
         }
         if (personalityType != null) {
-            this.personalityType = personalityType;
+            this.personalityType = normalizePersonalityType(personalityType);
         }
+        if (loveTypeCategory != null) {
+            this.loveTypeCategory = loveTypeCategory;
+        }
+    }
+
+    public boolean hasPartnerProfile() {
+        return this.otherPersonalityType != null;
+    }
+
+    public void createPartnerProfile(String otherPersonalityType, PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
+        this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+    }
+
+    public void updatePartnerProfile(String otherPersonalityType, PartnerLoveTypeCategory partnerLoveTypeCategory) {
         if (otherPersonalityType != null) {
-            this.otherPersonalityType = otherPersonalityType;
+            this.otherPersonalityType = normalizePersonalityType(otherPersonalityType);
         }
+        if (partnerLoveTypeCategory != null) {
+            this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+        }
+    }
+
+    public boolean updatePartnerLoveTypeCategoryIfUnknown(PartnerLoveTypeCategory partnerLoveTypeCategory) {
+        if (partnerLoveTypeCategory == null) {
+            return false;
+        }
+        if (this.partnerLoveTypeCategory != null && this.partnerLoveTypeCategory != PartnerLoveTypeCategory.UNKNOWN) {
+            return false;
+        }
+        this.partnerLoveTypeCategory = partnerLoveTypeCategory;
+        return true;
     }
 
     public void updateLoveType(LoveTypeCategory loveTypeCategory, float avoidanceRate, float anxietyRate) {
@@ -221,5 +243,9 @@ public class Member {
 
     public void unlinkCouple() {
         this.coupleId = null;
+    }
+
+    private static String normalizePersonalityType(String personalityType) {
+        return personalityType == null ? null : personalityType.toUpperCase();
     }
 }

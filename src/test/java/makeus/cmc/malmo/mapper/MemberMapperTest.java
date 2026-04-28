@@ -10,6 +10,7 @@ import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.state.MemberState;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.MemberRole;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -84,6 +85,9 @@ class MemberMapperTest {
         assertThat(domain.getStartLoveDate()).isEqualTo(entity.getStartLoveDate());
         assertThat(domain.getOauthToken()).isEqualTo(entity.getOauthToken());
         assertThat(domain.getCoupleId().getValue()).isEqualTo(entity.getCoupleEntityId().getValue());
+        assertThat(domain.getPersonalityType()).isEqualTo(entity.getPersonalityType());
+        assertThat(domain.getOtherPersonalityType()).isEqualTo(entity.getOtherPersonalityType());
+        assertThat(domain.getPartnerLoveTypeCategory()).isEqualTo(entity.getPartnerLoveTypeCategory());
         assertThat(domain.getCreatedAt()).isEqualTo(entity.getCreatedAt());
         assertThat(domain.getModifiedAt()).isEqualTo(entity.getModifiedAt());
         assertThat(domain.getDeletedAt()).isEqualTo(entity.getDeletedAt());
@@ -107,6 +111,9 @@ class MemberMapperTest {
         assertThat(entity.getStartLoveDate()).isEqualTo(domain.getStartLoveDate());
         assertThat(entity.getOauthToken()).isEqualTo(domain.getOauthToken());
         assertThat(entity.getCoupleEntityId().getValue()).isEqualTo(domain.getCoupleId().getValue());
+        assertThat(entity.getPersonalityType()).isEqualTo(domain.getPersonalityType());
+        assertThat(entity.getOtherPersonalityType()).isEqualTo(domain.getOtherPersonalityType());
+        assertThat(entity.getPartnerLoveTypeCategory()).isEqualTo(domain.getPartnerLoveTypeCategory());
         assertThat(entity.getCreatedAt()).isEqualTo(domain.getCreatedAt());
         assertThat(entity.getModifiedAt()).isEqualTo(domain.getModifiedAt());
         assertThat(entity.getDeletedAt()).isEqualTo(domain.getDeletedAt());
@@ -132,6 +139,9 @@ class MemberMapperTest {
                 .startLoveDate(LocalDate.now())
                 .oauthToken("oauth_token")
                 .coupleEntityId(CoupleEntityId.of(100L))
+                .personalityType("INTJ")
+                .otherPersonalityType("ENFP")
+                .partnerLoveTypeCategory(PartnerLoveTypeCategory.UNKNOWN)
                 .createdAt(now)
                 .modifiedAt(now)
                 .deletedAt(null)
@@ -160,8 +170,9 @@ class MemberMapperTest {
                 "oauth_token",
                 CoupleId.of(100L),
                 null, // relationshipStatus
-                null, // personalityType
-                null, // otherPersonalityType
+                "INTJ",
+                "ENFP",
+                PartnerLoveTypeCategory.UNKNOWN,
                 now,
                 now,
                 null

@@ -1,6 +1,7 @@
 package makeus.cmc.malmo.adaptor.in.exception;
 
 import io.sentry.Sentry;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.adaptor.out.exception.OidcIdTokenException;
 import makeus.cmc.malmo.adaptor.out.exception.RestApiException;
@@ -9,6 +10,7 @@ import makeus.cmc.malmo.application.exception.*;
 import org.hibernate.TypeMismatchException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -168,12 +170,35 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.NO_SUCH_MESSAGE);
     }
 
+    @ExceptionHandler({PartnerProfileAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponse> handlePartnerProfileAlreadyExistsException(PartnerProfileAlreadyExistsException e) {
+        log.info("[GlobalExceptionHandler: handlePartnerProfileAlreadyExistsException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.PARTNER_PROFILE_ALREADY_EXISTS);
+    }
+
+    @ExceptionHandler({PartnerProfileNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handlePartnerProfileNotFoundException(PartnerProfileNotFoundException e) {
+        log.info("[GlobalExceptionHandler: handlePartnerProfileNotFoundException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.NO_SUCH_PARTNER_PROFILE);
+    }
+
+    @ExceptionHandler({LoveTypePersonalityTypeFeatureNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleLoveTypePersonalityTypeFeatureNotFoundException(LoveTypePersonalityTypeFeatureNotFoundException e) {
+        log.warn("[GlobalExceptionHandler: handleLoveTypePersonalityTypeFeatureNotFoundException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT);
+    }
+
 
 
     /**
      *  ---------- 공통 예외 처리 핸들러 ----------
       */
-    @ExceptionHandler({NoHandlerFoundException.class, TypeMismatchException.class})
+    @ExceptionHandler({
+            NoHandlerFoundException.class,
+            TypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            ConstraintViolationException.class
+    })
     public ResponseEntity<ErrorResponse> handleBadRequestException(Exception e) {
         log.warn("[CommonExceptionHandler: handleBadRequestException 호출] {}", e.getMessage());
         return ErrorResponse.of(ErrorCode.BAD_REQUEST);

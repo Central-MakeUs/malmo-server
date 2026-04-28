@@ -2,6 +2,7 @@ package makeus.cmc.malmo.application.port.in.member;
 
 import lombok.Builder;
 import lombok.Data;
+import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
 
 public interface UpdateMemberUseCase {
@@ -15,7 +16,7 @@ public interface UpdateMemberUseCase {
         private String nickname;
         private RelationshipStatus relationshipStatus;
         private String personalityType;
-        private String otherPersonalityType;
+        private LoveTypeCategory loveTypeCategory;
     }
 
     @Data
@@ -24,6 +25,6 @@ public interface UpdateMemberUseCase {
         private String nickname;
         private RelationshipStatus relationshipStatus;
         private String personalityType;
-        private String otherPersonalityType;
+        private LoveTypeCategory loveTypeCategory;
     }
 }

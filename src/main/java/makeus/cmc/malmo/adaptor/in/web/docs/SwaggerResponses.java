@@ -84,6 +84,11 @@ public class SwaggerResponses {
     }
 
     @Getter
+    @Schema(description = "상대 프로필 등록/수정 성공 응답")
+    public static class PartnerProfileSuccessResponse extends BaseSwaggerResponse<PartnerProfileData> {
+    }
+
+    @Getter
     @Schema(description = "멤버 정보 수정 성공 응답")
     public static class UpdateMemberSuccessResponse extends BaseSwaggerResponse<UpdateMemberData> {
     }
@@ -109,18 +114,21 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "멤버 초대 코드 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 멤버 초대 코드 성공 응답")
     public static class GetInviteCodeSuccessResponse extends BaseSwaggerResponse<InviteCodeResponseData> {
     }
 
     // 커플 관련 응답
     @Getter
-    @Schema(description = "커플 연결 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 성공 응답")
     public static class CoupleLinkSuccessResponse extends BaseSwaggerResponse<CoupleLinkData> {
     }
 
     @Getter
-    @Schema(description = "커플 연결 끊기 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 끊기 성공 응답")
     public static class CoupleUnlinkSuccessResponse extends BaseSwaggerResponse<CoupleUnlinkData> {
     }
 
@@ -136,12 +144,18 @@ public class SwaggerResponses {
     }
 
     @Getter
+    @Schema(description = "MBTI + 애착유형 상세 결과 조회 성공 응답")
+    public static class LoveTypePersonalityTypeResultSuccessResponse extends BaseSwaggerResponse<LoveTypePersonalityTypeResultData> {
+    }
+
+    @Getter
     @Schema(description = "애착유형 등록 성공 응답")
     public static class RegisterLoveTypeSuccessResponse extends BaseSwaggerResponse<Void> {
     }
 
     @Getter
-    @Schema(description = "연애 시작일 갱신 성공 응답")
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 갱신 성공 응답")
     public static class UpdateStartLoveDateSuccessResponse extends BaseSwaggerResponse<UpdateStartLoveDateData> {
     }
 
@@ -274,33 +288,41 @@ public class SwaggerResponses {
         @Schema(description = "연애 상태", example = "IN_RELATIONSHIP")
         private RelationshipStatus relationshipStatus;
 
-        @Schema(description = "성격 유형", example = "INTJ")
+        @Schema(description = "내 MBTI", example = "INTJ")
         private String personalityType;
 
-        @Schema(description = "상대방 성격 유형", example = "ENFP")
+        @Schema(description = "상대방 MBTI", example = "INTJ")
         private String otherPersonalityType;
+
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory partnerLoveTypeCategory;
     }
 
     @Getter
-    @Schema(description = "파트너 멤버 정보 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 상대 프로필 조회 응답 데이터")
     public static class PartnerMemberData {
-        @Schema(description = "멤버 상태", example = "ALIVE")
-        private MemberState memberState;
+        @Schema(description = "상대방 MBTI", example = "INTJ")
+        private String personalityType;
 
-        @Schema(description = "애착 유형", example = "STABLE_TYPE")
-        private LoveTypeCategory loveTypeCategory;
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory loveTypeCategory;
 
-        @Schema(description = "회피 비율", example = "0.3")
-        private float avoidanceRate;
+        @Schema(description = "애착 유형 설명", example = "모르겠어요")
+        private String description;
+    }
 
-        @Schema(description = "불안 비율", example = "0.2")
-        private float anxietyRate;
+    @Getter
+    @Schema(description = "상대 프로필 응답 데이터")
+    public static class PartnerProfileData {
+        @Schema(description = "상대방 MBTI", example = "INTJ")
+        private String personalityType;
 
-        @Schema(description = "닉네임", example = "김영희")
-        private String nickname;
+        @Schema(description = "상대방 애착 유형", example = "UNKNOWN")
+        private PartnerLoveTypeCategory loveTypeCategory;
 
-        @Schema(description = "디데이 변경 이력 여부", example = "false")
-        private Boolean isStartLoveDateUpdated;
+        @Schema(description = "애착 유형 설명", example = "모르겠어요")
+        private String description;
     }
 
     @Getter
@@ -309,8 +331,14 @@ public class SwaggerResponses {
         @Schema(description = "닉네임", example = "홍길동")
         private String nickname;
 
-        @Schema(description = "이메일", example = "test@example.com")
-        private String email;
+        @Schema(description = "연애 상태", example = "IN_RELATIONSHIP")
+        private RelationshipStatus relationshipStatus;
+
+        @Schema(description = "내 MBTI", example = "INTJ")
+        private String personalityType;
+
+        @Schema(description = "내 애착 유형", example = "STABLE_TYPE")
+        private LoveTypeCategory loveTypeCategory;
     }
 
     @Data
@@ -348,14 +376,16 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "커플 연결 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 응답 데이터")
     public static class CoupleLinkData {
         @Schema(description = "생성된 커플 ID", example = "1")
         private Long coupleId;
     }
 
     @Getter
-    @Schema(description = "커플 연결 끊기 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 커플 연결 끊기 응답 데이터")
     public static class CoupleUnlinkData {
         @Schema(description = "해제된 커플 ID", example = "1")
         private Long coupleId;
@@ -387,7 +417,65 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "연애 시작일 갱신 응답 데이터")
+    @Schema(description = "MBTI + 애착유형 상세 결과 응답 데이터")
+    public static class LoveTypePersonalityTypeResultData {
+        @Schema(description = "personalityType", example = "INTJ")
+        private String personalityType;
+
+        @Schema(description = "애착 유형", example = "STABLE_TYPE")
+        private LoveTypeCategory loveTypeCategory;
+
+        @Schema(description = "요약", example = "풍부한 상상력과 사랑으로, 함께하는 일상을 즐겁게 만들어 가는 유형")
+        private String summary;
+
+        @Schema(description = "키워드 목록")
+        private List<String> keywords;
+
+        @Schema(description = "강점 목록")
+        private List<LoveTypeTextBlockData> strengths;
+
+        @Schema(description = "약점 목록")
+        private List<LoveTypeTextBlockData> weaknesses;
+
+        @Schema(description = "관계 패턴 목록")
+        private List<LoveTypeTextBlockData> patterns;
+
+        @Schema(description = "애착유형 특징 목록")
+        private List<LoveTypeTextBlockData> loveTypeFeatures;
+
+        @Schema(description = "연애 가이드 목록")
+        private List<LoveTypeTextBlockData> datingGuides;
+
+        @Schema(description = "잘 맞는 MBTI 목록")
+        private List<LoveTypePersonalityTypeBlockData> bestMatches;
+
+        @Schema(description = "부딪히기 쉬운 MBTI 목록")
+        private List<LoveTypePersonalityTypeBlockData> worstMatches;
+    }
+
+    @Getter
+    @Schema(description = "제목 + 설명 텍스트 블록")
+    public static class LoveTypeTextBlockData {
+        @Schema(description = "제목", example = "Ne")
+        private String title;
+
+        @Schema(description = "설명", example = "흩어진 정보 속에서 하나의 핵심 맥락과 미래를 읽어내요")
+        private String description;
+    }
+
+    @Getter
+    @Schema(description = "MBTI + 설명 블록")
+    public static class LoveTypePersonalityTypeBlockData {
+        @Schema(description = "personalityType", example = "INTJ")
+        private String personalityType;
+
+        @Schema(description = "설명", example = "속마음을 깊이 이해해주며 안정적인 감정을 공유하는 궁합")
+        private String description;
+    }
+
+    @Getter
+    @Deprecated
+    @Schema(description = "[Deprecated] 연애 시작일 갱신 응답 데이터")
     public static class UpdateStartLoveDateData {
         @Schema(description = "변경된 연애 시작일", example = "2023-01-15")
         private LocalDate startLoveDate;
@@ -534,7 +622,8 @@ public class SwaggerResponses {
     }
 
     @Getter
-    @Schema(description = "초대 코드 응답 데이터")
+    @Deprecated
+    @Schema(description = "[Deprecated] 초대 코드 응답 데이터")
     public static class InviteCodeResponseData {
         private String coupleCode;
     }

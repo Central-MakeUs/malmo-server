@@ -1,8 +1,10 @@
 package makeus.cmc.malmo.application.service.chat;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataQueryHelper;
+import makeus.cmc.malmo.application.helper.love_type.LoveTypePersonalityTypePromptQueryHelper;
 import makeus.cmc.malmo.application.port.out.chat.LoadChatRoomMetadataPort;
 import makeus.cmc.malmo.domain.model.chat.ChatMessage;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
@@ -12,19 +14,26 @@ import makeus.cmc.malmo.domain.model.member.Member;
 import makeus.cmc.malmo.domain.model.member.MemberMemory;
 import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.MemberId;
+import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
+import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.SenderType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatPromptBuilder {
 
+    private static final String UNKNOWN_INFERENCE_PROMPT = "UNKNOWN, 사용자와의 대화로부터 유추할 것";
+
     private final ChatRoomQueryHelper chatRoomQueryHelper;
     private final MemberChatRoomMetadataQueryHelper memberChatRoomMetadataQueryHelper;
+    private final LoveTypePersonalityTypePromptQueryHelper loveTypePersonalityTypePromptQueryHelper;
 
     public List<Map<String, String>> createForProcessUserMessage(Member member, ChatRoom chatRoom, String userMessage) {
         List<Map<String, String>> messages = new ArrayList<>();
@@ -94,11 +103,58 @@ public class ChatPromptBuilder {
         String memberLoveTypeTitle = chatRoomMetadataDto.memberLoveType() != null ? chatRoomMetadataDto.memberLoveType().getTitle() : "알 수 없음";
         metadataBuilder.append("- 사용자 애착 유형: ").append(memberLoveTypeTitle).append("\n");
 
-        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getTitle() : "알 수 없음";
+        String partnerLoveType = chatRoomMetadataDto.partnerLoveType() != null ? chatRoomMetadataDto.partnerLoveType().getDescription() : "알 수 없음";
         metadataBuilder.append("- 애인 애착 유형: ").append(partnerLoveType).append("\n");
+        metadataBuilder.append("- 사용자 성향 프롬프트:\n")
+                .append(resolveMemberPrompt(member))
+                .append("\n");
+
+        if (StringUtils.hasText(member.getOtherPersonalityType())) {
+            metadataBuilder.append("- 상대방 성향 프롬프트:\n")
+                    .append(resolvePartnerPrompt(member))
+                    .append("\n");
+        }
+
         metadataBuilder.append(memberMemoryList);
 
         return metadataBuilder.toString();
+    }
+
+    private String resolveMemberPrompt(Member member) {
+        if (!StringUtils.hasText(member.getPersonalityType()) || member.getLoveTypeCategory() == null) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        return loveTypePersonalityTypePromptQueryHelper
+                .findByPersonalityTypeAndLoveTypeCategory(member.getPersonalityType(), member.getLoveTypeCategory())
+                .map(prompt -> prompt.getPrompts())
+                .filter(StringUtils::hasText)
+                .orElseGet(() -> {
+                    log.warn("Missing love_type_personality_type_prompt row for member. personalityType={}, loveType={}",
+                            member.getPersonalityType(), member.getLoveTypeCategory());
+                    return UNKNOWN_INFERENCE_PROMPT;
+                });
+    }
+
+    private String resolvePartnerPrompt(Member member) {
+        if (!StringUtils.hasText(member.getOtherPersonalityType())) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        if (member.getPartnerLoveTypeCategory() == null || member.getPartnerLoveTypeCategory() == PartnerLoveTypeCategory.UNKNOWN) {
+            return UNKNOWN_INFERENCE_PROMPT;
+        }
+
+        LoveTypeCategory partnerLoveTypeCategory = LoveTypeCategory.valueOf(member.getPartnerLoveTypeCategory().name());
+        return loveTypePersonalityTypePromptQueryHelper
+                .findByPersonalityTypeAndLoveTypeCategory(member.getOtherPersonalityType(), partnerLoveTypeCategory)
+                .map(prompt -> prompt.getPrompts())
+                .filter(StringUtils::hasText)
+                .orElseGet(() -> {
+                    log.warn("Missing love_type_personality_type_prompt row for partner. memberId={}, otherPersonalityType={}, partnerLoveType={}",
+                            member.getId(), member.getOtherPersonalityType(), partnerLoveTypeCategory);
+                    return UNKNOWN_INFERENCE_PROMPT;
+                });
     }
 
     public String getMemberMemoriesByMemberId(MemberId memberId) {
@@ -173,6 +229,27 @@ public class ChatPromptBuilder {
         if (!metadataList.isEmpty()) {
             String metadataContent = getMemberChatRoomMetadataContent(metadataList);
             messages.add(createMessageMap(SenderType.SYSTEM, metadataContent));
+        }
+
+        return messages;
+    }
+
+    public List<Map<String, String>> createForPartnerLoveTypeInference(Member member, ChatRoom chatRoom, int targetLevel) {
+        List<Map<String, String>> messages = new ArrayList<>();
+        ChatRoomId chatRoomId = ChatRoomId.of(chatRoom.getId());
+
+        String metaDataContent = getMetaDataContent(member);
+        messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
+
+        List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(chatRoomId);
+        if (!metadataList.isEmpty()) {
+            String metadataContent = getMemberChatRoomMetadataContent(metadataList);
+            messages.add(createMessageMap(SenderType.SYSTEM, metadataContent));
+        }
+
+        List<ChatMessage> stageMessages = chatRoomQueryHelper.getChatRoomLevelMessages(chatRoomId, targetLevel);
+        for (ChatMessage chatMessage : stageMessages) {
+            messages.add(createMessageMap(chatMessage.getSenderType(), chatMessage.getContent()));
         }
 
         return messages;
