@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Map;
 
 @Slf4j
-@Primary
+//@Primary
 @Component
 public class OpenAiApiClient extends AbstractOpenAiCompatibleApiClient implements CheckLlmHealth {
 
