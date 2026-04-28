@@ -219,16 +219,24 @@ public class ChatPromptBuilder {
 
     public List<Map<String, String>> createForNextStage(Member member, ChatRoom chatRoom, int nextLevel) {
         List<Map<String, String>> messages = new ArrayList<>();
+        ChatRoomId chatRoomId = ChatRoomId.of(chatRoom.getId());
 
         // 1. 사용자 메타데이터
         String metaDataContent = getMetaDataContent(member);
         messages.add(createMessageMap(SenderType.SYSTEM, metaDataContent));
 
         // 2. MemberChatRoomMetadata 정보
-        List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(ChatRoomId.of(chatRoom.getId()));
+        List<MemberChatRoomMetadata> metadataList = memberChatRoomMetadataQueryHelper.getMemberChatRoomMetadata(chatRoomId);
         if (!metadataList.isEmpty()) {
             String metadataContent = getMemberChatRoomMetadataContent(metadataList);
             messages.add(createMessageMap(SenderType.SYSTEM, metadataContent));
+        }
+
+        // 3. 다음 단계 첫 응답은 직전 단계에서 수집한 대화 맥락을 바탕으로 생성한다.
+        int previousLevel = nextLevel - 1;
+        List<ChatMessage> previousStageMessages = chatRoomQueryHelper.getChatRoomLevelMessages(chatRoomId, previousLevel);
+        for (ChatMessage chatMessage : previousStageMessages) {
+            messages.add(createMessageMap(chatMessage.getSenderType(), chatMessage.getContent()));
         }
 
         return messages;

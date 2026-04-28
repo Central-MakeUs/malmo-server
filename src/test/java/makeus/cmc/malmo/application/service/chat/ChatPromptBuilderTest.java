@@ -4,9 +4,11 @@ import makeus.cmc.malmo.application.helper.chat_room.ChatRoomQueryHelper;
 import makeus.cmc.malmo.application.helper.chat_room.MemberChatRoomMetadataQueryHelper;
 import makeus.cmc.malmo.application.helper.love_type.LoveTypePersonalityTypePromptQueryHelper;
 import makeus.cmc.malmo.application.port.out.chat.LoadChatRoomMetadataPort;
+import makeus.cmc.malmo.domain.model.chat.ChatMessage;
 import makeus.cmc.malmo.domain.model.chat.ChatRoom;
 import makeus.cmc.malmo.domain.model.love_type.LoveTypePersonalityTypePrompt;
 import makeus.cmc.malmo.domain.model.member.Member;
+import makeus.cmc.malmo.domain.value.id.ChatRoomId;
 import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.type.EmailForwardingStatus;
 import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
@@ -29,6 +31,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,6 +133,38 @@ class ChatPromptBuilderTest {
         String metadata = messages.get(0).get("content");
         assertThat(metadata).contains("- 사용자 성향 프롬프트:\n" + UNKNOWN_INFERENCE_PROMPT);
         assertThat(metadata).contains("- 상대방 성향 프롬프트:\n" + UNKNOWN_INFERENCE_PROMPT);
+    }
+
+    @Test
+    @DisplayName("다음 단계 첫 메시지 생성 시 이전 단계 대화 메시지를 포함한다")
+    void createForNextStage_includesPreviousStageMessages() {
+        // given
+        Member member = createMember("ISTJ", LoveTypeCategory.STABLE_TYPE, "ENFP", PartnerLoveTypeCategory.ANXIETY_TYPE);
+        ChatRoom chatRoom = createChatRoom(5L);
+        ChatRoomId chatRoomId = ChatRoomId.of(chatRoom.getId());
+        List<ChatMessage> previousStageMessages = List.of(
+                ChatMessage.createUserTextMessage(chatRoomId, 1, 1, "사용자 고민"),
+                ChatMessage.createAssistantTextMessage(chatRoomId, 1, 1, "상담 응답")
+        );
+
+        stubCommon(chatRoom, LoveTypeCategory.STABLE_TYPE, PartnerLoveTypeCategory.ANXIETY_TYPE);
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory("ISTJ", LoveTypeCategory.STABLE_TYPE))
+                .thenReturn(Optional.of(LoveTypePersonalityTypePrompt.from("ISTJ", LoveTypeCategory.STABLE_TYPE, "ISTJ 안정형 프롬프트")));
+        when(loveTypePersonalityTypePromptQueryHelper.findByPersonalityTypeAndLoveTypeCategory("ENFP", LoveTypeCategory.ANXIETY_TYPE))
+                .thenReturn(Optional.of(LoveTypePersonalityTypePrompt.from("ENFP", LoveTypeCategory.ANXIETY_TYPE, "ENFP 불안형 프롬프트")));
+        when(chatRoomQueryHelper.getChatRoomLevelMessages(eq(chatRoomId), eq(1)))
+                .thenReturn(previousStageMessages);
+
+        // when
+        List<Map<String, String>> messages = chatPromptBuilder.createForNextStage(member, chatRoom, 2);
+
+        // then
+        assertThat(messages).hasSize(3);
+        assertThat(messages.get(1)).containsEntry("role", "user")
+                .containsEntry("content", "사용자 고민");
+        assertThat(messages.get(2)).containsEntry("role", "assistant")
+                .containsEntry("content", "상담 응답");
+        assertThat(messages).anySatisfy(message -> assertThat(message).containsEntry("role", "user"));
     }
 
     private void stubCommon(ChatRoom chatRoom, LoveTypeCategory userLoveType, PartnerLoveTypeCategory partnerLoveType) {
