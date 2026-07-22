@@ -1,5 +1,6 @@
 package makeus.cmc.malmo.adaptor.out.oauth;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,6 +122,7 @@ public class KakaoWebOAuthAdapter implements WebOAuthProviderPort {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private record KakaoTokenResponse(
             @JsonProperty("access_token") String accessToken,
             @JsonProperty("id_token") String idToken
