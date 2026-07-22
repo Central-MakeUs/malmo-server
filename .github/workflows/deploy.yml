@@ -162,6 +162,10 @@ jobs:
                   - REDIS_CONSUMER_GROUP=${{ steps.set_config.outputs.redis_consumer_group }}
                   - JWT_SECRET=${{ secrets.JWT_SECRET }}
                   - KAKAO_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }}
+                  - KAKAO_WEB_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }}
+                  - KAKAO_WEB_CLIENT_SECRET=${{ secrets.KAKAO_WEB_CLIENT_SECRET }}
+                  - KAKAO_WEB_REDIRECT_URI=${{ secrets.KAKAO_WEB_REDIRECT_URI }}
+                  - WEB_SOCIAL_LOGIN_ALLOWED_RETURN_ORIGINS=${{ secrets.WEB_SOCIAL_LOGIN_ALLOWED_RETURN_ORIGINS }}
                   - APPLE_REST_API_KEY=${{ secrets.APPLE_REST_API_KEY }}
                   - APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}
                   - APPLE_KEY_ID=${{ secrets.APPLE_KEY_ID }}

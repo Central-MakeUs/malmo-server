@@ -29,6 +29,7 @@ public enum ErrorCode {
     PARTNER_PROFILE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, 40017, "이미 상대 프로필이 등록되어 있습니다."),
     NO_SUCH_PARTNER_PROFILE(HttpStatus.BAD_REQUEST, 40018, "등록된 상대 프로필이 존재하지 않습니다."),
     NO_SUCH_LOVE_TYPE_PERSONALITY_TYPE_RESULT(HttpStatus.BAD_REQUEST, 40019, "해당 MBTI와 애착 유형 결과가 존재하지 않습니다."),
+    INVALID_WEB_OAUTH_REQUEST(HttpStatus.BAD_REQUEST, 40020, "유효하지 않은 웹 소셜 로그인 요청입니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 40100, "인증되지 않은 사용자입니다."),

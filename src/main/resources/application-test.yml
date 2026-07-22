@@ -32,6 +32,13 @@ server:
     encoding:
       force-response: true
 
+social-login:
+  web:
+    allowed-return-origins: http://localhost
+    kakao:
+      client-id: test-kakao-web-client-id
+      redirect-uri: http://localhost/login/web/kakao/callback
+
 logging:
   level:
     org.hibernate.SQL: DEBUG

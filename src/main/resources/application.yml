@@ -25,3 +25,19 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+social-login:
+  web:
+    allowed-return-origins: ${WEB_SOCIAL_LOGIN_ALLOWED_RETURN_ORIGINS:}
+    state-expiration-seconds: 300
+    ticket-expiration-seconds: 60
+    refresh-token-expiration-seconds: 2592000
+    kakao:
+      client-id: ${KAKAO_WEB_REST_API_KEY:}
+      client-secret: ${KAKAO_WEB_CLIENT_SECRET:}
+      redirect-uri: ${KAKAO_WEB_REDIRECT_URI:}
+      authorization-uri: https://kauth.kakao.com/oauth/authorize
+      token-uri: https://kauth.kakao.com/oauth/token
+      user-info-uri: https://kapi.kakao.com/v1/oidc/userinfo
+      issuer: https://kauth.kakao.com
+      jwks-uri: https://kauth.kakao.com/.well-known/jwks.json

@@ -53,6 +53,12 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(ErrorCode.INVALID_REFRESH_TOKEN);
     }
 
+    @ExceptionHandler({InvalidWebOAuthRequestException.class})
+    public ResponseEntity<ErrorResponse> handleInvalidWebOAuthRequestException(InvalidWebOAuthRequestException e) {
+        log.info("[GlobalExceptionHandler: handleInvalidWebOAuthRequestException 호출] {}", e.getMessage());
+        return ErrorResponse.of(ErrorCode.INVALID_WEB_OAUTH_REQUEST);
+    }
+
     @ExceptionHandler({InviteCodeGenerateFailedException.class})
     public ResponseEntity<ErrorResponse> handleInviteCodeGenerateFailedException(InviteCodeGenerateFailedException e) {
         log.error("[GlobalExceptionHandler: handleInviteCodeGenerateFailedException 호출]", e);
