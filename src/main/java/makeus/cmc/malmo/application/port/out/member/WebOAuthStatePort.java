@@ -12,7 +12,6 @@ public interface WebOAuthStatePort {
             Provider provider,
             String state,
             String nonce,
-            String codeVerifier,
             String returnUrl,
             String deviceId
     ) {

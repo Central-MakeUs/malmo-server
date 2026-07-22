@@ -57,8 +57,6 @@ public class KakaoWebOAuthAdapter implements WebOAuthProviderPort {
                 .queryParam("scope", "openid,account_email")
                 .queryParam("state", request.state())
                 .queryParam("nonce", request.nonce())
-                .queryParam("code_challenge", request.codeChallenge())
-                .queryParam("code_challenge_method", "S256")
                 .build()
                 .encode()
                 .toUri();
@@ -88,7 +86,6 @@ public class KakaoWebOAuthAdapter implements WebOAuthProviderPort {
         body.add("client_id", properties.getClientId());
         body.add("redirect_uri", properties.getRedirectUri());
         body.add("code", authorizationCode.code());
-        body.add("code_verifier", authorizationCode.codeVerifier());
         if (!properties.getClientSecret().isBlank()) {
             body.add("client_secret", properties.getClientSecret());
         }

@@ -23,9 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
@@ -122,12 +119,11 @@ public class WebSignInService implements WebSignInUseCase {
         returnUrlValidator.validate(returnUrl);
         String state = randomUrlSafeValue();
         String nonce = randomUrlSafeValue();
-        String codeVerifier = randomUrlSafeValue();
         statePort.save(new WebOAuthStatePort.State(
-                Provider.KAKAO, state, nonce, codeVerifier, returnUrl, deviceId
+                Provider.KAKAO, state, nonce, returnUrl, deviceId
         ));
         return providerPort.authorizationUri(new WebOAuthProviderPort.AuthorizationRequest(
-                state, nonce, createCodeChallenge(codeVerifier)
+                state, nonce
         ));
     }
 
@@ -137,7 +133,7 @@ public class WebSignInService implements WebSignInUseCase {
         WebOAuthStatePort.State state = consumeState(stateValue);
         WebOAuthProviderPort.Identity identity = providerPort.exchange(
                 new WebOAuthProviderPort.AuthorizationCode(
-                        code, state.state(), state.nonce(), state.codeVerifier()
+                        code, state.state(), state.nonce()
                 )
         );
         Member member = memberQueryHelper.getMemberByProviderId(Provider.KAKAO, identity.providerId())
@@ -226,16 +222,6 @@ public class WebSignInService implements WebSignInUseCase {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private static String createCodeChallenge(String codeVerifier) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                    .digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", e);
-        }
     }
 
     private static URI appendQuery(String returnUrl, String name, String value) {

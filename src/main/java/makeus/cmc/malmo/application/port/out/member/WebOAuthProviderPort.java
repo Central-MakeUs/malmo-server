@@ -10,16 +10,14 @@ public interface WebOAuthProviderPort {
 
     record AuthorizationRequest(
             String state,
-            String nonce,
-            String codeChallenge
+            String nonce
     ) {
     }
 
     record AuthorizationCode(
             String code,
             String state,
-            String nonce,
-            String codeVerifier
+            String nonce
     ) {
     }
 

@@ -8,7 +8,7 @@ not used by web sessions.
 
 1. Redirect the browser to the backend endpoint:
    - `GET /login/web/kakao/authorize?returnUrl={frontendCallback}`
-2. The backend creates one-time `state`, `nonce`, and PKCE values and redirects to the provider.
+2. The backend creates one-time `state` and `nonce` values and redirects to Kakao.
 3. The provider calls the backend callback.
 4. The backend redirects to `{frontendCallback}?ticket={oneTimeTicket}`.
 5. Exchange the ticket once:

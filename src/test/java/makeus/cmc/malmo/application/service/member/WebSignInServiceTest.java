@@ -83,7 +83,7 @@ class WebSignInServiceTest {
                 null, null, null, null, null, null, null, null
         );
         WebOAuthStatePort.State state = new WebOAuthStatePort.State(
-                Provider.KAKAO, "state", "nonce", "verifier",
+                Provider.KAKAO, "state", "nonce",
                 "https://web.malmo.example/auth/callback", null
         );
         given(statePort.consume("state")).willReturn(state);
