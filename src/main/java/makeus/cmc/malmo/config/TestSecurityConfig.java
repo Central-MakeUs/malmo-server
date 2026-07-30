@@ -33,6 +33,7 @@ public class TestSecurityConfig {
     private final JwtAdaptor jwtAdaptor;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final WebSocialLoginProperties webSocialLoginProperties;
 
     @Value("${security.client.url.production}")
     private String PRODUCTION_CLIENT_URL;
@@ -79,8 +80,20 @@ public class TestSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 여기에서 허용할 도메인만 설정
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001", "http://localhost:8080", "https://test-front.malmo.io.kr", PRODUCTION_SERVER_URL, DEVELOPMENT_SERVER_URL, PRODUCTION_CLIENT_URL, DEVELOPMENT_CLIENT_URL));
+        List<String> allowedOrigins = CorsAllowedOriginResolver.merge(
+                List.of(
+                        "http://localhost:3000",
+                        "http://localhost:3001",
+                        "http://localhost:8080",
+                        "https://test-front.malmo.io.kr",
+                        PRODUCTION_SERVER_URL,
+                        DEVELOPMENT_SERVER_URL,
+                        PRODUCTION_CLIENT_URL,
+                        DEVELOPMENT_CLIENT_URL
+                ),
+                webSocialLoginProperties.getAllowedReturnOrigins()
+        );
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
