@@ -77,8 +77,9 @@ The production migration is in
 2. Creates a recoverable backup of only the identity columns being changed; it
    does not duplicate email or token columns.
 3. Normalizes deleted provider IDs to member-specific tombstones.
-4. Adds `UNIQUE (provider, provider_id)`.
-5. Verifies the resulting index and data.
+4. Makes both identity columns `NOT NULL`.
+5. Adds `UNIQUE (provider, provider_id)`.
+6. Verifies the resulting columns, index, and data.
 
 The SQL also includes an emergency rollback procedure that drops the new index
 and restores the original provider IDs from the targeted backup.
@@ -119,7 +120,7 @@ Safest order:
 2. Run SQL preflight and confirm empty/zero results.
 3. Create and verify the backup table.
 4. Normalize deleted identities and verify no duplicates.
-5. Add the unique constraint.
+5. Make both identity columns non-null and add the unique constraint.
 6. Deploy the application change.
 7. Run one existing-user and one new-user login smoke test for Kakao and Apple.
 8. Resume traffic and monitor application errors plus duplicate-key logs.

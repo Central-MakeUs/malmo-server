@@ -117,9 +117,17 @@ HAVING COUNT(*) > 1;
 COMMIT;
 
 -- -----------------------------------------------------------------------------
--- 4. Final database invariant. Run once; MySQL DDL implicitly commits.
+-- 4. Final database invariant. Run each ALTER once; MySQL DDL implicitly commits.
 --    Keep login traffic paused until this finishes.
 -- -----------------------------------------------------------------------------
+
+-- Preserve the production column types and collation while rejecting null
+-- identities. Run only after invalid_provider_identity_count is 0.
+ALTER TABLE member_entity
+    MODIFY COLUMN provider ENUM('APPLE', 'KAKAO')
+        CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    MODIFY COLUMN provider_id VARCHAR(255)
+        CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
 
 ALTER TABLE member_entity
     ADD CONSTRAINT uq_member_provider_provider_id
@@ -131,6 +139,12 @@ ALTER TABLE member_entity
 
 SHOW INDEX FROM member_entity
 WHERE Key_name = 'uq_member_provider_provider_id';
+
+SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLLATION_NAME
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'member_entity'
+  AND COLUMN_NAME IN ('provider', 'provider_id');
 
 SELECT provider, provider_id, COUNT(*) AS member_count
 FROM member_entity
@@ -147,6 +161,11 @@ HAVING COUNT(*) > 1;
 -- -----------------------------------------------------------------------------
 
 -- ALTER TABLE member_entity DROP INDEX uq_member_provider_provider_id;
+-- ALTER TABLE member_entity
+--     MODIFY COLUMN provider ENUM('APPLE', 'KAKAO')
+--         CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+--     MODIFY COLUMN provider_id VARCHAR(255)
+--         CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL;
 -- START TRANSACTION;
 -- UPDATE member_entity AS member
 -- JOIN member_provider_backup_20260905 AS backup
