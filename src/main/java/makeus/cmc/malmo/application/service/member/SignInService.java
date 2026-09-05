@@ -17,7 +17,6 @@ import makeus.cmc.malmo.domain.value.id.InviteCodeValue;
 import makeus.cmc.malmo.domain.value.id.MemberId;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,6 @@ public class SignInService implements SignInUseCase, LogOutUseCase {
     private static final int MAX_RETRY = 10;
 
     @Override
-    @Transactional
     public SignInResponse signInKakao(SignInKakaoCommand command) {
         String providerId = oauthTokenHelper.getKakaoIdTokenOrThrow(command.getIdToken());
         Provider provider = Provider.KAKAO;
@@ -69,7 +67,6 @@ public class SignInService implements SignInUseCase, LogOutUseCase {
     }
 
     @Override
-    @Transactional
     public SignInResponse signInApple(SignInAppleCommand command) {
         String providerId = oauthTokenHelper.getAppleIdTokenOrThrow(command.getIdToken());
         Provider provider = Provider.APPLE;
