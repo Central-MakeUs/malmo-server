@@ -100,7 +100,7 @@ public class CoupleQuestionIntegrationTest {
 
         other = MemberEntity.builder()
                 .provider(Provider.KAKAO)
-                .providerId("partnerProviderId")
+                .providerId("otherProviderId")
                 .memberRole(MemberRole.MEMBER)
                 .memberState(MemberState.ALIVE)
                 .email("testEmail3@test.com")
@@ -964,7 +964,7 @@ public class CoupleQuestionIntegrationTest {
             // me - partner 연결
             MemberEntity partner2 = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("partnerProviderId")
+                    .providerId("secondPartnerProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.ALIVE)
                     .email("testEmail3@test.com")

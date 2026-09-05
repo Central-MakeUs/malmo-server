@@ -184,7 +184,7 @@ public class WebSignInService implements WebSignInUseCase {
         Member newMember = memberDomainService.createMember(
                 Provider.KAKAO, identity.providerId(), identity.email(), createInviteCode(), null
         );
-        return memberCommandHelper.saveMember(newMember);
+        return memberCommandHelper.saveMemberIfAbsent(newMember);
     }
 
     private InviteCodeValue createInviteCode() {

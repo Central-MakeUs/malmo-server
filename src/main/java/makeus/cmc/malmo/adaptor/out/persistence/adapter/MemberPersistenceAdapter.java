@@ -22,10 +22,16 @@ import makeus.cmc.malmo.domain.value.type.LoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.PartnerLoveTypeCategory;
 import makeus.cmc.malmo.domain.value.type.Provider;
 import makeus.cmc.malmo.domain.value.type.RelationshipStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Component
 @RequiredArgsConstructor
@@ -37,6 +43,7 @@ public class MemberPersistenceAdapter implements
 
     private final ChatRoomRepository chatRoomRepository;
     private final CoupleQuestionRepository coupleQuestionRepository;
+    private final PlatformTransactionManager transactionManager;
 
     @Override
     public CoupleId loadCoupleIdByMemberId(MemberId memberId) {
@@ -74,6 +81,28 @@ public class MemberPersistenceAdapter implements
         MemberEntity memberEntity = memberMapper.toEntity(member);
         MemberEntity savedEntity = memberRepository.save(memberEntity);
         return memberMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public Member saveMemberIfAbsent(Member member) {
+        try {
+            return executeInNewTransaction(() -> {
+                MemberEntity memberEntity = memberMapper.toEntity(member);
+                MemberEntity savedEntity = memberRepository.saveAndFlush(memberEntity);
+                return memberMapper.toDomain(savedEntity);
+            });
+        } catch (DataIntegrityViolationException exception) {
+            return executeInNewTransaction(() -> memberRepository
+                    .findByProviderAndProviderId(member.getProvider(), member.getProviderId())
+                    .map(memberMapper::toDomain)
+                    .orElseThrow(() -> exception));
+        }
+    }
+
+    private <T> T executeInNewTransaction(Supplier<T> operation) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return Objects.requireNonNull(transactionTemplate.execute(status -> operation.get()));
     }
 
     @Override

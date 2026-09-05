@@ -23,6 +23,13 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(
+        name = "member_entity",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_member_provider_provider_id",
+                columnNames = {"provider", "provider_id"}
+        )
+)
 public class MemberEntity extends BaseTimeEntity {
 
     @Column(name = "memberId")
@@ -31,8 +38,10 @@ public class MemberEntity extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(value = EnumType.STRING)
+    @Column(nullable = false)
     private Provider provider;
 
+    @Column(nullable = false)
     private String providerId;
 
     @Enumerated(value = EnumType.STRING)

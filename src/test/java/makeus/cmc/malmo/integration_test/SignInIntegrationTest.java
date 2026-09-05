@@ -145,7 +145,10 @@ public class SignInIntegrationTest {
                     .andExpect(jsonPath("$.data.memberState").value("BEFORE_ONBOARDING"))
                     .andExpect(jsonPath("$.data.grantType").value("Bearer"));
 
-            MemberEntity memberEntity = em.createQuery("SELECT m FROM MemberEntity m WHERE m.providerId = :providerId", MemberEntity.class)
+            MemberEntity memberEntity = em.createQuery(
+                            "SELECT m FROM MemberEntity m WHERE m.provider = :provider AND m.providerId = :providerId",
+                            MemberEntity.class)
+                    .setParameter("provider", Provider.KAKAO)
                     .setParameter("providerId", providerId)
                     .getSingleResult();
 
@@ -161,18 +164,20 @@ public class SignInIntegrationTest {
             // given
             String idToken = "valid-id-token";
             String accessToken = "valid-access-token";
-            String originalProviderId = kakaoMember.getProviderId();
+            String originalProviderId = "deleted-kakao-provider-id";
             given(kakaoOidcAdapter.validateToken(idToken)).willReturn(originalProviderId);
             given(kakaoRestApiAdaptor.fetchMemberEmailFromKakao(accessToken)).willReturn("testEmail@test.com");
 
-            em.createQuery("UPDATE MemberEntity m SET m.memberState = :state, " +
-                            "m.deletedAt = :deletedAt, " +
-                            "m.providerId = :providerId WHERE m.id = :memberId")
-                    .setParameter("state", MemberState.DELETED)
-                    .setParameter("deletedAt", LocalDateTime.now())
-                    .setParameter("providerId", kakaoMember.getProviderId() + "_deleted")
-                    .setParameter("memberId", kakaoMember.getId())
-                    .executeUpdate();
+            MemberEntity deletedMember = MemberEntity.builder()
+                    .provider(Provider.KAKAO)
+                    .providerId(originalProviderId + "_deleted_member_test")
+                    .memberRole(MemberRole.MEMBER)
+                    .memberState(MemberState.DELETED)
+                    .email("testEmail@test.com")
+                    .inviteCodeEntityValue(InviteCodeEntityValue.of("deletedInviteCode"))
+                    .build();
+            em.persist(deletedMember);
+            em.flush();
 
             // when & then
             mockMvc.perform(post("/login/kakao")
@@ -186,13 +191,16 @@ public class SignInIntegrationTest {
                     .andExpect(jsonPath("$.data.memberState").value("BEFORE_ONBOARDING"))
                     .andExpect(jsonPath("$.data.grantType").value("Bearer"));
 
-            MemberEntity newMember = em.createQuery("SELECT m FROM MemberEntity m WHERE m.providerId = :providerId", MemberEntity.class)
+            MemberEntity newMember = em.createQuery(
+                            "SELECT m FROM MemberEntity m WHERE m.provider = :provider AND m.providerId = :providerId",
+                            MemberEntity.class)
+                    .setParameter("provider", Provider.KAKAO)
                     .setParameter("providerId", originalProviderId)
                     .getSingleResult();
 
             Assertions.assertThat(newMember.getMemberState()).isEqualTo(MemberState.BEFORE_ONBOARDING);
             Assertions.assertThat(newMember.getDeletedAt()).isNull();
-            Assertions.assertThat(newMember.getId()).isNotEqualTo(kakaoMember.getId());
+            Assertions.assertThat(newMember.getId()).isNotEqualTo(deletedMember.getId());
         }
     }
 
@@ -245,7 +253,10 @@ public class SignInIntegrationTest {
                     .andExpect(jsonPath("$.data.memberState").value("BEFORE_ONBOARDING"))
                     .andExpect(jsonPath("$.data.grantType").value("Bearer"));
 
-            MemberEntity memberEntity = em.createQuery("SELECT m FROM MemberEntity m WHERE m.providerId = :providerId", MemberEntity.class)
+            MemberEntity memberEntity = em.createQuery(
+                            "SELECT m FROM MemberEntity m WHERE m.provider = :provider AND m.providerId = :providerId",
+                            MemberEntity.class)
+                    .setParameter("provider", Provider.APPLE)
                     .setParameter("providerId", providerId)
                     .getSingleResult();
 

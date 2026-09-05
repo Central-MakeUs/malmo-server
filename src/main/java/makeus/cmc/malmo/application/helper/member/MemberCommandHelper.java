@@ -14,4 +14,8 @@ public class MemberCommandHelper {
     public Member saveMember(Member member) {
         return saveMemberPort.saveMember(member);
     }
+
+    public Member saveMemberIfAbsent(Member member) {
+        return saveMemberPort.saveMemberIfAbsent(member);
+    }
 }

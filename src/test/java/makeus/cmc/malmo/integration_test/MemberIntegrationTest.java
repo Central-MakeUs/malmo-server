@@ -123,7 +123,7 @@ public class MemberIntegrationTest {
             // 미가입 상태의 멤버 생성 (OAuth 인증만 완료)
             member = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("testProviderId")
+                    .providerId("signUpV2ProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.BEFORE_ONBOARDING)
                     .email("test@test.com")
@@ -181,7 +181,7 @@ public class MemberIntegrationTest {
             // 회원1 생성 (회원가입 완료)
             member = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("testProviderId")
+                    .providerId("coupleLinkProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.ALIVE)
                     .nickname("테스트유저1")
@@ -254,7 +254,7 @@ public class MemberIntegrationTest {
             // 커플 회원1
             member = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("testProviderId")
+                    .providerId("updateStartLoveDateProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.ALIVE)
                     .nickname("테스트유저1")
@@ -408,7 +408,7 @@ public class MemberIntegrationTest {
             // 커플 회원1
             member = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("testProviderId")
+                    .providerId("getMemberInfoProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.ALIVE)
                     .nickname("테스트유저1")
@@ -756,7 +756,8 @@ public class MemberIntegrationTest {
             // then
             MemberEntity deletedMember = em.find(MemberEntity.class, member.getId());
             Assertions.assertThat(deletedMember.getMemberState()).isEqualTo(MemberState.DELETED);
-            Assertions.assertThat(deletedMember.getProviderId()).isEqualTo("testProviderId_deleted");
+            Assertions.assertThat(deletedMember.getProviderId())
+                    .isEqualTo("testProviderId_deleted_member_" + deletedMember.getId());
             verify(kakaoUnlinkAdapter, times(1)).unlink("testProviderId");
         }
 

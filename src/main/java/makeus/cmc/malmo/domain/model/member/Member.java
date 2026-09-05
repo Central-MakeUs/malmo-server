@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 public class Member {
+    private static final String DELETED_PROVIDER_ID_MARKER = "_deleted_member_";
+
     private Long id;
     private Provider provider;
     private String providerId;
@@ -221,7 +223,7 @@ public class Member {
     public void delete() {
         this.memberState = MemberState.DELETED;
         this.deletedAt = LocalDateTime.now();
-        this.providerId = this.providerId + "_deleted";
+        this.providerId = this.providerId + DELETED_PROVIDER_ID_MARKER + this.id;
     }
 
     public boolean hasSameRefreshToken(String refreshToken) {

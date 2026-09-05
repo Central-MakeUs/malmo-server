@@ -109,7 +109,7 @@ public class SignInService implements SignInUseCase, LogOutUseCase {
         // 초대 코드 생성
         InviteCodeValue inviteCode = createInviteCode();
         Member newMember = memberDomainService.createMember(provider, providerId, email, inviteCode, oauthToken);
-        return memberCommandHelper.saveMember(newMember);
+        return memberCommandHelper.saveMemberIfAbsent(newMember);
     }
 
     private SignInResponse buildSignInResponse(Member member, TokenInfo tokenInfo) {

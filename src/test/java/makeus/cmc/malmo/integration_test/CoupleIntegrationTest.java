@@ -89,7 +89,7 @@ public class CoupleIntegrationTest {
 
         other = MemberEntity.builder()
                 .provider(Provider.KAKAO)
-                .providerId("partnerProviderId")
+                .providerId("otherProviderId")
                 .memberRole(MemberRole.MEMBER)
                 .memberState(MemberState.ALIVE)
                 .email("testEmail3@test.com")
@@ -365,7 +365,7 @@ public class CoupleIntegrationTest {
             // given
             MemberEntity deletedPartner = MemberEntity.builder()
                     .provider(Provider.KAKAO)
-                    .providerId("partnerProviderId")
+                    .providerId("deletedPartnerProviderId")
                     .memberRole(MemberRole.MEMBER)
                     .memberState(MemberState.DELETED)
                     .email("testEmail2@test.com")
